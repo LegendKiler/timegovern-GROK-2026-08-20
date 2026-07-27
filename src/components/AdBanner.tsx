@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { ExternalLink, Info, EyeOff, Zap } from 'lucide-react';
 
 interface AdBannerProps {
-  type: 'leaderboard' | 'skyscraper-left' | 'skyscraper-right' | 'in-feed' | 'rectangle';
+  type: 'leaderboard' | 'skyscraper-left' | 'skyscraper-right' | 'in-feed' | 'rectangle' | 'anchor-bottom';
   className?: string;
 }
 
@@ -52,6 +52,14 @@ export const AdBanner: React.FC<AdBannerProps> = ({ type, className = '' }) => {
       bg: 'from-cyan-950/40 to-slate-900',
       border: 'border-cyan-500/30',
       tag: 'Medium Rectangle 300x250',
+    },
+    'anchor-bottom': {
+      sponsor: 'Global Time API Pro',
+      title: 'Sync IANA Timezones & Daylight Saving Rules in Your Web Apps',
+      cta: 'Get Free API Key',
+      bg: 'from-[#0d1527] to-[#070b14]',
+      border: 'border-cyan-500/40',
+      tag: 'Sticky Mobile & Desktop Anchor Ad (728x90)',
     },
   };
 
@@ -156,6 +164,41 @@ export const AdBanner: React.FC<AdBannerProps> = ({ type, className = '' }) => {
             <span>{ad.cta}</span>
             <ExternalLink className="w-3 h-3" />
           </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (type === 'anchor-bottom') {
+    return (
+      <div className={`fixed bottom-0 left-0 right-0 z-50 bg-gradient-to-r ${ad.bg} border-t ${ad.border} shadow-2xl p-2.5 backdrop-blur-lg ${className}`}>
+        <div className="max-w-6xl mx-auto flex items-center justify-between gap-3 text-xs">
+          <div className="flex items-center gap-3">
+            <span className="text-[8px] bg-slate-800 text-slate-400 font-mono px-1.5 py-0.5 rounded uppercase font-bold shrink-0">
+              AdSense Anchor
+            </span>
+            <div className="hidden sm:block">
+              <span className="font-bold text-cyan-400 mr-2">{ad.sponsor}</span>
+              <span className="text-slate-300 text-xs font-medium">{ad.title}</span>
+            </div>
+            <div className="sm:hidden text-xs text-slate-200 font-medium line-clamp-1">
+              {ad.title}
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            <button className="bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold px-3 py-1 rounded text-xs transition-colors flex items-center gap-1 cursor-pointer">
+              <span>{ad.cta}</span>
+              <ExternalLink className="w-3 h-3" />
+            </button>
+            <button
+              onClick={() => setIsDismissed(true)}
+              className="text-slate-400 hover:text-white p-1"
+              title="Close anchor ad"
+            >
+              <EyeOff className="w-3.5 h-3.5" />
+            </button>
+          </div>
         </div>
       </div>
     );

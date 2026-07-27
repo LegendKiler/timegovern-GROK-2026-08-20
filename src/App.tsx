@@ -168,6 +168,9 @@ export default function App() {
         isOpen={isAccountModalOpen}
         onClose={() => setIsAccountModalOpen(false)}
       />
+
+      {/* Bottom Sticky Anchor Ad Slot */}
+      {showAds && <AdBanner type="anchor-bottom" />}
     </div>
   );
 }
