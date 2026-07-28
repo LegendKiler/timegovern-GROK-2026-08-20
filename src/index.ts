@@ -20,12 +20,12 @@ export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
 
-    // 1. CORS Preflight Handling
+    // 1. Preflight CORS
     if (request.method === 'OPTIONS') {
       return new Response(null, { headers: corsHeaders });
     }
 
-    // 2. Automated DB Seeder Endpoint (/api/admin/seed-db)
+    // 2. Database Seeding API route (/api/admin/seed-db)
     if (url.pathname === '/api/admin/seed-db' || url.pathname === '/api/admin/seed-db/') {
       if (request.method === 'POST' || request.method === 'GET') {
         const res = await handleSeedDb(env);
@@ -41,7 +41,7 @@ export default {
       );
     }
 
-    // 3. Sub-millisecond Search API Endpoint (/api/search)
+    // 3. Search API route (/api/search)
     if (url.pathname === '/api/search' || url.pathname === '/api/search/') {
       const res = await handleSearch(request, env);
       const body = await res.text();
@@ -54,7 +54,7 @@ export default {
       });
     }
 
-    // 4. Edge Health Check Endpoint (/api/health)
+    // 4. Health Check API route (/api/health)
     if (url.pathname === '/api/health' || url.pathname === '/api/health/') {
       return new Response(
         JSON.stringify({
@@ -63,18 +63,23 @@ export default {
           env: 'Cloudflare D1 Workers',
           timestamp: new Date().toISOString(),
         }),
-        {
-          status: 200,
-          headers: corsHeaders,
-        }
+        { status: 200, headers: corsHeaders }
       );
     }
 
-    // 5. Fallback for Static Assets (Vite App)
+    // 5. Unmatched API routes fallback
+    if (url.pathname.startsWith('/api/')) {
+      return new Response(
+        JSON.stringify({ error: 'API route not found', path: url.pathname }),
+        { status: 404, headers: corsHeaders }
+      );
+    }
+
+    // 6. Fallback to static assets
     if (env.ASSETS) {
       return env.ASSETS.fetch(request);
     }
 
-    return new Response('TimeGovern Worker Ready', { status: 200, headers: corsHeaders });
+    return new Response('TimeGovern Worker Edge Ready', { status: 200, headers: corsHeaders });
   },
 };
