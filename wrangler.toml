@@ -1,9 +1,11 @@
 name = "timegovern-website"
-main = "src/worker.ts"
-compatibility_date = "2026-07-28"
+main = "src/index.ts"
+compatibility_date = "2026-03-01"
 compatibility_flags = ["nodejs_compat"]
 
-assets = { directory = "./dist" }
+[assets]
+directory = "./dist"
+binding = "ASSETS"
 
 [[d1_databases]]
 binding = "DB"
