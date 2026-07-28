@@ -92,26 +92,26 @@ export const WorldClockPillar: React.FC<WorldClockPillarProps> = ({ selectedCity
   return (
     <div className="space-y-6">
       {/* Pillar Header / Sub-tabs */}
-      <div className="bg-[#0b101f] border border-slate-800 rounded-2xl p-5 shadow-xl">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800/80 pb-4">
+      <div className="bg-white dark:bg-[#0b101f] border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm dark:shadow-xl text-slate-800 dark:text-slate-100">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800/80 pb-4">
           <div>
-            <h1 className="text-2xl font-extrabold text-white font-display flex items-center gap-2.5">
-              <Clock className="w-6 h-6 text-cyan-400" />
+            <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white font-display flex items-center gap-2.5">
+              <Clock className="w-6 h-6 text-blue-600 dark:text-cyan-400" />
               1. World Clock & Global Time Zone Hub
             </h1>
-            <p className="text-xs text-slate-400 mt-1">
+            <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
               Real-time second-by-second updates for 5,000+ cities, DST shift calculators & meeting planner.
             </p>
           </div>
 
           {/* Sub Navigation */}
-          <div className="flex items-center gap-1 bg-[#070b14] p-1.5 rounded-xl border border-slate-800 text-xs font-semibold">
+          <div className="flex items-center gap-1 bg-slate-100 dark:bg-[#070b14] p-1.5 rounded-xl border border-slate-200 dark:border-slate-800 text-xs font-semibold">
             <button
               onClick={() => setSubTab('clock')}
               className={`px-3.5 py-2 rounded-lg transition-all cursor-pointer ${
                 subTab === 'clock'
-                  ? 'bg-cyan-500 text-slate-950 font-bold shadow-md shadow-cyan-500/20'
-                  : 'text-slate-300 hover:text-white hover:bg-slate-800/50'
+                  ? 'bg-blue-600 dark:bg-cyan-500 text-white dark:text-slate-950 font-bold shadow-md'
+                  : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-slate-800/50'
               }`}
             >
               World Clock
@@ -120,8 +120,8 @@ export const WorldClockPillar: React.FC<WorldClockPillarProps> = ({ selectedCity
               onClick={() => setSubTab('converter')}
               className={`px-3.5 py-2 rounded-lg transition-all cursor-pointer ${
                 subTab === 'converter'
-                  ? 'bg-cyan-500 text-slate-950 font-bold shadow-md shadow-cyan-500/20'
-                  : 'text-slate-300 hover:text-white hover:bg-slate-800/50'
+                  ? 'bg-blue-600 dark:bg-cyan-500 text-white dark:text-slate-950 font-bold shadow-md'
+                  : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-slate-800/50'
               }`}
             >
               Meeting Planner & DST
@@ -130,8 +130,8 @@ export const WorldClockPillar: React.FC<WorldClockPillarProps> = ({ selectedCity
               onClick={() => setSubTab('map')}
               className={`px-3.5 py-2 rounded-lg transition-all cursor-pointer ${
                 subTab === 'map'
-                  ? 'bg-cyan-500 text-slate-950 font-bold shadow-md shadow-cyan-500/20'
-                  : 'text-slate-300 hover:text-white hover:bg-slate-800/50'
+                  ? 'bg-blue-600 dark:bg-cyan-500 text-white dark:text-slate-950 font-bold shadow-md'
+                  : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-slate-800/50'
               }`}
             >
               Time Zone Map
@@ -140,8 +140,8 @@ export const WorldClockPillar: React.FC<WorldClockPillarProps> = ({ selectedCity
               onClick={() => setSubTab('announcer')}
               className={`px-3.5 py-2 rounded-lg transition-all cursor-pointer ${
                 subTab === 'announcer'
-                  ? 'bg-cyan-500 text-slate-950 font-bold shadow-md shadow-cyan-500/20'
-                  : 'text-slate-300 hover:text-white hover:bg-slate-800/50'
+                  ? 'bg-blue-600 dark:bg-cyan-500 text-white dark:text-slate-950 font-bold shadow-md'
+                  : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-slate-800/50'
               }`}
             >
               Event Announcer
