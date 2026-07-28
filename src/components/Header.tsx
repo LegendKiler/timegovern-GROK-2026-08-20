@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Clock, Calendar, Sun, Moon, CloudRain, Timer, Search, Globe, Database, ShieldCheck, Zap, QrCode, User, Activity, Code, Layers } from 'lucide-react';
+import { Clock, Calendar, Sun, Moon, CloudRain, Timer, Search, Globe, Database, ShieldCheck, Zap, QrCode, User, Activity, Code, Layers, Newspaper, Calculator } from 'lucide-react';
 import { MAJOR_CITIES, searchCities } from '../lib/citiesData';
 import { City } from '../types';
 
@@ -189,135 +189,147 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
       </div>
 
-      {/* Navigation Bar across 8 Pillars */}
-      <nav className={isDarkMode ? 'bg-[#0b101f]/95 border-t border-slate-800' : 'bg-white border-t border-slate-200 text-slate-800 shadow-sm'}>
+      {/* Navigation Bar across 10 Pillars */}
+      <nav className={isDarkMode ? 'bg-[#0b101f]/95 border-t border-slate-800' : 'bg-slate-800 text-white shadow-md'}>
         <div className="max-w-[1920px] mx-auto px-4 sm:px-6 flex items-center overflow-x-auto no-scrollbar text-xs font-semibold">
           <button
+            onClick={() => setActivePillar(9)}
+            className={`flex items-center gap-2 px-4 py-3 border-b-2 transition-all whitespace-nowrap cursor-pointer ${
+              activePillar === 9
+                ? isDarkMode
+                  ? 'border-cyan-400 text-cyan-300 bg-cyan-950/30 font-bold'
+                  : 'border-cyan-400 text-cyan-300 bg-slate-700 font-bold'
+                : 'border-transparent text-slate-300 hover:text-white hover:bg-slate-700/50'
+            }`}
+          >
+            <Newspaper className="w-4 h-4 text-cyan-400" />
+            <span>News & Articles</span>
+          </button>
+
+          <button
             onClick={() => setActivePillar(1)}
-            className={`flex items-center gap-2 px-4 py-3.5 border-b-2 transition-all whitespace-nowrap cursor-pointer ${
+            className={`flex items-center gap-2 px-4 py-3 border-b-2 transition-all whitespace-nowrap cursor-pointer ${
               activePillar === 1
                 ? isDarkMode
                   ? 'border-cyan-400 text-cyan-300 bg-cyan-950/30 font-bold'
-                  : 'border-blue-600 text-blue-700 bg-blue-50/80 font-bold'
-                : isDarkMode
-                ? 'border-transparent text-slate-300 hover:text-white hover:bg-slate-800/40'
-                : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                  : 'border-cyan-400 text-cyan-300 bg-slate-700 font-bold'
+                : 'border-transparent text-slate-300 hover:text-white hover:bg-slate-700/50'
             }`}
           >
-            <Clock className={`w-4 h-4 ${isDarkMode ? 'text-cyan-400' : 'text-blue-600'}`} />
-            <span>World Clock & Time Zones</span>
+            <Clock className="w-4 h-4 text-cyan-400" />
+            <span>World Clock & Regions</span>
           </button>
 
           <button
             onClick={() => setActivePillar(2)}
-            className={`flex items-center gap-2 px-4 py-3.5 border-b-2 transition-all whitespace-nowrap cursor-pointer ${
+            className={`flex items-center gap-2 px-4 py-3 border-b-2 transition-all whitespace-nowrap cursor-pointer ${
               activePillar === 2
                 ? isDarkMode
                   ? 'border-cyan-400 text-cyan-300 bg-cyan-950/30 font-bold'
-                  : 'border-blue-600 text-blue-700 bg-blue-50/80 font-bold'
-                : isDarkMode
-                ? 'border-transparent text-slate-300 hover:text-white hover:bg-slate-800/40'
-                : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                  : 'border-cyan-400 text-cyan-300 bg-slate-700 font-bold'
+                : 'border-transparent text-slate-300 hover:text-white hover:bg-slate-700/50'
             }`}
           >
-            <Calendar className={`w-4 h-4 ${isDarkMode ? 'text-indigo-400' : 'text-indigo-600'}`} />
-            <span>Calendars & Date Math</span>
-          </button>
-
-          <button
-            onClick={() => setActivePillar(3)}
-            className={`flex items-center gap-2 px-4 py-3.5 border-b-2 transition-all whitespace-nowrap cursor-pointer ${
-              activePillar === 3
-                ? isDarkMode
-                  ? 'border-cyan-400 text-cyan-300 bg-cyan-950/30 font-bold'
-                  : 'border-blue-600 text-blue-700 bg-blue-50/80 font-bold'
-                : isDarkMode
-                ? 'border-transparent text-slate-300 hover:text-white hover:bg-slate-800/40'
-                : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-            }`}
-          >
-            <Sun className={`w-4 h-4 ${isDarkMode ? 'text-amber-400' : 'text-amber-600'}`} />
-            <span>Sun, Moon & Astronomy</span>
+            <Calendar className="w-4 h-4 text-indigo-400" />
+            <span>Calendar</span>
           </button>
 
           <button
             onClick={() => setActivePillar(4)}
-            className={`flex items-center gap-2 px-4 py-3.5 border-b-2 transition-all whitespace-nowrap cursor-pointer ${
+            className={`flex items-center gap-2 px-4 py-3 border-b-2 transition-all whitespace-nowrap cursor-pointer ${
               activePillar === 4
                 ? isDarkMode
                   ? 'border-cyan-400 text-cyan-300 bg-cyan-950/30 font-bold'
-                  : 'border-blue-600 text-blue-700 bg-blue-50/80 font-bold'
-                : isDarkMode
-                ? 'border-transparent text-slate-300 hover:text-white hover:bg-slate-800/40'
-                : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                  : 'border-cyan-400 text-cyan-300 bg-slate-700 font-bold'
+                : 'border-transparent text-slate-300 hover:text-white hover:bg-slate-700/50'
             }`}
           >
-            <CloudRain className={`w-4 h-4 ${isDarkMode ? 'text-sky-400' : 'text-sky-600'}`} />
-            <span>Weather & Environment</span>
+            <CloudRain className="w-4 h-4 text-sky-400" />
+            <span>Weather</span>
+          </button>
+
+          <button
+            onClick={() => setActivePillar(3)}
+            className={`flex items-center gap-2 px-4 py-3 border-b-2 transition-all whitespace-nowrap cursor-pointer ${
+              activePillar === 3
+                ? isDarkMode
+                  ? 'border-cyan-400 text-cyan-300 bg-cyan-950/30 font-bold'
+                  : 'border-cyan-400 text-cyan-300 bg-slate-700 font-bold'
+                : 'border-transparent text-slate-300 hover:text-white hover:bg-slate-700/50'
+            }`}
+          >
+            <Sun className="w-4 h-4 text-amber-400" />
+            <span>Sun, Moon & Space</span>
           </button>
 
           <button
             onClick={() => setActivePillar(5)}
-            className={`flex items-center gap-2 px-4 py-3.5 border-b-2 transition-all whitespace-nowrap cursor-pointer ${
+            className={`flex items-center gap-2 px-4 py-3 border-b-2 transition-all whitespace-nowrap cursor-pointer ${
               activePillar === 5
                 ? isDarkMode
                   ? 'border-cyan-400 text-cyan-300 bg-cyan-950/30 font-bold'
-                  : 'border-blue-600 text-blue-700 bg-blue-50/80 font-bold'
-                : isDarkMode
-                ? 'border-transparent text-slate-300 hover:text-white hover:bg-slate-800/40'
-                : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                  : 'border-cyan-400 text-cyan-300 bg-slate-700 font-bold'
+                : 'border-transparent text-slate-300 hover:text-white hover:bg-slate-700/50'
             }`}
           >
-            <Timer className={`w-4 h-4 ${isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}`} />
-            <span>Timers, Alarms & Stopwatch</span>
+            <Timer className="w-4 h-4 text-emerald-400" />
+            <span>Timers</span>
+          </button>
+
+          <button
+            onClick={() => setActivePillar(10)}
+            className={`flex items-center gap-2 px-4 py-3 border-b-2 transition-all whitespace-nowrap cursor-pointer ${
+              activePillar === 10
+                ? isDarkMode
+                  ? 'border-cyan-400 text-cyan-300 bg-cyan-950/30 font-bold'
+                  : 'border-cyan-400 text-cyan-300 bg-slate-700 font-bold'
+                : 'border-transparent text-slate-300 hover:text-white hover:bg-slate-700/50'
+            }`}
+          >
+            <Calculator className="w-4 h-4 text-rose-400" />
+            <span>Calculators</span>
           </button>
 
           <button
             onClick={() => setActivePillar(6)}
-            className={`flex items-center gap-2 px-4 py-3.5 border-b-2 transition-all whitespace-nowrap cursor-pointer ${
+            className={`flex items-center gap-2 px-4 py-3 border-b-2 transition-all whitespace-nowrap cursor-pointer ${
               activePillar === 6
                 ? isDarkMode
                   ? 'border-cyan-400 text-cyan-300 bg-cyan-950/30 font-bold'
-                  : 'border-blue-600 text-blue-700 bg-blue-50/80 font-bold'
-                : isDarkMode
-                ? 'border-transparent text-slate-300 hover:text-white hover:bg-slate-800/40'
-                : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                  : 'border-cyan-400 text-cyan-300 bg-slate-700 font-bold'
+                : 'border-transparent text-slate-300 hover:text-white hover:bg-slate-700/50'
             }`}
           >
-            <Activity className={`w-4 h-4 ${isDarkMode ? 'text-rose-400' : 'text-rose-600'}`} />
-            <span>Live Tickers (Worldometers)</span>
+            <Activity className="w-4 h-4 text-rose-400" />
+            <span>Live Tickers</span>
           </button>
 
           <button
             onClick={() => setActivePillar(7)}
-            className={`flex items-center gap-2 px-4 py-3.5 border-b-2 transition-all whitespace-nowrap cursor-pointer ${
+            className={`flex items-center gap-2 px-4 py-3 border-b-2 transition-all whitespace-nowrap cursor-pointer ${
               activePillar === 7
                 ? isDarkMode
                   ? 'border-cyan-400 text-cyan-300 bg-cyan-950/30 font-bold'
-                  : 'border-blue-600 text-blue-700 bg-blue-50/80 font-bold'
-                : isDarkMode
-                ? 'border-transparent text-slate-300 hover:text-white hover:bg-slate-800/40'
-                : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                  : 'border-cyan-400 text-cyan-300 bg-slate-700 font-bold'
+                : 'border-transparent text-slate-300 hover:text-white hover:bg-slate-700/50'
             }`}
           >
-            <Code className={`w-4 h-4 ${isDarkMode ? 'text-teal-400' : 'text-teal-600'}`} />
-            <span>Embed Web Widgets</span>
+            <Code className="w-4 h-4 text-teal-400" />
+            <span>Embed Widgets</span>
           </button>
 
           <button
             onClick={() => setActivePillar(8)}
-            className={`flex items-center gap-2 px-4 py-3.5 border-b-2 transition-all whitespace-nowrap cursor-pointer ${
+            className={`flex items-center gap-2 px-4 py-3 border-b-2 transition-all whitespace-nowrap cursor-pointer ${
               activePillar === 8
                 ? isDarkMode
                   ? 'border-cyan-400 text-cyan-300 bg-cyan-950/30 font-bold'
-                  : 'border-blue-600 text-blue-700 bg-blue-50/80 font-bold'
-                : isDarkMode
-                ? 'border-transparent text-slate-300 hover:text-white hover:bg-slate-800/40'
-                : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                  : 'border-cyan-400 text-cyan-300 bg-slate-700 font-bold'
+                : 'border-transparent text-slate-300 hover:text-white hover:bg-slate-700/50'
             }`}
           >
-            <Layers className={`w-4 h-4 ${isDarkMode ? 'text-purple-400' : 'text-purple-600'}`} />
-            <span>Enterprise Services & API</span>
+            <Layers className="w-4 h-4 text-purple-400" />
+            <span>API & Dev Portal</span>
           </button>
         </div>
       </nav>
