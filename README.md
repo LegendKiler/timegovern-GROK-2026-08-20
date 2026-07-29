@@ -16,7 +16,7 @@ This repository is pre-configured with **Automated CI/CD Deployment** via **GitH
 
 1. **Automatic Build Step**: When code is pushed or merged into `main`/`master`, `npm run build` executes:
    - **Vite** bundles the React frontend into `./dist`
-   - **esbuild** bundles the Cloudflare Worker backend (`src/index.ts`) into `./dist/_worker.js`
+   - **esbuild** bundles the Cloudflare Worker backend (`src/index.ts`) into `./dist/worker.js`
 2. **Automatic Cloudflare Deployment**: The `.github/workflows/deploy.yml` workflow runs `cloudflare/wrangler-action` and deploys both static frontend assets and edge API endpoints straight to Cloudflare's global edge network.
 
 ---
