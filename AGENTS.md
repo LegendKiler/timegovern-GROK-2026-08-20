@@ -14,7 +14,7 @@ This repository contains the full-stack web application for **TimeGovern**, runn
    - Always retain `/api/*` handlers in `src/index.ts`.
    - Never bypass or overwrite the fallback to static assets (`env.ASSETS.fetch(request)`).
 2. **Build Scripts**:
-   - Ensure `package.json` contains: `"build": "vite build && esbuild src/index.ts --bundle --outfile=dist/_worker.js --format=esm --target=es2022 --external:node:*"`
+   - Ensure `package.json` contains: `"build": "vite build && esbuild src/index.ts --bundle --outfile=dist/_worker.js --format=esm --target=es2022 --external:node:* && node -e \"import('node:fs').then(f => f.writeFileSync('dist/.assetsignore', '_worker.js\\n'))\""`
 3. **Database Operations**:
    - Query Cloudflare D1 using parameterized SQL statements (`env.DB.prepare(...)`).
 4. **Code Quality**:
