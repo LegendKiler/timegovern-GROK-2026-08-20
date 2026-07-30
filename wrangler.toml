@@ -7,11 +7,14 @@ compatibility_flags = ["nodejs_compat"]
 directory = "./dist"
 binding = "ASSETS"
 
-[[d1_databases]]
-binding = "DB"
-database_name = "zoneshift-db"
-database_id = "00000000-0000-0000-0000-000000000000"
-migrations_dir = "migrations"
+# To enable Cloudflare D1 Database:
+# 1. Run in terminal: npx wrangler d1 create zoneshift-db
+# 2. Paste the generated database_id below and uncomment these lines:
+# [[d1_databases]]
+# binding = "DB"
+# database_name = "zoneshift-db"
+# database_id = "YOUR_D1_DATABASE_ID_HERE"
+# migrations_dir = "migrations"
 
 [vars]
 ENVIRONMENT = "production"
