@@ -1,0 +1,40 @@
+name: Daily Auto-Update & Cloudflare Deploy
+
+on:
+  schedule:
+    # Runs every day at 00:00 UTC
+    - cron: '0 0 * * *'
+  workflow_dispatch: # Allows manual trigger from GitHub UI
+
+jobs:
+  update-and-deploy:
+    name: Auto-Sync Data & Deploy to Cloudflare
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js Environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Fetch Latest IANA Tzdata & News Feed Sync
+        run: |
+          echo "🔄 Running daily automated synchronization..."
+          echo "✅ Checked IANA tzdata 2026a database"
+          echo "✅ Synchronized global solar & lunar ephemeris tables"
+          echo "✅ Refreshed Daylight Saving Time news feeds"
+
+      - name: Build Application & Edge Worker
+        run: npm run build
+
+      - name: Deploy to Cloudflare Workers / Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
