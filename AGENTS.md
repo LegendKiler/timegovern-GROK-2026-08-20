@@ -6,15 +6,15 @@ This repository contains the full-stack web application for **TimeGovern**, runn
 - **Backend Edge API**: `src/index.ts` handles API routes (`/api/admin/seed-db`, `/api/search`, `/api/health`).
 - **Frontend SPA**: React app built with Vite and Tailwind CSS located in `src/`.
 - **Database**: Cloudflare D1 relational database bound as `env.DB`.
-- **Build Output**: `npm run build` runs `vite build` (frontend to `dist/`) AND `esbuild` (bundling `src/index.ts` to `dist/worker.js`).
-- **Deployment Config**: `wrangler.toml` specifies `main = "dist/worker.js"` and `[assets] directory = "./dist"`.
+- **Build Output**: `npm run build` runs `vite build` (frontend to `dist/`) AND `esbuild` (bundling `src/index.ts` to `dist-worker/index.js`).
+- **Deployment Config**: `wrangler.toml` specifies `main = "dist-worker/index.js"` and `[assets] directory = "./dist"`.
 
 ## Development Rules for AI Agents
 1. **API & Static Routing Integrity**:
    - Always retain `/api/*` handlers in `src/index.ts`.
    - Never bypass or overwrite the fallback to static assets (`env.ASSETS.fetch(request)`).
 2. **Build Scripts**:
-   - Ensure `package.json` contains: `"build": "vite build && esbuild src/index.ts --bundle --outfile=dist/worker.js --format=esm --target=es2022 --external:node:*"`
+   - Ensure `package.json` contains: `"build": "vite build && esbuild src/index.ts --bundle --outfile=dist-worker/index.js --format=esm --target=es2022 --external:node:* && node -e \"import('node:fs').then(f => f.writeFileSync('dist/.assetsignore', '_worker.js\\nworker.js\\n'))\""`
 3. **Database Operations**:
    - Query Cloudflare D1 using parameterized SQL statements (`env.DB.prepare(...)`).
 4. **Code Quality**:
