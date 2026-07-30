@@ -1,7 +1,7 @@
 import { D1Database } from '@cloudflare/workers-types';
 
 export interface Env {
-  DB: D1Database;
+  DB?: D1Database;
 }
 
 export async function handleSearch(request: Request, env: Env): Promise<Response> {

@@ -1,7 +1,7 @@
 import { D1Database } from '@cloudflare/workers-types';
 
 export interface Env {
-  DB: D1Database;
+  DB?: D1Database;
 }
 
 // Global seed dataset for 195+ countries across all continents
@@ -100,6 +100,16 @@ const EMBEDDED_CITIES = [
 ];
 
 export async function handleSeedDb(env: Env): Promise<Response> {
+  if (!env.DB) {
+    return new Response(
+      JSON.stringify({
+        status: 'notice',
+        message: 'Cloudflare D1 binding "DB" is not attached in wrangler.toml or Cloudflare dashboard. Please create a D1 database and bind it as "DB" to execute live SQL seeding.'
+      }),
+      { status: 200, headers: { 'Content-Type': 'application/json' } }
+    );
+  }
+
   const startTime = Date.now();
   let countriesImported = 0;
   let citiesImported = 0;

@@ -3,7 +3,7 @@ import { handleSeedDb } from './api/admin/seed-db';
 import { handleSearch } from './api/search';
 
 export interface Env {
-  DB: D1Database;
+  DB?: D1Database;
   ASSETS?: {
     fetch: (request: Request) => Promise<Response>;
   };
