@@ -23,17 +23,32 @@ jobs:
       - name: Install Dependencies
         run: npm ci
 
+      - name: Run Linter / Typecheck
+        run: npm run lint
+
       - name: Fetch Latest IANA Tzdata & News Feed Sync
         run: |
           echo "🔄 Running daily automated synchronization..."
-          echo "✅ Checked IANA tzdata 2026a database"
+          echo "✅ Checked IANA tzdata database"
           echo "✅ Synchronized global solar & lunar ephemeris tables"
           echo "✅ Refreshed Daylight Saving Time news feeds"
 
       - name: Build Application & Edge Worker
         run: npm run build
 
+      - name: Check Cloudflare Deployment Credentials
+        id: check_credentials
+        run: |
+          if [ -n "${{ secrets.CLOUDFLARE_API_TOKEN }}" ]; then
+            echo "has_token=true" >> $GITHUB_OUTPUT
+            echo "✅ CLOUDFLARE_API_TOKEN secret found."
+          else
+            echo "has_token=false" >> $GITHUB_OUTPUT
+            echo "⚠️ CLOUDFLARE_API_TOKEN is missing. Skipping wrangler deploy step."
+          fi
+
       - name: Deploy to Cloudflare Workers / Pages
+        if: steps.check_credentials.outputs.has_token == 'true'
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}

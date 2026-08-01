@@ -1,29 +1,52 @@
 # TimeGovern — Cloudflare Workers & React Application
 
-A full-stack web application built with **React**, **Vite**, **Tailwind CSS**, and **Cloudflare Workers** backed by **Cloudflare D1 Database** (`zoneshift-db`).
+A high-precision global time, timezone, astronomical ephemeris, and temporal intelligence application built with **React**, **Vite**, **Tailwind CSS v4**, and **Cloudflare Workers** backed by an optional **Cloudflare D1 Database** (`zoneshift-db`).
 
 ---
 
-## 🚀 Fully Automated CI/CD Deployment Pipeline
+## 🚀 Automated CI/CD Deployment Pipeline
 
-This repository is pre-configured with **Automated CI/CD Deployment** via **GitHub Actions** and **Cloudflare Workers / Pages**.
-
-### How Automated Deployment Works:
+This repository is fully configured with **Automated CI/CD** via **GitHub Actions** and **Cloudflare Workers**:
 
 ```
-[ Git Push to main ] ➔ [ GitHub Actions Workflow ] ➔ [ Vite & esbuild Build ] ➔ [ Deploy to Cloudflare ]
+[ Git Push to main ] ➔ [ GitHub Actions ] ➔ [ Vite & esbuild Build ] ➔ [ Deploy to Cloudflare Edge ]
 ```
 
 1. **Automatic Build Step**: When code is pushed or merged into `main`/`master`, `npm run build` executes:
-   - **Vite** bundles the React frontend into `./dist`
-   - **esbuild** bundles the Cloudflare Worker backend (`src/index.ts`) into `./dist/worker.js`
-2. **Automatic Cloudflare Deployment**: The `.github/workflows/deploy.yml` workflow runs `cloudflare/wrangler-action` and deploys both static frontend assets and edge API endpoints straight to Cloudflare's global edge network.
+   - **Vite** bundles the React SPA frontend into `./dist`
+   - **esbuild** bundles the Cloudflare Worker backend (`src/index.ts`) into `./dist-worker/index.js`
+   - Automatically writes `.assetsignore` to prevent recursion errors.
+2. **Graceful Deployment**: The `.github/workflows/deploy.yml` workflow runs `cloudflare/wrangler-action` to deploy static assets and edge API endpoints to Cloudflare.
 
 ---
 
-## 🛠️ Required One-Time GitHub Setup
+## 🛠️ How to Connect Cloudflare D1 Database (Optional)
 
-To connect your GitHub repository to Cloudflare for automatic deployment:
+1. **Create the D1 Database**:
+   ```bash
+   npx wrangler d1 create zoneshift-db
+   ```
+2. **Update `wrangler.toml`**:
+   Uncomment the `[[d1_databases]]` block in `wrangler.toml` and paste your actual `database_id`:
+   ```toml
+   [[d1_databases]]
+   binding = "DB"
+   database_name = "zoneshift-db"
+   database_id = "your-actual-d1-database-uuid"
+   migrations_dir = "migrations"
+   ```
+3. **Apply Schema Migrations**:
+   ```bash
+   npx wrangler d1 execute zoneshift-db --remote --file=migrations/0001_initial_schema.sql
+   ```
+4. **Seed Database**:
+   Make a GET or POST request to `/api/admin/seed-db` to populate global city and timezone records.
+
+---
+
+## 🔐 Required One-Time GitHub Setup
+
+To enable automated deployment from GitHub to Cloudflare:
 
 1. **Get Cloudflare API Token**:
    - Go to Cloudflare Dashboard ➔ **My Profile** ➔ **API Tokens**.
@@ -37,18 +60,8 @@ To connect your GitHub repository to Cloudflare for automatic deployment:
 
 ---
 
-## 📋 Summary Checklist & Workflow
-
-| Step | Action | Who Handles It? | Outcome |
-| :--- | :--- | :--- | :--- |
-| **1. Rulebook** | `AGENTS.md` created in root | Completed | AI auto-aligns with Cloudflare & D1 standards on every task |
-| **2. Development** | Prompt features in chat | You & AI Agent | Features built, tested, and previewed with zero compilation errors |
-| **3. Automated CI/CD** | `git push origin main` | GitHub Actions + Cloudflare | Site & API go live globally on Cloudflare automatically |
-
----
-
 ## 💻 Local Development Commands
 
 - `npm run dev` — Start Vite dev server on port 3000
-- `npm run build` — Build Vite frontend & esbuild Worker backend to `./dist`
-- `npm run lint` — Typecheck TypeScript code
+- `npm run build` — Build Vite frontend & esbuild Worker backend
+- `npm run lint` — Typecheck TypeScript code without emitting files

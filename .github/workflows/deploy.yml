@@ -26,7 +26,19 @@ jobs:
       - name: Build Assets & Worker Bundle
         run: npm run build
 
+      - name: Check Cloudflare Deployment Credentials
+        id: check_credentials
+        run: |
+          if [ -n "${{ secrets.CLOUDFLARE_API_TOKEN }}" ]; then
+            echo "has_token=true" >> $GITHUB_OUTPUT
+            echo "✅ CLOUDFLARE_API_TOKEN secret found."
+          else
+            echo "has_token=false" >> $GITHUB_OUTPUT
+            echo "⚠️ CLOUDFLARE_API_TOKEN is missing. Skipping wrangler deploy step."
+          fi
+
       - name: Deploy to Cloudflare Workers
+        if: steps.check_credentials.outputs.has_token == 'true'
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
