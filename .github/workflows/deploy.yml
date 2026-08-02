@@ -18,15 +18,14 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
 
       - name: Install Dependencies
-        run: npm ci
+        run: npm install
 
       - name: Build Assets & Worker Bundle
         run: npm run build
 
-      - name: Check Cloudflare Deployment Credentials
+      - name: Check Cloudflare Credentials
         id: check_credentials
         run: |
           if [ -n "${{ secrets.CLOUDFLARE_API_TOKEN }}" ]; then
@@ -34,7 +33,7 @@ jobs:
             echo "✅ CLOUDFLARE_API_TOKEN secret found."
           else
             echo "has_token=false" >> $GITHUB_OUTPUT
-            echo "⚠️ CLOUDFLARE_API_TOKEN is missing. Skipping wrangler deploy step."
+            echo "⚠️ CLOUDFLARE_API_TOKEN is missing in GitHub Repository Secrets."
           fi
 
       - name: Deploy to Cloudflare Workers
