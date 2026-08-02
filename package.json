@@ -1,5 +1,5 @@
 {
-  "name": "react-example",
+  "name": "timegovern-website",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -8,7 +8,9 @@
     "build": "vite build && esbuild src/index.ts --bundle --outfile=dist-worker/index.js --format=esm --target=es2022 --external:node:* && node -e \"import('node:fs').then(f => f.writeFileSync('dist/.assetsignore', '_worker.js\\nworker.js\\n'))\"",
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "db:migrate": "wrangler d1 migrations apply zoneshift-db --remote -c wrangler.toml",
+    "deploy": "npm run build && wrangler deploy -c wrangler.toml"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",
