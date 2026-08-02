@@ -4,11 +4,14 @@ compatibility_date = "2026-03-01"
 compatibility_flags = ["nodejs_compat"]
 
 # Custom Domain Configuration (.com)
-# Routes traffic directly to your registered domain in Cloudflare:
-routes = [
-  { pattern = "timegovern.com", custom_domain = true },
-  { pattern = "www.timegovern.com", custom_domain = true }
-]
+# To attach your custom domain timegovern.com:
+# 1. In Cloudflare DNS Dashboard for timegovern.com, delete any old A or CNAME records.
+# 2. In Cloudflare Workers Dashboard -> timegovern-website -> Settings -> Domains & Routes -> Add Custom Domain -> timegovern.com
+# Uncomment below once existing DNS records are cleared:
+# routes = [
+#   { pattern = "timegovern.com", custom_domain = true },
+#   { pattern = "www.timegovern.com", custom_domain = true }
+# ]
 
 [assets]
 directory = "./dist"
