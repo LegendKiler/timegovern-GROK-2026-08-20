@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - master
+  workflow_dispatch: # Allows manual triggering from GitHub Actions tab for testing
 
 jobs:
   deploy:
@@ -36,9 +37,19 @@ jobs:
             echo "⚠️ CLOUDFLARE_API_TOKEN is missing in GitHub Repository Secrets."
           fi
 
+      - name: Apply Cloudflare D1 Database Migrations
+        if: steps.check_credentials.outputs.has_token == 'true'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          npx wrangler d1 migrations apply zoneshift-db --remote -c wrangler.toml --batch
+
       - name: Deploy to Cloudflare Workers
         if: steps.check_credentials.outputs.has_token == 'true'
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: deploy -c wrangler.toml
+

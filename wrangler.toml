@@ -3,6 +3,13 @@ main = "dist-worker/index.js"
 compatibility_date = "2026-03-01"
 compatibility_flags = ["nodejs_compat"]
 
+# Custom Domain Configuration (.com)
+# Routes traffic directly to your registered domain in Cloudflare:
+routes = [
+  { pattern = "timegovern.com", custom_domain = true },
+  { pattern = "www.timegovern.com", custom_domain = true }
+]
+
 [assets]
 directory = "./dist"
 binding = "ASSETS"
