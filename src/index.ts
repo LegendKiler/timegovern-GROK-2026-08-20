@@ -1,6 +1,7 @@
 import { D1Database } from '@cloudflare/workers-types';
 import { handleSeedDb } from './api/admin/seed-db';
 import { handleSearch } from './api/search';
+import { ensureSchema } from './db/init';
 
 export interface Env {
   DB?: D1Database;
@@ -23,6 +24,11 @@ export default {
     // 1. Preflight CORS
     if (request.method === 'OPTIONS') {
       return new Response(null, { headers: corsHeaders });
+    }
+
+    // Auto-ensure Cloudflare D1 database schema on Edge startup
+    if (env.DB) {
+      await ensureSchema(env.DB);
     }
 
     // 2. Database Seeding API route (/api/admin/seed-db)
