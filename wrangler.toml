@@ -2,6 +2,7 @@ name = "timegovern-website"
 main = "dist-worker/index.js"
 compatibility_date = "2026-03-01"
 compatibility_flags = ["nodejs_compat"]
+workers_dev = true
 
 # Custom Domain Configuration (.com)
 # To attach your custom domain timegovern.com:
