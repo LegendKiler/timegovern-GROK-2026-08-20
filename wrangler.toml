@@ -5,14 +5,10 @@ compatibility_flags = ["nodejs_compat"]
 workers_dev = true
 
 # Custom Domain Configuration (.com)
-# To attach your custom domain timegovern.com:
-# 1. In Cloudflare DNS Dashboard for timegovern.com, delete any old A or CNAME records.
-# 2. In Cloudflare Workers Dashboard -> timegovern-website -> Settings -> Domains & Routes -> Add Custom Domain -> timegovern.com
-# Uncomment below once existing DNS records are cleared:
-# routes = [
-#   { pattern = "timegovern.com", custom_domain = true },
-#   { pattern = "www.timegovern.com", custom_domain = true }
-# ]
+routes = [
+  { pattern = "timegovern.com", custom_domain = true },
+  { pattern = "www.timegovern.com", custom_domain = true }
+]
 
 [assets]
 directory = "./dist"
