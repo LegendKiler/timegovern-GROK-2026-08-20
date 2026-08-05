@@ -26,9 +26,13 @@ export default {
       return new Response(null, { headers: corsHeaders });
     }
 
-    // Auto-ensure Cloudflare D1 database schema on Edge startup
+    // Auto-ensure Cloudflare D1 database schema on Edge startup (safe try-catch)
     if (env.DB) {
-      await ensureSchema(env.DB);
+      try {
+        await ensureSchema(env.DB);
+      } catch (dbErr) {
+        console.warn('Non-blocking D1 schema init warning:', dbErr);
+      }
     }
 
     // 2. Database Seeding API route (/api/admin/seed-db)
@@ -81,11 +85,30 @@ export default {
       );
     }
 
-    // 6. Fallback to static assets
+    // 6. Fallback to static assets with SPA routing support
     if (env.ASSETS) {
-      return env.ASSETS.fetch(request);
+      try {
+        let assetRes = await env.ASSETS.fetch(request);
+        if (assetRes.status === 404 && !url.pathname.startsWith('/api/')) {
+          const indexUrl = new URL('/index.html', request.url);
+          const indexRequest = new Request(indexUrl, {
+            method: 'GET',
+            headers: request.headers,
+          });
+          const indexRes = await env.ASSETS.fetch(indexRequest);
+          if (indexRes.status === 200) {
+            return indexRes;
+          }
+        }
+        return assetRes;
+      } catch (assetErr) {
+        console.error('Error fetching static asset from Cloudflare Workers storage:', assetErr);
+      }
     }
 
-    return new Response('TimeGovern Worker Edge Ready', { status: 200, headers: corsHeaders });
+    return new Response('<!doctype html><html><head><meta charset="utf-8"/><title>TimeGovern</title></head><body><div id="root">TimeGovern Edge Worker Online</div></body></html>', {
+      status: 200,
+      headers: { 'Content-Type': 'text/html; charset=utf-8' },
+    });
   },
 };
