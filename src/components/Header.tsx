@@ -10,6 +10,7 @@ interface HeaderProps {
   onOpenArchModal: () => void;
   onOpenQrModal: () => void;
   onOpenAccountModal: () => void;
+  onOpenSecurityModal?: () => void;
   isDarkMode: boolean;
   setIsDarkMode: (val: boolean) => void;
 }
@@ -21,6 +22,7 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenArchModal,
   onOpenQrModal,
   onOpenAccountModal,
+  onOpenSecurityModal,
   isDarkMode,
   setIsDarkMode
 }) => {
@@ -98,6 +100,15 @@ export const Header: React.FC<HeaderProps> = ({
                 <span>Dark Mode</span>
               </>
             )}
+          </button>
+
+          <button
+            onClick={onOpenSecurityModal}
+            className="flex items-center gap-1.5 px-3 py-1 bg-emerald-600/30 hover:bg-emerald-600/50 text-emerald-300 rounded-lg border border-emerald-500/60 transition-all cursor-pointer text-[11px] font-bold shadow-sm"
+            title="SSL Certificate, Domain Security & Trust Specs"
+          >
+            <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+            <span>SSL & Security 🔒</span>
           </button>
 
           <button

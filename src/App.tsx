@@ -13,6 +13,7 @@ import { CalculatorsPillar } from './components/CalculatorsPillar';
 import { ArchitectureModal } from './components/ArchitectureModal';
 import { QrModal } from './components/QrModal';
 import { UserAccountModal } from './components/UserAccountModal';
+import { SecurityTrustModal } from './components/SecurityTrustModal';
 import { AdBanner } from './components/AdBanner';
 import { City } from './types';
 import { Globe, Database, ShieldCheck, Eye, EyeOff, Heart, Mail, Share2, Facebook, Twitter, Linkedin, Instagram, Youtube } from 'lucide-react';
@@ -23,6 +24,7 @@ export default function App() {
   const [isArchModalOpen, setIsArchModalOpen] = useState<boolean>(false);
   const [isQrModalOpen, setIsQrModalOpen] = useState<boolean>(false);
   const [isAccountModalOpen, setIsAccountModalOpen] = useState<boolean>(false);
+  const [isSecurityModalOpen, setIsSecurityModalOpen] = useState<boolean>(false);
   const [showAds, setShowAds] = useState<boolean>(true);
   const [isDarkMode, setIsDarkMode] = useState<boolean>(false); // Light mode default matching TimeAndDate.com
 
@@ -41,6 +43,7 @@ export default function App() {
         onOpenArchModal={() => setIsArchModalOpen(true)}
         onOpenQrModal={() => setIsQrModalOpen(true)}
         onOpenAccountModal={() => setIsAccountModalOpen(true)}
+        onOpenSecurityModal={() => setIsSecurityModalOpen(true)}
         isDarkMode={isDarkMode}
         setIsDarkMode={setIsDarkMode}
       />
@@ -167,13 +170,13 @@ export default function App() {
 
           {/* Col 3: Legal */}
           <div>
-            <span className="text-xs font-bold text-white uppercase tracking-wider block mb-3 font-display">Legal</span>
+            <span className="text-xs font-bold text-white uppercase tracking-wider block mb-3 font-display">Legal & Trust</span>
             <ul className="space-y-2 text-[11px] text-slate-400">
-              <li><a href="#link-policy" className="hover:text-cyan-400 transition-colors">Link policy</a></li>
-              <li><a href="#advertising" className="hover:text-cyan-400 transition-colors">Advertising</a></li>
-              <li><a href="#disclaimer" className="hover:text-cyan-400 transition-colors">Disclaimer</a></li>
+              <li><button onClick={() => setIsSecurityModalOpen(true)} className="text-emerald-400 font-bold hover:text-emerald-300 transition-colors cursor-pointer">🔒 SSL & Security Center</button></li>
               <li><a href="#terms" className="hover:text-cyan-400 transition-colors">Terms & Conditions</a></li>
               <li><a href="#privacy" className="hover:text-cyan-400 transition-colors">Privacy Policy</a></li>
+              <li><a href="#disclaimer" className="hover:text-cyan-400 transition-colors">Disclaimer</a></li>
+              <li><a href="#advertising" className="hover:text-cyan-400 transition-colors">Advertising</a></li>
             </ul>
           </div>
 
@@ -228,6 +231,12 @@ export default function App() {
       <UserAccountModal
         isOpen={isAccountModalOpen}
         onClose={() => setIsAccountModalOpen(false)}
+      />
+
+      {/* Security & Trust Center Modal */}
+      <SecurityTrustModal
+        isOpen={isSecurityModalOpen}
+        onClose={() => setIsSecurityModalOpen(false)}
       />
 
       {/* Bottom Sticky Anchor Ad Slot */}
