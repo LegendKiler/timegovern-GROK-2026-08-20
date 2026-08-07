@@ -10,6 +10,7 @@ import { WidgetsPillar } from './components/WidgetsPillar';
 import { EnterpriseServicesPillar } from './components/EnterpriseServicesPillar';
 import { NewsPillar } from './components/NewsPillar';
 import { CalculatorsPillar } from './components/CalculatorsPillar';
+import { CompanyPillar } from './components/CompanyPillar';
 import { ArchitectureModal } from './components/ArchitectureModal';
 import { QrModal } from './components/QrModal';
 import { UserAccountModal } from './components/UserAccountModal';
@@ -95,6 +96,7 @@ export default function App() {
             {activePillar === 8 && <EnterpriseServicesPillar />}
             {activePillar === 9 && <NewsPillar />}
             {activePillar === 10 && <CalculatorsPillar />}
+            {activePillar === 11 && <CompanyPillar />}
           </main>
 
           {/* Right Skyscraper Ad Rail */}

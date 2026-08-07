@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Clock, Calendar, Sun, Moon, CloudRain, Timer, Search, Globe, Database, ShieldCheck, Zap, QrCode, User, Activity, Code, Layers, Newspaper, Calculator } from 'lucide-react';
+import { Clock, Calendar, Sun, Moon, CloudRain, Timer, Search, Globe, Database, ShieldCheck, Zap, QrCode, User, Activity, Code, Layers, Newspaper, Calculator, Building2 } from 'lucide-react';
 import { MAJOR_CITIES, searchCities } from '../lib/citiesData';
 import { City } from '../types';
 
@@ -341,6 +341,20 @@ export const Header: React.FC<HeaderProps> = ({
           >
             <Layers className="w-4 h-4 text-purple-400" />
             <span>API & Dev Portal</span>
+          </button>
+
+          <button
+            onClick={() => setActivePillar(11)}
+            className={`flex items-center gap-2 px-4 py-3 border-b-2 transition-all whitespace-nowrap cursor-pointer ${
+              activePillar === 11
+                ? isDarkMode
+                  ? 'border-cyan-400 text-cyan-300 bg-cyan-950/30 font-bold'
+                  : 'border-cyan-400 text-cyan-300 bg-slate-700 font-bold'
+                : 'border-transparent text-slate-300 hover:text-white hover:bg-slate-700/50'
+            }`}
+          >
+            <Building2 className="w-4 h-4 text-amber-400" />
+            <span>Company & Contact (Melb HQ)</span>
           </button>
         </div>
       </nav>

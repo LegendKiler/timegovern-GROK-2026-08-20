@@ -1,102 +1,48 @@
 import React, { useState, useEffect } from 'react';
-import { Newspaper, Calendar, ArrowRight, Tag, Bookmark, Clock, Flame, Globe, Search, RefreshCw, Zap, CheckCircle2 } from 'lucide-react';
+import { Newspaper, Calendar, ArrowRight, Tag, Bookmark, Clock, Flame, Globe, Search, RefreshCw, Zap, CheckCircle2, ExternalLink } from 'lucide-react';
 
 interface Article {
   id: string;
   title: string;
-  category: 'dst' | 'astronomy' | 'timezones' | 'technology';
+  category: string;
   date: string;
+  timeAgo?: string;
   author: string;
   readTime: string;
   summary: string;
   content: string;
   imageUrl: string;
   featured?: boolean;
+  sourceUrl?: string;
 }
 
-const INITIAL_ARTICLES: Article[] = [
-  {
-    id: 'dst-europe-2026',
-    title: 'European Daylight Saving Time Ends: Clocks Fall Back Across EU and UK',
-    category: 'dst',
-    date: 'July 27, 2026',
-    author: 'Elena Rostova',
-    readTime: '4 min read',
-    featured: true,
-    summary: 'Comprehensive overview of upcoming Daylight Saving Time transitions across European Union member states and North America.',
-    content: 'Millions across Europe and North America will adjust their clocks as Daylight Saving Time (DST) draws to a close for the autumn season. We analyze the economic impacts, airline schedule realignments, and automated server timezone patch deployments.',
-    imageUrl: 'https://images.unsplash.com/photo-1508962914676-134849a727f0?auto=format&fit=crop&w=800&q=80'
-  },
-  {
-    id: 'perseid-meteor-shower-2026',
-    title: 'Perseid Meteor Shower Peak 2026: Prime Viewing Hours & Celestial Coordinates',
-    category: 'astronomy',
-    date: 'July 25, 2026',
-    author: 'Dr. Marcus Vance',
-    readTime: '6 min read',
-    featured: true,
-    summary: 'The annual Perseid meteor shower reaches its pinnacle this August under optimal moonless dark night skies.',
-    content: 'Stargazers worldwide can look forward to up to 100 meteors per hour during the midnight-to-dawn peak hours. Our astronomical charts calculate exact zenith hourly rates based on your latitude and local light pollution index.',
-    imageUrl: 'https://images.unsplash.com/photo-1506703719100-a0f3a48c0f86?auto=format&fit=crop&w=800&q=80'
-  },
-  {
-    id: 'leap-second-utc-future',
-    title: 'International Earth Rotation Service (IERS) Vote on Future of Negative Leap Seconds',
-    category: 'timezones',
-    date: 'July 20, 2026',
-    author: 'Julian Thorne',
-    readTime: '5 min read',
-    summary: 'Global timekeeping bodies evaluate the proposal to phase out leap second adjustments by 2035 in favor of continuous UTC atomic time.',
-    content: 'With atomic clock drift and Earth rotation fluctuations presenting microsecond discrepancies, cloud computing providers and telecom networks push for unified UTC standard without manual leap second insertions.',
-    imageUrl: 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=800&q=80'
-  },
-  {
-    id: 'middle-east-tz-realignment',
-    title: 'Middle East Time Zone Alignment: Egypt & Saudi Arabia Update DST Schedules',
-    category: 'timezones',
-    date: 'July 15, 2026',
-    author: 'Tariq Al-Mansoor',
-    readTime: '3 min read',
-    summary: 'Detailed IANA tzdata 2026a updates for Egypt, Jordan, and Gulf Cooperation Council countries.',
-    content: 'Recent legislative adjustments in Cairo and Amman update local standard time rules. Developers are advised to update their IANA timezone database files to version 2026a to maintain precise meeting scheduling and flight system sync.',
-    imageUrl: 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=800&q=80'
-  },
-  {
-    id: 'quantum-atomic-clocks',
-    title: 'Optical Lattice Clocks Achieve 1-Second Drift in 300 Billion Years Precision',
-    category: 'technology',
-    date: 'July 10, 2026',
-    author: 'Prof. Hiroshi Tanaka',
-    readTime: '7 min read',
-    summary: 'New quantum optical clocks measure gravitational time dilation down to millimeter height shifts on Earth.',
-    content: 'Researchers at NIST and RIKEN have unveiled ytterbium lattice clocks capable of sub-femtosecond stability. These quantum time standards will redefine the SI Second and power deep space navigation systems.',
-    imageUrl: 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=800&q=80'
-  }
-];
-
 export const NewsPillar: React.FC = () => {
-  const [articles, setArticles] = useState<Article[]>(INITIAL_ARTICLES);
+  const [articles, setArticles] = useState<Article[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [activeArticle, setActiveArticle] = useState<Article | null>(null);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
   const [lastSyncTime, setLastSyncTime] = useState<string>('Just now');
 
-  // Live Auto-Refresh Simulation
-  const handleManualRefresh = () => {
+  const fetchLiveNews = async () => {
     setIsRefreshing(true);
-    setTimeout(() => {
+    try {
+      const res = await fetch('/api/news');
+      const data = await res.json();
+      if (data.success && data.articles) {
+        setArticles(data.articles);
+        setLastSyncTime(`Updated ${new Date().toLocaleTimeString()}`);
+      }
+    } catch (err) {
+      console.warn('News fetch fallback:', err);
+    } finally {
       setIsRefreshing(false);
-      const nowTime = new Date().toLocaleTimeString();
-      setLastSyncTime(`Refreshed at ${nowTime}`);
-    }, 800);
+    }
   };
 
   useEffect(() => {
-    // Polling every 60 seconds
-    const interval = setInterval(() => {
-      setLastSyncTime(`Auto-synced at ${new Date().toLocaleTimeString()}`);
-    }, 60000);
+    fetchLiveNews();
+    const interval = setInterval(fetchLiveNews, 180000); // 3 minutes auto-refresh
     return () => clearInterval(interval);
   }, []);
 
@@ -107,159 +53,224 @@ export const NewsPillar: React.FC = () => {
   });
 
   return (
-    <div className="space-y-6">
-      {/* Live Auto-Sync Status Bar */}
-      <div className="bg-gradient-to-r from-blue-900 via-slate-900 to-indigo-950 border border-blue-500/30 rounded-2xl p-4 shadow-md text-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+    <div className="space-y-6 max-w-7xl mx-auto">
+      {/* Live Sync Status Bar */}
+      <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 border border-slate-800 rounded-2xl p-4 shadow-md text-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
         <div className="flex items-center gap-2.5">
           <span className="flex h-2.5 w-2.5 relative">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
             <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
           </span>
-          <span className="font-bold text-cyan-300">GitHub Actions Cron Active</span>
-          <span className="text-slate-400">•</span>
-          <span className="text-slate-300 font-mono text-[11px]">Daily 00:00 UTC Pipeline & Cloudflare D1 Auto-Sync</span>
+          <span className="font-bold text-cyan-300">Live Global Time & Astronomy News Stream</span>
+          <span className="text-slate-500">•</span>
+          <span className="text-slate-300 font-mono text-[11px]">Synced via Google News & IERS Bulletins</span>
         </div>
 
         <div className="flex items-center gap-3">
-          <span className="text-[11px] text-slate-400 font-mono">{lastSyncTime}</span>
+          <span className="text-slate-400 text-[11px]">{lastSyncTime}</span>
           <button
-            onClick={handleManualRefresh}
+            onClick={fetchLiveNews}
             disabled={isRefreshing}
-            className="flex items-center gap-1.5 px-3 py-1 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-lg transition-all cursor-pointer shadow-xs"
+            className="flex items-center gap-1.5 px-3 py-1 bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-400/40 rounded-lg transition-colors cursor-pointer text-xs font-semibold"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
-            <span>{isRefreshing ? 'Fetching Feeds...' : 'Sync Live Updates'}</span>
+            <span>{isRefreshing ? 'Syncing...' : 'Refresh Feed'}</span>
           </button>
         </div>
       </div>
 
-      {/* Header */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm text-slate-900 dark:text-slate-100">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-4">
+      {/* Main Header & Category Filter */}
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm text-slate-900 dark:text-slate-100 space-y-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white font-display flex items-center gap-2.5">
+            <h1 className="text-2xl font-bold font-display text-slate-900 dark:text-white flex items-center gap-2.5">
               <Newspaper className="w-6 h-6 text-blue-600 dark:text-cyan-400" />
-              Time, Astronomy & Space News
+              Global Temporal News, Astronomy & Timezone Articles
             </h1>
             <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
-              Latest news on Daylight Saving Time changes, IANA timezone patches, solar eclipses & quantum time standards.
+              Real-time updates on Daylight Saving Transitions, Astronomical Events, Quantum Atomic Clocks & IANA Tzdata Releases.
             </p>
           </div>
 
-          {/* Search bar */}
           <div className="relative max-w-xs w-full">
             <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search news & updates..."
-              className="w-full bg-slate-100 dark:bg-slate-800 text-xs text-slate-800 dark:text-slate-100 pl-9 pr-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 focus:outline-none focus:border-blue-500"
+              placeholder="Search news..."
+              className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl pl-9 pr-3 py-2 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-500"
             />
           </div>
         </div>
 
-        {/* Categories */}
-        <div className="flex items-center gap-2 mt-4 overflow-x-auto no-scrollbar text-xs font-semibold">
-          {[
-            { id: 'all', label: 'All Articles' },
-            { id: 'dst', label: 'Daylight Saving Time' },
-            { id: 'astronomy', label: 'Astronomy & Space' },
-            { id: 'timezones', label: 'Time Zone Updates' },
-            { id: 'technology', label: 'Quantum & Atomic Clocks' }
-          ].map((cat) => (
-            <button
-              key={cat.id}
-              onClick={() => setSelectedCategory(cat.id)}
-              className={`px-3.5 py-1.5 rounded-lg whitespace-nowrap cursor-pointer transition-all ${
-                selectedCategory === cat.id
-                  ? 'bg-blue-600 text-white shadow-xs'
-                  : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
-              }`}
-            >
-              {cat.label}
-            </button>
-          ))}
+        {/* Category Buttons */}
+        <div className="flex flex-wrap items-center gap-2 text-xs font-semibold border-t border-slate-100 dark:border-slate-800 pt-3">
+          <button
+            onClick={() => setSelectedCategory('all')}
+            className={`px-3.5 py-1.5 rounded-xl transition-all cursor-pointer ${
+              selectedCategory === 'all'
+                ? 'bg-blue-600 text-white shadow-xs'
+                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+            }`}
+          >
+            All News
+          </button>
+          <button
+            onClick={() => setSelectedCategory('dst')}
+            className={`px-3.5 py-1.5 rounded-xl transition-all cursor-pointer ${
+              selectedCategory === 'dst'
+                ? 'bg-blue-600 text-white shadow-xs'
+                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+            }`}
+          >
+            Daylight Saving
+          </button>
+          <button
+            onClick={() => setSelectedCategory('astronomy')}
+            className={`px-3.5 py-1.5 rounded-xl transition-all cursor-pointer ${
+              selectedCategory === 'astronomy'
+                ? 'bg-blue-600 text-white shadow-xs'
+                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+            }`}
+          >
+            Astronomy & Space
+          </button>
+          <button
+            onClick={() => setSelectedCategory('timezones')}
+            className={`px-3.5 py-1.5 rounded-xl transition-all cursor-pointer ${
+              selectedCategory === 'timezones'
+                ? 'bg-blue-600 text-white shadow-xs'
+                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+            }`}
+          >
+            Time Zones
+          </button>
+          <button
+            onClick={() => setSelectedCategory('technology')}
+            className={`px-3.5 py-1.5 rounded-xl transition-all cursor-pointer ${
+              selectedCategory === 'technology'
+                ? 'bg-blue-600 text-white shadow-xs'
+                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+            }`}
+          >
+            Quantum Tech
+          </button>
         </div>
       </div>
 
-      {/* Article Detail View Modal or Inline */}
-      {activeArticle ? (
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-md space-y-4">
-          <button
-            onClick={() => setActiveArticle(null)}
-            className="text-xs text-blue-600 dark:text-cyan-400 font-bold hover:underline mb-2 cursor-pointer inline-flex items-center gap-1"
+      {/* Articles Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {filteredArticles.map((article) => (
+          <div
+            key={article.id}
+            className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between"
           >
-            ← Back to News Feed
-          </button>
-          <img
-            src={activeArticle.imageUrl}
-            alt={activeArticle.title}
-            className="w-full h-64 object-cover rounded-xl border border-slate-200 dark:border-slate-800"
-          />
-          <div className="flex items-center gap-3 text-xs text-slate-500 font-medium">
-            <span className="bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 px-2.5 py-0.5 rounded-full font-bold uppercase text-[10px]">
-              {activeArticle.category}
-            </span>
-            <span>• {activeArticle.date}</span>
-            <span>• By {activeArticle.author}</span>
-            <span>• {activeArticle.readTime}</span>
-          </div>
-          <h2 className="text-2xl font-bold text-slate-900 dark:text-white font-display">
-            {activeArticle.title}
-          </h2>
-          <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed font-medium">
-            {activeArticle.summary}
-          </p>
-          <hr className="border-slate-200 dark:border-slate-800" />
-          <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-            {activeArticle.content}
-          </p>
-          <p className="text-xs text-slate-500 italic mt-4">
-            Source: TimeGovern Global Temporal News Network • Verified against UTC IANA tzdata standards.
-          </p>
-        </div>
-      ) : (
-        /* Articles Grid */
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredArticles.map((art) => (
-            <div
-              key={art.id}
-              onClick={() => setActiveArticle(art)}
-              className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-xs hover:shadow-lg transition-all cursor-pointer flex flex-col group"
-            >
-              <div className="relative h-44 overflow-hidden">
+            <div>
+              <div className="relative h-48 overflow-hidden bg-slate-900">
                 <img
-                  src={art.imageUrl}
-                  alt={art.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  src={article.imageUrl}
+                  alt={article.title}
+                  className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
                 />
-                <span className="absolute top-3 left-3 bg-slate-900/80 backdrop-blur-md text-cyan-300 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase border border-cyan-500/30">
-                  {art.category}
+                <span className="absolute top-3 left-3 bg-blue-600 text-white text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider shadow-sm">
+                  {article.category}
                 </span>
+                {article.timeAgo && (
+                  <span className="absolute top-3 right-3 bg-slate-900/80 backdrop-blur-md text-cyan-300 text-[10px] font-mono px-2 py-0.5 rounded border border-cyan-500/30">
+                    {article.timeAgo}
+                  </span>
+                )}
               </div>
-              <div className="p-5 flex-1 flex flex-col justify-between space-y-3">
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-[11px] text-slate-400">
-                    <Clock className="w-3.5 h-3.5 text-slate-400" />
-                    <span>{art.date}</span>
-                    <span>•</span>
-                    <span>{art.readTime}</span>
-                  </div>
-                  <h3 className="font-bold text-slate-900 dark:text-white text-base group-hover:text-blue-600 dark:group-hover:text-cyan-400 transition-colors line-clamp-2">
-                    {art.title}
-                  </h3>
-                  <p className="text-xs text-slate-600 dark:text-slate-400 line-clamp-2 leading-relaxed">
-                    {art.summary}
-                  </p>
+
+              <div className="p-5 space-y-3">
+                <div className="flex items-center gap-2 text-[11px] text-slate-500 dark:text-slate-400 font-medium">
+                  <Calendar className="w-3.5 h-3.5" />
+                  <span>{article.date}</span>
+                  <span>•</span>
+                  <span>{article.author}</span>
                 </div>
-                <div className="pt-2 flex items-center text-xs font-bold text-blue-600 dark:text-cyan-400 group-hover:translate-x-1 transition-transform">
-                  <span>Read Full Article</span>
-                  <ArrowRight className="w-3.5 h-3.5 ml-1" />
-                </div>
+
+                <h2 className="text-lg font-bold font-display text-slate-900 dark:text-white leading-snug">
+                  {article.title}
+                </h2>
+
+                <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed line-clamp-3">
+                  {article.summary}
+                </p>
               </div>
             </div>
-          ))}
+
+            <div className="px-5 pb-5 pt-2 flex items-center justify-between border-t border-slate-100 dark:border-slate-800/80 text-xs">
+              <span className="text-slate-400 text-[11px]">{article.readTime}</span>
+              {article.sourceUrl ? (
+                <a
+                  href={article.sourceUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-blue-600 dark:text-cyan-400 font-bold hover:underline flex items-center gap-1 cursor-pointer"
+                >
+                  <span>Read full story on Google News</span>
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </a>
+              ) : (
+                <button
+                  onClick={() => setActiveArticle(article)}
+                  className="text-blue-600 dark:text-cyan-400 font-bold hover:underline flex items-center gap-1 cursor-pointer"
+                >
+                  <span>Read Article</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Article Detail Modal */}
+      {activeArticle && (
+        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-2xl w-full p-6 sm:p-8 space-y-4 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+            <button
+              onClick={() => setActiveArticle(null)}
+              className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 dark:hover:text-white text-lg font-bold p-2 cursor-pointer"
+            >
+              ✕
+            </button>
+
+            <span className="inline-block bg-blue-600 text-white text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">
+              {activeArticle.category}
+            </span>
+
+            <h2 className="text-2xl font-bold font-display text-slate-900 dark:text-white">
+              {activeArticle.title}
+            </h2>
+
+            <div className="text-xs text-slate-500 font-medium flex items-center gap-2">
+              <span>By {activeArticle.author}</span>
+              <span>•</span>
+              <span>{activeArticle.date}</span>
+            </div>
+
+            <img
+              src={activeArticle.imageUrl}
+              alt={activeArticle.title}
+              className="w-full h-56 object-cover rounded-2xl my-2"
+            />
+
+            <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
+              {activeArticle.content}
+            </p>
+
+            <div className="pt-4 border-t border-slate-200 dark:border-slate-800 flex justify-end">
+              <button
+                onClick={() => setActiveArticle(null)}
+                className="px-5 py-2 bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900 font-bold text-xs rounded-xl cursor-pointer"
+              >
+                Close Article
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
