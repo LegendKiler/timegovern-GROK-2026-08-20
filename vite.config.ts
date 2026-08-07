@@ -53,6 +53,73 @@ function apiDevServerPlugin(): Plugin {
           );
         }
 
+        if (url.pathname === '/api/contact' || url.pathname === '/api/contact/') {
+          res.setHeader('Content-Type', 'application/json');
+          res.setHeader('Access-Control-Allow-Origin', '*');
+          res.statusCode = 200;
+          return res.end(
+            JSON.stringify({
+              success: true,
+              message: 'Thank you for contacting TimeGovern Headquarters in Melbourne, Australia. Your message has been safely logged.',
+              ticket_id: `TG-MELB-${Date.now().toString(36).toUpperCase()}`,
+              whatsapp_link: 'https://wa.me/61390001000'
+            })
+          );
+        }
+
+        if (url.pathname === '/api/newsletter' || url.pathname === '/api/newsletter/') {
+          res.setHeader('Content-Type', 'application/json');
+          res.setHeader('Access-Control-Allow-Origin', '*');
+          res.statusCode = 200;
+          return res.end(
+            JSON.stringify({
+              success: true,
+              message: 'Subscribed successfully to TimeGovern Weekly Timezone & Daylight Saving Bulletin.'
+            })
+          );
+        }
+
+        if (url.pathname === '/api/job-subscribe' || url.pathname === '/api/job-subscribe/') {
+          res.setHeader('Content-Type', 'application/json');
+          res.setHeader('Access-Control-Allow-Origin', '*');
+          res.statusCode = 200;
+          return res.end(
+            JSON.stringify({
+              success: true,
+              message: 'Career profile saved! Our Melbourne HR team will alert you whenever new positions open at TimeGovern.'
+            })
+          );
+        }
+
+        if (url.pathname === '/api/news' || url.pathname === '/api/news/') {
+          const now = new Date();
+          res.setHeader('Content-Type', 'application/json');
+          res.setHeader('Access-Control-Allow-Origin', '*');
+          res.statusCode = 200;
+          return res.end(
+            JSON.stringify({
+              success: true,
+              updated_at: now.toISOString(),
+              articles: [
+                {
+                  id: 'news-1',
+                  title: 'European Union & UK Confirm October 2026 Daylight Saving Fall Back Time Schedule',
+                  category: 'dst',
+                  date: new Date(now.getTime() - 2 * 3600 * 1000).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' }),
+                  timeAgo: '2 hours ago',
+                  author: 'Melbourne Time Bureau',
+                  readTime: '3 min read',
+                  featured: true,
+                  summary: 'Official IANA tzdata 2026 release confirms daylight saving transition dates across EU member states and UK GMT switch.',
+                  content: 'Millions across Europe and North America will adjust their clocks for the autumn transition. TimeGovern servers have updated regional leap second and offset matrix maps automatically.',
+                  imageUrl: 'https://images.unsplash.com/photo-1508962914676-134849a727f0?auto=format&fit=crop&w=800&q=80',
+                  sourceUrl: 'https://news.google.com/search?q=daylight+saving+time'
+                }
+              ]
+            })
+          );
+        }
+
         if (url.pathname === '/api/health' || url.pathname === '/api/health/') {
           res.setHeader('Content-Type', 'application/json');
           res.setHeader('Access-Control-Allow-Origin', '*');
