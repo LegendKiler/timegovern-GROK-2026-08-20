@@ -9,7 +9,7 @@ on:
 
 jobs:
   deploy:
-    name: Build and Deploy to Cloudflare
+    name: Build and Deploy to Cloudflare Workers
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
@@ -34,7 +34,7 @@ jobs:
             echo "✅ CLOUDFLARE_API_TOKEN secret found."
           else
             echo "has_token=false" >> $GITHUB_OUTPUT
-            echo "::warning ::CLOUDFLARE_API_TOKEN secret is not set in GitHub Repository Secrets. Deployment steps skipped."
+            echo "::warning ::CLOUDFLARE_API_TOKEN secret is not set in GitHub Repository Secrets. Deployment steps will be skipped until configured."
             echo "--------------------------------------------------------"
             echo "To enable automatic deployment from GitHub to Cloudflare:"
             echo "1. Go to your GitHub Repository -> Settings -> Secrets and variables -> Actions"
@@ -44,31 +44,18 @@ jobs:
             echo "--------------------------------------------------------"
           fi
 
-      - name: Cleanup Duplicate Legacy Worker (timegovern-site2)
-        if: steps.check_credentials.outputs.has_token == 'true'
-        continue-on-error: true
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        run: |
-          npx wrangler delete timegovern-site2 --force || echo "Legacy worker timegovern-site2 not present or already removed."
-
       - name: Apply Cloudflare D1 Database Migrations
         if: steps.check_credentials.outputs.has_token == 'true'
-        continue-on-error: true
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
-          npx wrangler d1 migrations apply zoneshift-db --remote -c wrangler.toml --batch || echo "D1 migrations executed or skipped."
+          npx wrangler d1 migrations apply zoneshift-db --remote -c wrangler.toml --batch
 
-      - name: Deploy Master Worker to Cloudflare
+      - name: Deploy Worker to Cloudflare
         if: steps.check_credentials.outputs.has_token == 'true'
-        continue-on-error: true
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: deploy -c wrangler.toml
-
-
