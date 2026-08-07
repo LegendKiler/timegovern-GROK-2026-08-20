@@ -1,7 +1,11 @@
 import React, { useState } from 'react';
 import { Building2, MapPin, Mail, Phone, MessageSquare, Send, CheckCircle2, Briefcase, Globe, FileText, Smartphone, AlertCircle, ArrowRight } from 'lucide-react';
 
-export const CompanyPillar: React.FC = () => {
+interface CompanyPillarProps {
+  onNavigatePillar?: (pillar: number) => void;
+}
+
+export const CompanyPillar: React.FC<CompanyPillarProps> = ({ onNavigatePillar }) => {
   // Contact Form State
   const [contactName, setContactName] = useState('');
   const [contactEmail, setContactEmail] = useState('');
@@ -448,60 +452,60 @@ export const CompanyPillar: React.FC = () => {
           <div>
             <span className="font-bold text-blue-600 dark:text-cyan-400 block mb-2 font-display uppercase tracking-wider text-[10px]">World Clocks</span>
             <ul className="space-y-1.5 text-slate-600 dark:text-slate-400">
-              <li>• Major Global Cities</li>
-              <li>• UTC / GMT Converter</li>
-              <li>• Time Zone Meeting Planner</li>
-              <li>• IANA tzdata 2026a</li>
+              <li><button onClick={() => onNavigatePillar?.(1)} className="hover:text-blue-600 dark:hover:text-cyan-400 cursor-pointer transition-colors text-left">• Major Global Cities</button></li>
+              <li><button onClick={() => onNavigatePillar?.(1)} className="hover:text-blue-600 dark:hover:text-cyan-400 cursor-pointer transition-colors text-left">• UTC / GMT Converter</button></li>
+              <li><button onClick={() => onNavigatePillar?.(1)} className="hover:text-blue-600 dark:hover:text-cyan-400 cursor-pointer transition-colors text-left">• Time Zone Meeting Planner</button></li>
+              <li><button onClick={() => onNavigatePillar?.(1)} className="hover:text-blue-600 dark:hover:text-cyan-400 cursor-pointer transition-colors text-left">• IANA tzdata 2026a</button></li>
             </ul>
           </div>
 
           <div>
             <span className="font-bold text-indigo-600 dark:text-indigo-400 block mb-2 font-display uppercase tracking-wider text-[10px]">Calendar & DST</span>
             <ul className="space-y-1.5 text-slate-600 dark:text-slate-400">
-              <li>• 2026 Public Holidays</li>
-              <li>• ISO Week Numbers</li>
-              <li>• Daylight Saving Matrix</li>
-              <li>• Printable PDF Calendars</li>
+              <li><button onClick={() => onNavigatePillar?.(2)} className="hover:text-indigo-600 dark:hover:text-indigo-400 cursor-pointer transition-colors text-left">• 2026 Public Holidays</button></li>
+              <li><button onClick={() => onNavigatePillar?.(2)} className="hover:text-indigo-600 dark:hover:text-indigo-400 cursor-pointer transition-colors text-left">• ISO Week Numbers</button></li>
+              <li><button onClick={() => onNavigatePillar?.(2)} className="hover:text-indigo-600 dark:hover:text-indigo-400 cursor-pointer transition-colors text-left">• Daylight Saving Matrix</button></li>
+              <li><button onClick={() => onNavigatePillar?.(2)} className="hover:text-indigo-600 dark:hover:text-indigo-400 cursor-pointer transition-colors text-left">• Printable PDF Calendars</button></li>
             </ul>
           </div>
 
           <div>
             <span className="font-bold text-amber-600 dark:text-amber-400 block mb-2 font-display uppercase tracking-wider text-[10px]">Astronomy & Space</span>
             <ul className="space-y-1.5 text-slate-600 dark:text-slate-400">
-              <li>• Sun & Moon Times</li>
-              <li>• Lunar Phases & Eclipse</li>
-              <li>• Solar Declination</li>
-              <li>• Perseid Meteor Tracker</li>
+              <li><button onClick={() => onNavigatePillar?.(3)} className="hover:text-amber-600 dark:hover:text-amber-400 cursor-pointer transition-colors text-left">• Sun & Moon Times</button></li>
+              <li><button onClick={() => onNavigatePillar?.(3)} className="hover:text-amber-600 dark:hover:text-amber-400 cursor-pointer transition-colors text-left">• Lunar Phases & Eclipse</button></li>
+              <li><button onClick={() => onNavigatePillar?.(3)} className="hover:text-amber-600 dark:hover:text-amber-400 cursor-pointer transition-colors text-left">• Solar Declination</button></li>
+              <li><button onClick={() => onNavigatePillar?.(3)} className="hover:text-amber-600 dark:hover:text-amber-400 cursor-pointer transition-colors text-left">• Perseid Meteor Tracker</button></li>
             </ul>
           </div>
 
           <div>
             <span className="font-bold text-sky-600 dark:text-sky-400 block mb-2 font-display uppercase tracking-wider text-[10px]">Weather Radar</span>
             <ul className="space-y-1.5 text-slate-600 dark:text-slate-400">
-              <li>• 5,000+ City Forecasts</li>
-              <li>• Barometric Pressure</li>
-              <li>• Jet Stream & Wind Speed</li>
-              <li>• Dew Point & Humidity</li>
+              <li><button onClick={() => onNavigatePillar?.(4)} className="hover:text-sky-600 dark:hover:text-sky-400 cursor-pointer transition-colors text-left">• 5,000+ City Forecasts</button></li>
+              <li><button onClick={() => onNavigatePillar?.(4)} className="hover:text-sky-600 dark:hover:text-sky-400 cursor-pointer transition-colors text-left">• Barometric Pressure</button></li>
+              <li><button onClick={() => onNavigatePillar?.(4)} className="hover:text-sky-600 dark:hover:text-sky-400 cursor-pointer transition-colors text-left">• Jet Stream & Wind Speed</button></li>
+              <li><button onClick={() => onNavigatePillar?.(4)} className="hover:text-sky-600 dark:hover:text-sky-400 cursor-pointer transition-colors text-left">• Dew Point & Humidity</button></li>
             </ul>
           </div>
 
           <div>
             <span className="font-bold text-rose-600 dark:text-rose-400 block mb-2 font-display uppercase tracking-wider text-[10px]">Calculators</span>
             <ul className="space-y-1.5 text-slate-600 dark:text-slate-400">
-              <li>• Date Math & Workdays</li>
-              <li>• Hourly to Annual Salary</li>
-              <li>• ICT Network Subnet CIDR</li>
-              <li>• Data Transfer Estimator</li>
+              <li><button onClick={() => onNavigatePillar?.(10)} className="hover:text-rose-600 dark:hover:text-rose-400 cursor-pointer transition-colors text-left">• Date Math & Workdays</button></li>
+              <li><button onClick={() => onNavigatePillar?.(10)} className="hover:text-rose-600 dark:hover:text-rose-400 cursor-pointer transition-colors text-left">• Hourly to Annual Salary</button></li>
+              <li><button onClick={() => onNavigatePillar?.(10)} className="hover:text-rose-600 dark:hover:text-rose-400 cursor-pointer transition-colors text-left">• ICT Network Subnet CIDR</button></li>
+              <li><button onClick={() => onNavigatePillar?.(10)} className="hover:text-rose-600 dark:hover:text-rose-400 cursor-pointer transition-colors text-left">• Data Transfer Estimator</button></li>
             </ul>
           </div>
 
           <div>
             <span className="font-bold text-purple-600 dark:text-purple-400 block mb-2 font-display uppercase tracking-wider text-[10px]">Corporate & API</span>
             <ul className="space-y-1.5 text-slate-600 dark:text-slate-400">
-              <li>• Melbourne HQ Office</li>
-              <li>• Edge Time REST API</li>
-              <li>• Contact & Support</li>
-              <li>• Careers & Job Alerts</li>
+              <li><button onClick={() => { onNavigatePillar?.(11); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="hover:text-purple-600 dark:hover:text-purple-400 cursor-pointer transition-colors text-left">• Melbourne HQ Office</button></li>
+              <li><button onClick={() => onNavigatePillar?.(8)} className="hover:text-purple-600 dark:hover:text-purple-400 cursor-pointer transition-colors text-left">• Edge Time REST API</button></li>
+              <li><button onClick={() => { onNavigatePillar?.(11); window.scrollTo({ top: 150, behavior: 'smooth' }); }} className="hover:text-purple-600 dark:hover:text-purple-400 cursor-pointer transition-colors text-left">• Contact & Support</button></li>
+              <li><button onClick={() => { onNavigatePillar?.(11); window.scrollTo({ top: 350, behavior: 'smooth' }); }} className="hover:text-purple-600 dark:hover:text-purple-400 cursor-pointer transition-colors text-left">• Careers & Job Alerts</button></li>
             </ul>
           </div>
         </div>
