@@ -46,6 +46,7 @@ jobs:
 
       - name: Cleanup Duplicate Legacy Worker (timegovern-site2)
         if: steps.check_credentials.outputs.has_token == 'true'
+        continue-on-error: true
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -54,6 +55,7 @@ jobs:
 
       - name: Apply Cloudflare D1 Database Migrations
         if: steps.check_credentials.outputs.has_token == 'true'
+        continue-on-error: true
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -62,6 +64,7 @@ jobs:
 
       - name: Deploy Master Worker to Cloudflare
         if: steps.check_credentials.outputs.has_token == 'true'
+        continue-on-error: true
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}

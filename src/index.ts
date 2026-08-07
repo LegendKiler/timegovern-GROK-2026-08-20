@@ -96,6 +96,69 @@ export default {
       );
     }
 
+    // SEO Crawlers: robots.txt
+    if (url.pathname === '/robots.txt') {
+      const robotsTxt = `User-agent: *
+Allow: /
+Sitemap: https://timegovern.com/sitemap.xml
+
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /`;
+      return new Response(robotsTxt, {
+        status: 200,
+        headers: {
+          'Content-Type': 'text/plain; charset=utf-8',
+          'Cache-Control': 'public, max-age=86400',
+          ...securityHeaders,
+        },
+      });
+    }
+
+    // SEO Crawlers: sitemap.xml
+    if (url.pathname === '/sitemap.xml') {
+      const sitemapXml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://timegovern.com/</loc>
+    <lastmod>${new Date().toISOString().split('T')[0]}</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://www.timegovern.com/</loc>
+    <lastmod>${new Date().toISOString().split('T')[0]}</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://timegovern.com/api/health</loc>
+    <lastmod>${new Date().toISOString().split('T')[0]}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+</urlset>`;
+      return new Response(sitemapXml, {
+        status: 200,
+        headers: {
+          'Content-Type': 'application/xml; charset=utf-8',
+          'Cache-Control': 'public, max-age=86400',
+          ...securityHeaders,
+        },
+      });
+    }
+
     // 5. Unmatched API routes fallback
     if (url.pathname.startsWith('/api/')) {
       return new Response(

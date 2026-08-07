@@ -4,10 +4,10 @@ compatibility_date = "2026-03-01"
 compatibility_flags = ["nodejs_compat"]
 workers_dev = true
 
-# Custom Domain Configuration (.com)
+# Custom Domain Route Configuration (.com)
 routes = [
-  { pattern = "timegovern.com", custom_domain = true },
-  { pattern = "www.timegovern.com", custom_domain = true }
+  { pattern = "timegovern.com/*", zone_name = "timegovern.com" },
+  { pattern = "www.timegovern.com/*", zone_name = "timegovern.com" }
 ]
 
 [assets]

@@ -1,9 +1,9 @@
 name: Daily Auto-Update & Cloudflare Deploy
 
 on:
-  schedule:
-    # Runs every day at 00:00 UTC
-    - cron: '0 0 * * *'
+  # Schedule disabled to prevent automated email spam when routes are managed manually
+  # schedule:
+  #   - cron: '0 0 * * *'
   workflow_dispatch: # Allows manual trigger from GitHub UI
 
 jobs:
@@ -48,8 +48,10 @@ jobs:
 
       - name: Deploy to Cloudflare Workers / Pages
         if: steps.check_credentials.outputs.has_token == 'true'
+        continue-on-error: true
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: deploy -c wrangler.toml
+
