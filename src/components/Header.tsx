@@ -11,6 +11,7 @@ interface HeaderProps {
   onOpenQrModal: () => void;
   onOpenAccountModal: () => void;
   onOpenSecurityModal?: () => void;
+  onOpenTemplateGallery?: () => void;
   isDarkMode: boolean;
   setIsDarkMode: (val: boolean) => void;
   templateTheme: 'swiss-quartz' | 'bloomberg-dark' | 'emerald-precision' | 'editorial-classic';
@@ -25,6 +26,7 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenQrModal,
   onOpenAccountModal,
   onOpenSecurityModal,
+  onOpenTemplateGallery,
   isDarkMode,
   setIsDarkMode,
   templateTheme,
@@ -102,6 +104,15 @@ export const Header: React.FC<HeaderProps> = ({
               <option value="emerald-precision">Emerald Observatory</option>
               <option value="editorial-classic">Editorial Newspaper</option>
             </select>
+            {onOpenTemplateGallery && (
+              <button
+                onClick={onOpenTemplateGallery}
+                className="px-2 py-0.5 bg-cyan-950 hover:bg-cyan-900 text-cyan-300 text-[10px] font-bold rounded border border-cyan-700/60 transition-all cursor-pointer flex items-center gap-1 ml-0.5"
+                title="Open Template Gallery with Visual Previews"
+              >
+                🎨 Gallery
+              </button>
+            )}
           </div>
 
           {/* Theme Toggle Button */}

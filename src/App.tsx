@@ -15,6 +15,7 @@ import { ArchitectureModal } from './components/ArchitectureModal';
 import { QrModal } from './components/QrModal';
 import { UserAccountModal } from './components/UserAccountModal';
 import { SecurityTrustModal } from './components/SecurityTrustModal';
+import { TemplateGalleryModal, TemplateTheme } from './components/TemplateGalleryModal';
 import { AdBanner } from './components/AdBanner';
 import { City } from './types';
 import { Globe, Database, ShieldCheck, Eye, EyeOff, Heart, Mail, Share2, Facebook, Twitter, Linkedin, Instagram, Youtube } from 'lucide-react';
@@ -26,9 +27,10 @@ export default function App() {
   const [isQrModalOpen, setIsQrModalOpen] = useState<boolean>(false);
   const [isAccountModalOpen, setIsAccountModalOpen] = useState<boolean>(false);
   const [isSecurityModalOpen, setIsSecurityModalOpen] = useState<boolean>(false);
+  const [isTemplateGalleryOpen, setIsTemplateGalleryOpen] = useState<boolean>(false);
   const [showAds, setShowAds] = useState<boolean>(true);
   const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
-  const [templateTheme, setTemplateTheme] = useState<'swiss-quartz' | 'bloomberg-dark' | 'emerald-precision' | 'editorial-classic'>('swiss-quartz');
+  const [templateTheme, setTemplateTheme] = useState<TemplateTheme>('swiss-quartz');
 
   const handleSelectCity = (city: City) => {
     setSelectedCityFromSearch(city);
@@ -63,6 +65,7 @@ export default function App() {
         onOpenQrModal={() => setIsQrModalOpen(true)}
         onOpenAccountModal={() => setIsAccountModalOpen(true)}
         onOpenSecurityModal={() => setIsSecurityModalOpen(true)}
+        onOpenTemplateGallery={() => setIsTemplateGalleryOpen(true)}
         isDarkMode={isDarkMode}
         setIsDarkMode={setIsDarkMode}
         templateTheme={templateTheme}
@@ -259,6 +262,17 @@ export default function App() {
       <SecurityTrustModal
         isOpen={isSecurityModalOpen}
         onClose={() => setIsSecurityModalOpen(false)}
+      />
+
+      {/* Template Gallery Showcase Modal */}
+      <TemplateGalleryModal
+        isOpen={isTemplateGalleryOpen}
+        onClose={() => setIsTemplateGalleryOpen(false)}
+        currentTheme={templateTheme}
+        onSelectTheme={(theme) => {
+          setTemplateTheme(theme);
+          setIsTemplateGalleryOpen(false);
+        }}
       />
 
       {/* Bottom Sticky Anchor Ad Slot */}
