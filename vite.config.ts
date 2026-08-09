@@ -100,6 +100,7 @@ function apiDevServerPlugin(): Plugin {
             JSON.stringify({
               success: true,
               updated_at: now.toISOString(),
+              source: 'Google News Temporal Feed & TimeGovern IANA Bureau',
               articles: [
                 {
                   id: 'news-1',
@@ -107,13 +108,65 @@ function apiDevServerPlugin(): Plugin {
                   category: 'dst',
                   date: new Date(now.getTime() - 2 * 3600 * 1000).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' }),
                   timeAgo: '2 hours ago',
-                  author: 'Melbourne Time Bureau',
+                  author: 'Google News - Daylight Saving',
                   readTime: '3 min read',
                   featured: true,
                   summary: 'Official IANA tzdata 2026 release confirms daylight saving transition dates across EU member states and UK GMT switch.',
                   content: 'Millions across Europe and North America will adjust their clocks for the autumn transition. TimeGovern servers have updated regional leap second and offset matrix maps automatically.',
                   imageUrl: 'https://images.unsplash.com/photo-1508962914676-134849a727f0?auto=format&fit=crop&w=800&q=80',
                   sourceUrl: 'https://news.google.com/search?q=daylight+saving+time'
+                },
+                {
+                  id: 'news-2',
+                  title: 'NASA & European Space Agency Prepare for Total Lunar Eclipse Observation Stream',
+                  category: 'astronomy',
+                  date: new Date(now.getTime() - 5 * 3600 * 1000).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' }),
+                  timeAgo: '5 hours ago',
+                  author: 'Google News - Astronomy',
+                  readTime: '4 min read',
+                  summary: 'Observatories worldwide synchronize UTC timestamps for upcoming lunar alignment visible across Australia, Asia and Pacific rim.',
+                  content: 'Astronomers are aligning UTC atomic standard clocks to track the lunar eclipse path across the southern hemisphere.',
+                  imageUrl: 'https://images.unsplash.com/photo-1532693322450-2cb5c511067d?auto=format&fit=crop&w=800&q=80',
+                  sourceUrl: 'https://news.google.com/search?q=astronomy+eclipse+utc'
+                },
+                {
+                  id: 'news-3',
+                  title: 'Global Financial Markets Standardize UTC High-Frequency Trading Timestamp Rules',
+                  category: 'timezones',
+                  date: new Date(now.getTime() - 9 * 3600 * 1000).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' }),
+                  timeAgo: '9 hours ago',
+                  author: 'Google News - Global Markets',
+                  readTime: '5 min read',
+                  summary: 'Wall Street, London Stock Exchange, and Tokyo Exchange enforce nanosecond UTC synchronization across borderless trading nodes.',
+                  content: 'Financial regulatory authorities mandated unified UTC clock synchronization to prevent cross-border latency discrepancies during high-frequency arbitrage.',
+                  imageUrl: 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&w=800&q=80',
+                  sourceUrl: 'https://news.google.com/search?q=timezones+utc+stock+exchange'
+                },
+                {
+                  id: 'news-4',
+                  title: 'Optical Lattice Atomic Clocks Achieve 1 Second Precision in 300 Billion Years',
+                  category: 'technology',
+                  date: new Date(now.getTime() - 14 * 3600 * 1000).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' }),
+                  timeAgo: '14 hours ago',
+                  author: 'Google News - Quantum Tech',
+                  readTime: '4 min read',
+                  summary: 'Physicists redefine International Atomic Time (TAI) utilizing strontium optical lattice clocks for future leap second calibration.',
+                  content: 'Scientists at BIPM Paris have reported milestone stability in optical quantum clocks, paving the way for redefining the SI second by 2030.',
+                  imageUrl: 'https://images.unsplash.com/photo-1509228468518-180dd4864904?auto=format&fit=crop&w=800&q=80',
+                  sourceUrl: 'https://news.google.com/search?q=atomic+clock+quantum+time'
+                },
+                {
+                  id: 'news-5',
+                  title: 'Australia & New Zealand Daylight Saving Transition Dates Announced for Southern Hemisphere',
+                  category: 'dst',
+                  date: new Date(now.getTime() - 20 * 3600 * 1000).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' }),
+                  timeAgo: '20 hours ago',
+                  author: 'Melbourne Time Bureau',
+                  readTime: '3 min read',
+                  summary: 'Southeastern Australian states (VIC, NSW, TAS, SA, ACT) prepare to advance clocks by 1 hour as summer approaches.',
+                  content: 'Clocks in Melbourne, Sydney, and Adelaide will transition smoothly, while Queensland and Western Australia remain on standard time.',
+                  imageUrl: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=800&q=80',
+                  sourceUrl: 'https://news.google.com/search?q=australia+daylight+saving+time'
                 }
               ]
             })

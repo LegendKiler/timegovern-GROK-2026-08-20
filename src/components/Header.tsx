@@ -13,6 +13,8 @@ interface HeaderProps {
   onOpenSecurityModal?: () => void;
   isDarkMode: boolean;
   setIsDarkMode: (val: boolean) => void;
+  templateTheme: 'swiss-quartz' | 'bloomberg-dark' | 'emerald-precision' | 'editorial-classic';
+  setTemplateTheme: (theme: 'swiss-quartz' | 'bloomberg-dark' | 'emerald-precision' | 'editorial-classic') => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -24,7 +26,9 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenAccountModal,
   onOpenSecurityModal,
   isDarkMode,
-  setIsDarkMode
+  setIsDarkMode,
+  templateTheme,
+  setTemplateTheme
 }) => {
   const [utcTime, setUtcTime] = useState<string>('');
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -83,6 +87,23 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
 
         <div className="flex items-center gap-2">
+          {/* Layout Template Switcher */}
+          <div className="flex items-center gap-1 bg-slate-900/90 border border-slate-700 rounded-lg p-0.5">
+            <span className="text-[10px] text-slate-400 font-bold px-2 flex items-center gap-1">
+              <Layers className="w-3 h-3 text-cyan-400" /> Template:
+            </span>
+            <select
+              value={templateTheme}
+              onChange={(e) => setTemplateTheme(e.target.value as any)}
+              className="bg-slate-800 text-cyan-300 font-semibold text-[11px] rounded px-2 py-0.5 border border-slate-600 focus:outline-none focus:border-cyan-400 cursor-pointer"
+            >
+              <option value="swiss-quartz">Swiss Quartz Clean</option>
+              <option value="bloomberg-dark">Bloomberg Terminal Dark</option>
+              <option value="emerald-precision">Emerald Observatory</option>
+              <option value="editorial-classic">Editorial Newspaper</option>
+            </select>
+          </div>
+
           {/* Theme Toggle Button */}
           <button
             onClick={() => setIsDarkMode(!isDarkMode)}

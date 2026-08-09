@@ -27,15 +27,33 @@ export default function App() {
   const [isAccountModalOpen, setIsAccountModalOpen] = useState<boolean>(false);
   const [isSecurityModalOpen, setIsSecurityModalOpen] = useState<boolean>(false);
   const [showAds, setShowAds] = useState<boolean>(true);
-  const [isDarkMode, setIsDarkMode] = useState<boolean>(false); // Light mode default matching TimeAndDate.com
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
+  const [templateTheme, setTemplateTheme] = useState<'swiss-quartz' | 'bloomberg-dark' | 'emerald-precision' | 'editorial-classic'>('swiss-quartz');
 
   const handleSelectCity = (city: City) => {
     setSelectedCityFromSearch(city);
     setActivePillar(1); // Jump to World Clock view for searched city
   };
 
+  // Compute container class according to templateTheme & dark mode
+  const getThemeWrapperClass = () => {
+    switch (templateTheme) {
+      case 'bloomberg-dark':
+        return 'bg-[#040812] text-cyan-100 font-mono selection:bg-amber-500 selection:text-black';
+      case 'emerald-precision':
+        return 'bg-[#030c0a] text-emerald-100 font-sans selection:bg-emerald-500 selection:text-black';
+      case 'editorial-classic':
+        return 'bg-[#fcfaf7] text-slate-900 font-serif selection:bg-amber-200 selection:text-amber-950';
+      case 'swiss-quartz':
+      default:
+        return isDarkMode
+          ? 'bg-[#070b14] text-slate-100 font-sans selection:bg-blue-600 selection:text-white'
+          : 'bg-[#edf2f7] text-slate-800 font-sans selection:bg-blue-600 selection:text-white';
+    }
+  };
+
   return (
-    <div className={`min-h-screen ${isDarkMode ? 'bg-[#070b14] text-slate-100' : 'bg-[#eef2f7] text-slate-800'} flex flex-col font-sans selection:bg-blue-600 selection:text-white transition-colors duration-200`}>
+    <div className={`min-h-screen ${getThemeWrapperClass()} flex flex-col transition-colors duration-300`}>
       {/* Header */}
       <Header
         activePillar={activePillar}
@@ -47,6 +65,8 @@ export default function App() {
         onOpenSecurityModal={() => setIsSecurityModalOpen(true)}
         isDarkMode={isDarkMode}
         setIsDarkMode={setIsDarkMode}
+        templateTheme={templateTheme}
+        setTemplateTheme={setTemplateTheme}
       />
 
       {/* Ad Control & Quick Bar */}
