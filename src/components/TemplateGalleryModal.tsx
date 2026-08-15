@@ -1,7 +1,7 @@
 import React from 'react';
 import { X, Check, Palette, Sparkles, Monitor, ShieldCheck, LayoutGrid } from 'lucide-react';
 
-export type TemplateTheme = 'swiss-quartz' | 'bloomberg-dark' | 'emerald-precision' | 'editorial-classic';
+export type TemplateTheme = 'swiss-quartz' | 'stripe-corporate' | 'emerald-precision' | 'editorial-classic';
 
 interface TemplateOption {
   id: TemplateTheme;
@@ -24,91 +24,91 @@ interface TemplateOption {
 const TEMPLATE_OPTIONS: TemplateOption[] = [
   {
     id: 'swiss-quartz',
-    title: 'Swiss Quartz Clean',
-    subtitle: 'Standard Modern Utility (TimeAndDate Classic)',
-    tag: 'DEFAULT',
-    fontFamily: 'Inter / Plus Jakarta Sans (Clean Modern Sans)',
+    title: 'timeanddate.com Classic Official',
+    subtitle: 'Exact Look & Feel of timeanddate.com / dateandtime.com',
+    tag: 'EXACT MATCH',
+    fontFamily: 'Helvetica / Arial / Plus Jakarta Sans (TimeAndDate Classic)',
     colors: {
-      bg: '#eef2f7',
+      bg: '#f2f5f8',
       cardBg: '#ffffff',
-      text: '#1e293b',
-      accent: '#2563eb',
-      border: '#cbd5e1'
+      text: '#102a43',
+      accent: '#0056b3',
+      border: '#d9e2ec'
     },
     features: [
-      'High contrast, bright slate background for maximum daytime clarity',
-      'Structured 11-pillar navigation tabs with distinct blue active indicators',
-      'Spacious grid layout optimized for multi-city clock comparisons',
-      'Responsive, clean corporate styling suitable for all audience types'
+      'Official deep navy header (#0f2942) with iconic yellow/gold search action button',
+      'Crisp white content cards with subtle slate borders & high data density tables',
+      'Exact 11-pillar navigation tabs (World Clock, Time Zones, Calendar, Weather, Sun & Moon, Timers, Calculators)',
+      'Bright off-white background (#f2f5f8) with signature blue link accents for ultra-legibility'
     ],
-    description: 'The premier choice for daily world clocks, timezone meeting planning, and daylight saving research.',
-    badge: 'Most Popular'
+    description: '100% accurate replica template of the world-famous timeanddate.com portal for global clocks, timezones, calendars, and daylight saving tracking.',
+    badge: '★ Official Match'
   },
   {
-    id: 'bloomberg-dark',
-    title: 'Bloomberg Terminal Dark',
-    subtitle: 'High-Density Financial & Data Trading Canvas',
-    tag: 'FINANCIAL',
-    fontFamily: 'JetBrains Mono / Fira Code (Monospace)',
+    id: 'stripe-corporate',
+    title: 'Stripe Corporate Tech',
+    subtitle: 'Vibrant Electric Blue & Indigo Enterprise SaaS',
+    tag: 'ENTERPRISE',
+    fontFamily: 'Inter / Plus Jakarta Sans',
     colors: {
-      bg: '#040812',
-      cardBg: '#091122',
-      text: '#cff4fc',
-      accent: '#06b6d4',
-      border: '#1e293b'
+      bg: '#f1f5f9',
+      cardBg: '#ffffff',
+      text: '#1e1b4b',
+      accent: '#4f46e5',
+      border: '#c7d2fe'
     },
     features: [
-      'Deep obsidian canvas with glowing cyan & amber status indicators',
-      'Strict monospace typography for aligned UTC timestamp tables',
-      'Real-time market tickers, UTC leap-second counters, and latency logs',
-      'High-contrast night mode designed for ICT network engineers & traders'
+      'Gradient indigo header bar with vivid royal blue & electric purple accents',
+      'Pristine white floating cards with soft crisp shadows and indigo borders',
+      'High-energy corporate tech look designed for enterprise users and API developers',
+      'Distinctive status badges, clear metric counters and active state highlights'
     ],
-    description: 'Engineered for financial analysts, global trade operators, and server infrastructure monitors.',
-    badge: 'Pro Trader'
+    description: 'A vibrant, high-converting enterprise portal template modelled after modern Silicon Valley platforms.',
+    badge: 'Pro Corporate'
   },
   {
     id: 'emerald-precision',
-    title: 'Emerald Observatory',
-    subtitle: 'Astronomical, Lunar & Scientific Observatory Theme',
-    tag: 'SCIENTIFIC',
-    fontFamily: 'Plus Jakarta Sans (Scientific Precision)',
+    title: 'Emerald Mint Tech',
+    subtitle: 'Vibrant Mint & Forest Green Observatory Light',
+    tag: 'VIBRANT MINT',
+    fontFamily: 'Plus Jakarta Sans (Scientific Light)',
     colors: {
-      bg: '#030c0a',
-      cardBg: '#071815',
-      text: '#d1fae5',
+      bg: '#f0fdf4',
+      cardBg: '#ffffff',
+      text: '#064e3b',
       accent: '#10b981',
-      border: '#064e3b'
+      border: '#a7f3d0'
     },
     features: [
-      'Night-sky deep emerald background with glowing mint green highlights',
-      'Specialized visual cards for Solar declination, Perseid meteor showers & eclipse paths',
-      'Dark room eye-safe contrast for stargazers and telescope operators',
-      'Clean vector gauges for UV index, moon phase calculations, and tides'
+      'Bright mint-tinted clean background with deep emerald typography',
+      'Luminous green status badges for real-time UTC & satellite weather sync',
+      'High visibility vector charts for solar declination, moon phases & tides',
+      'Ultra-fresh, eco-tech aesthetic with superior daylight readability'
     ],
-    description: 'Designed for astronomy enthusiasts, eclipse chasers, and space weather researchers.',
-    badge: 'Observatory Grade'
+    description: 'A fresh, energetic light theme tailored for astronomy, weather radar, and environmental tracking.',
+    badge: 'Fresh Mint'
   },
   {
     id: 'editorial-classic',
-    title: 'Editorial Newspaper',
-    subtitle: 'Broadsheet Journal & Global News Publication',
-    tag: 'BROADSHEET',
+    title: 'Financial Times Crisp',
+    subtitle: 'Premium Broadsheet Journal & Global Market News',
+    tag: 'FINANCIAL NEWS',
     fontFamily: 'Playfair Display / Serif Elegance',
     colors: {
-      bg: '#fcfaf7',
+      bg: '#fffbeb',
       cardBg: '#ffffff',
-      text: '#0f172a',
+      text: '#1e293b',
       accent: '#d97706',
-      border: '#e2e8f0'
+      border: '#fde68a'
     },
     features: [
-      'Warm parchment background inspired by classic international broadsheets',
-      'Serif typography for rich article reading, DST history & time zone trivia',
-      'High-density column dividers resembling traditional news layouts',
-      'Elegant amber and dark ink contrast for effortless long-form reading'
+      'Warm ivory parchment canvas with rich dark slate typography',
+      'Golden amber & deep navy broadsheet styling for high-density reading',
+      'Refined serif headlines paired with crisp sans-serif data tables',
+      'Authoritative journalistic feel for international timezone news & policy updates'
     ],
-    description: 'Ideal for reading time zone policy updates, daylight saving news, and historical archives.',
-    badge: 'Classic News'
+    description: 'An elegant, high-class financial broadsheet template for global news and daylight saving archives.',
+    badge: 'Executive'
   }
 ];
 

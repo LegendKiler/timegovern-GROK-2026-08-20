@@ -39,18 +39,19 @@ export default function App() {
 
   // Compute container class according to templateTheme & dark mode
   const getThemeWrapperClass = () => {
+    if (isDarkMode) {
+      return 'bg-[#070b14] text-slate-100 font-sans selection:bg-blue-600 selection:text-white';
+    }
     switch (templateTheme) {
-      case 'bloomberg-dark':
-        return 'bg-[#040812] text-cyan-100 font-mono selection:bg-amber-500 selection:text-black';
+      case 'stripe-corporate':
+        return 'bg-[#f1f5f9] text-indigo-950 font-sans selection:bg-indigo-600 selection:text-white';
       case 'emerald-precision':
-        return 'bg-[#030c0a] text-emerald-100 font-sans selection:bg-emerald-500 selection:text-black';
+        return 'bg-[#f0fdf4] text-emerald-950 font-sans selection:bg-emerald-600 selection:text-white';
       case 'editorial-classic':
-        return 'bg-[#fcfaf7] text-slate-900 font-serif selection:bg-amber-200 selection:text-amber-950';
+        return 'bg-[#fffbeb] text-slate-900 font-serif selection:bg-amber-300 selection:text-amber-950';
       case 'swiss-quartz':
       default:
-        return isDarkMode
-          ? 'bg-[#070b14] text-slate-100 font-sans selection:bg-blue-600 selection:text-white'
-          : 'bg-[#edf2f7] text-slate-800 font-sans selection:bg-blue-600 selection:text-white';
+        return 'bg-[#f0f4f8] text-slate-900 font-sans selection:bg-blue-600 selection:text-white';
     }
   };
 

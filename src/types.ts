@@ -146,5 +146,5 @@ export interface TimerItem {
   durationSeconds: number;
   remainingSeconds: number;
   isRunning: boolean;
-  soundPreset: 'classic' | 'bell' | 'digital';
+  soundPreset: 'classic' | 'bell' | 'digital' | 'chime' | 'marimba';
 }

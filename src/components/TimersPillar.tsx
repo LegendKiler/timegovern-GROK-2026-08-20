@@ -46,7 +46,8 @@ export const TimersPillar: React.FC = () => {
         prevTimers.map((t) => {
           if (!t.isRunning) return t;
           if (t.remainingSeconds <= 1) {
-            audioSynth.playAlarmSound(t.soundPreset);
+            const preset = (t.soundPreset === 'bell' ? 'classic' : t.soundPreset) as 'classic' | 'chime' | 'digital' | 'marimba';
+            audioSynth.playAlarmSound(preset);
             return { ...t, remainingSeconds: 0, isRunning: false };
           }
           return { ...t, remainingSeconds: t.remainingSeconds - 1 };

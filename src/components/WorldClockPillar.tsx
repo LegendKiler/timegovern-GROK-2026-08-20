@@ -6,6 +6,7 @@ import { getTimezoneOffsetInfo, formatCityDateTime, getHourSuitability, encodeSh
 import { AdBanner } from './AdBanner';
 import { AnalogClock } from './AnalogClock';
 import { WorldMapCanvas } from './WorldMapCanvas';
+import { InteractiveGlobe3D } from './InteractiveGlobe3D';
 import { generateGoogleCalendarUrl, downloadIcsFile } from '../lib/icsGenerator';
 
 interface WorldClockPillarProps {
@@ -13,7 +14,7 @@ interface WorldClockPillarProps {
 }
 
 export const WorldClockPillar: React.FC<WorldClockPillarProps> = ({ selectedCityFromSearch }) => {
-  const [subTab, setSubTab] = useState<'clock' | 'converter' | 'map' | 'announcer' | 'regions'>('clock');
+  const [subTab, setSubTab] = useState<'clock' | '3d-globe' | 'converter' | 'map' | 'announcer' | 'regions'>('clock');
   const [selectedRegion, setSelectedRegion] = useState<string>('africa');
   const [clockDisplayStyle, setClockDisplayStyle] = useState<'grid' | 'table'>('grid');
   const [now, setNow] = useState<Date>(new Date());
@@ -118,6 +119,17 @@ export const WorldClockPillar: React.FC<WorldClockPillarProps> = ({ selectedCity
               World Clock
             </button>
             <button
+              onClick={() => setSubTab('3d-globe')}
+              className={`px-3.5 py-2 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
+                subTab === '3d-globe'
+                  ? 'bg-amber-400 text-slate-950 font-extrabold shadow-md ring-2 ring-amber-300/60'
+                  : 'text-amber-600 dark:text-amber-400 font-bold hover:bg-amber-500/10'
+              }`}
+            >
+              <Globe className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400" />
+              <span>3D Globe WebGL</span>
+            </button>
+            <button
               onClick={() => setSubTab('converter')}
               className={`px-3.5 py-2 rounded-lg transition-all cursor-pointer ${
                 subTab === 'converter'
@@ -195,6 +207,15 @@ export const WorldClockPillar: React.FC<WorldClockPillarProps> = ({ selectedCity
                     </div>
                   )}
                 </div>
+
+                <button
+                  onClick={() => setSubTab('3d-globe')}
+                  className="px-3 py-1.5 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 font-extrabold text-xs rounded-md shadow-sm transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap"
+                  title="Launch Interactive 3D WebGL Globe"
+                >
+                  <Globe className="w-3.5 h-3.5 text-slate-950" />
+                  <span>3D Globe View</span>
+                </button>
 
                 <div className="flex items-center gap-1 bg-slate-200 dark:bg-slate-900 p-1 rounded-md text-xs">
                   <button
@@ -507,6 +528,15 @@ export const WorldClockPillar: React.FC<WorldClockPillarProps> = ({ selectedCity
                 </table>
               </div>
             </div>
+          </div>
+        )}
+
+        {/* ----------------- SUB TAB 2: 3D INTERACTIVE GLOBE ----------------- */}
+        {subTab === '3d-globe' && (
+          <div className="mt-4 space-y-4">
+            <InteractiveGlobe3D
+              onAddCityToWatchlist={(c) => handleAddCityToWatchlist(c)}
+            />
           </div>
         )}
 

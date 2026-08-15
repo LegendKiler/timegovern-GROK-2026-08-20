@@ -14,8 +14,8 @@ interface HeaderProps {
   onOpenTemplateGallery?: () => void;
   isDarkMode: boolean;
   setIsDarkMode: (val: boolean) => void;
-  templateTheme: 'swiss-quartz' | 'bloomberg-dark' | 'emerald-precision' | 'editorial-classic';
-  setTemplateTheme: (theme: 'swiss-quartz' | 'bloomberg-dark' | 'emerald-precision' | 'editorial-classic') => void;
+  templateTheme: 'swiss-quartz' | 'stripe-corporate' | 'emerald-precision' | 'editorial-classic';
+  setTemplateTheme: (theme: 'swiss-quartz' | 'stripe-corporate' | 'emerald-precision' | 'editorial-classic') => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -99,10 +99,10 @@ export const Header: React.FC<HeaderProps> = ({
               onChange={(e) => setTemplateTheme(e.target.value as any)}
               className="bg-slate-800 text-cyan-300 font-semibold text-[11px] rounded px-2 py-0.5 border border-slate-600 focus:outline-none focus:border-cyan-400 cursor-pointer"
             >
-              <option value="swiss-quartz">Swiss Quartz Clean</option>
-              <option value="bloomberg-dark">Bloomberg Terminal Dark</option>
-              <option value="emerald-precision">Emerald Observatory</option>
-              <option value="editorial-classic">Editorial Newspaper</option>
+              <option value="swiss-quartz">timeanddate.com Classic Official</option>
+              <option value="stripe-corporate">Stripe Corporate Tech</option>
+              <option value="emerald-precision">Emerald Mint Tech</option>
+              <option value="editorial-classic">Financial Times Crisp</option>
             </select>
             {onOpenTemplateGallery && (
               <button
@@ -191,18 +191,31 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
         </div>
 
-        {/* Global City Search Input */}
+        {/* Global City Search Input - TimeAndDate style with signature yellow button */}
         <div className="relative max-w-xl w-full">
-          <div className="relative">
-            <Search className="w-4 h-4 absolute left-3.5 top-3 text-slate-400" />
+          <div className="relative flex items-center">
+            <Search className="w-4 h-4 absolute left-3.5 top-3 text-slate-400 z-10" />
             <input
               type="text"
               value={searchQuery}
               onChange={handleSearchChange}
               onFocus={() => searchQuery.length > 0 && setShowSearchDropdown(true)}
-              placeholder="Search 5,000+ global cities, ISO countries or IANA timezones..."
-              className="w-full bg-[#0d1424] text-white placeholder-slate-400 text-xs rounded-xl pl-10 pr-4 py-2.5 border border-slate-700 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-all shadow-inner font-medium"
+              placeholder="Search city, timezone, country (e.g. London, Tokyo, EST)..."
+              className="w-full bg-[#0d1424] text-white placeholder-slate-400 text-xs rounded-xl pl-10 pr-24 py-2.5 border border-slate-700 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition-all shadow-inner font-medium"
             />
+            <button
+              onClick={() => {
+                if (searchQuery.trim().length > 0) {
+                  const matches = searchCities(searchQuery, 1);
+                  if (matches.length > 0) handleSelectCityClick(matches[0]);
+                }
+              }}
+              className="absolute right-1 top-1 bottom-1 bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-xs px-4 rounded-lg flex items-center gap-1.5 transition-colors cursor-pointer border border-amber-500 shadow-sm"
+              title="Search TimeAndDate City Database"
+            >
+              <Search className="w-3.5 h-3.5 text-slate-950" />
+              <span>Search</span>
+            </button>
           </div>
 
           {/* Search Dropdown */}
