@@ -81,6 +81,15 @@ export const AtomicTelemetryWidget: React.FC = () => {
   const [showPhaseJitter, setShowPhaseJitter] = useState<boolean>(false);
   const [showConfidenceBands, setShowConfidenceBands] = useState<boolean>(true);
 
+  // Specialized mode line toggles
+  const [showDiurnalDut1, setShowDiurnalDut1] = useState<boolean>(true);
+  const [showDiurnalSolar, setShowDiurnalSolar] = useState<boolean>(true);
+  const [showOptSr, setShowOptSr] = useState<boolean>(true);
+  const [showOptCs, setShowOptCs] = useState<boolean>(true);
+  const [showOptRb, setShowOptRb] = useState<boolean>(true);
+  const [showDecadalTai, setShowDecadalTai] = useState<boolean>(true);
+  const [showDecadalGps, setShowDecadalGps] = useState<boolean>(true);
+
   // Live stream buffer state
   const [liveStreamData, setLiveStreamData] = useState<AtomicTelemetryPoint[]>([]);
   const pointIndexRef = useRef<number>(0);
@@ -840,26 +849,64 @@ export const AtomicTelemetryWidget: React.FC = () => {
                 )}
               </div>
 
-              {/* Metric Legends */}
-              <div className="flex flex-wrap items-center gap-3 text-[11px] font-semibold">
-                <span className="flex items-center gap-1.5 text-cyan-400">
-                  <span className="w-3 h-0.5 bg-cyan-400 rounded-full"></span>
-                  TAI Atomic Offset (+37s)
-                </span>
-                <span className="flex items-center gap-1.5 text-amber-400">
-                  <span className="w-3 h-0.5 bg-amber-400 rounded-full"></span>
-                  GPS Offset (+18s)
-                </span>
-                <span className="flex items-center gap-1.5 text-emerald-400">
-                  <span className="w-3 h-0.5 bg-emerald-400 rounded-full"></span>
-                  DUT1 Earth Wobble (+0.038s)
-                </span>
-                {showPhaseJitter && (
-                  <span className="flex items-center gap-1.5 text-purple-400">
-                    <span className="w-3 h-0.5 bg-purple-400 rounded-full"></span>
-                    Phase Jitter (ns)
-                  </span>
-                )}
+              {/* Metric Legends with Interactive Click Toggles */}
+              <div className="flex flex-wrap items-center gap-2 text-[11px] font-semibold">
+                <span className="text-slate-500 text-[10px] uppercase font-bold tracking-wider mr-1 hidden sm:inline">Legend:</span>
+                <button
+                  type="button"
+                  onClick={() => setShowTai(!showTai)}
+                  className={`px-2 py-1 rounded-lg border transition-all cursor-pointer flex items-center gap-1.5 ${
+                    showTai
+                      ? 'bg-cyan-950/70 border-cyan-500/50 text-cyan-300 shadow-xs'
+                      : 'bg-slate-950/60 border-slate-800 text-slate-500 opacity-60 hover:opacity-100'
+                  }`}
+                  title="Toggle TAI - UTC Offset line"
+                >
+                  <span className={`w-2.5 h-2.5 rounded-full ${showTai ? 'bg-cyan-400' : 'bg-slate-600'}`}></span>
+                  <span>TAI Offset (+37s)</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setShowGps(!showGps)}
+                  className={`px-2 py-1 rounded-lg border transition-all cursor-pointer flex items-center gap-1.5 ${
+                    showGps
+                      ? 'bg-amber-950/70 border-amber-500/50 text-amber-300 shadow-xs'
+                      : 'bg-slate-950/60 border-slate-800 text-slate-500 opacity-60 hover:opacity-100'
+                  }`}
+                  title="Toggle GPS Offset line"
+                >
+                  <span className={`w-2.5 h-2.5 rounded-full ${showGps ? 'bg-amber-400' : 'bg-slate-600'}`}></span>
+                  <span>GPS Offset (+18s)</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setShowDut1(!showDut1)}
+                  className={`px-2 py-1 rounded-lg border transition-all cursor-pointer flex items-center gap-1.5 ${
+                    showDut1
+                      ? 'bg-emerald-950/70 border-emerald-500/50 text-emerald-300 shadow-xs'
+                      : 'bg-slate-950/60 border-slate-800 text-slate-500 opacity-60 hover:opacity-100'
+                  }`}
+                  title="Toggle DUT1 Earth Wobble line"
+                >
+                  <span className={`w-2.5 h-2.5 rounded-full ${showDut1 ? 'bg-emerald-400' : 'bg-slate-600'}`}></span>
+                  <span>DUT1 Earth (+0.038s)</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setShowPhaseJitter(!showPhaseJitter)}
+                  className={`px-2 py-1 rounded-lg border transition-all cursor-pointer flex items-center gap-1.5 ${
+                    showPhaseJitter
+                      ? 'bg-purple-950/70 border-purple-500/50 text-purple-300 shadow-xs'
+                      : 'bg-slate-950/60 border-slate-800 text-slate-500 opacity-60 hover:opacity-100'
+                  }`}
+                  title="Toggle High-Frequency Phase Jitter line"
+                >
+                  <span className={`w-2.5 h-2.5 rounded-full ${showPhaseJitter ? 'bg-purple-400' : 'bg-slate-600'}`}></span>
+                  <span>Phase Jitter (ns)</span>
+                </button>
               </div>
             </div>
 
@@ -900,27 +947,59 @@ export const AtomicTelemetryWidget: React.FC = () => {
                   )}
 
                   <Tooltip
-                    contentStyle={{ 
-                      backgroundColor: '#0f172a', 
-                      borderColor: '#334155', 
-                      borderRadius: '12px', 
-                      color: '#f8fafc',
-                      fontSize: '11px',
-                      boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.5)'
-                    }}
-                    formatter={(value: any, name: any) => {
-                      if (name === 'taiUtcDelta') return [`+${Number(value).toFixed(6)}s (Exact)`, 'TAI - UTC'];
-                      if (name === 'gpsUtcDelta') return [`+${Number(value).toFixed(6)}s`, 'GPS - UTC'];
-                      if (name === 'dut1DeltaSec') return [`+${Number(value).toFixed(5)}s`, 'DUT1 (UT1 - UTC)'];
-                      if (name === 'phaseJitterNs') return [`${Number(value).toFixed(3)} ns`, 'Phase Jitter'];
-                      return [value, name];
+                    content={({ active, payload }) => {
+                      if (active && payload && payload.length) {
+                        const data = payload[0].payload;
+                        return (
+                          <div className="bg-slate-900/98 backdrop-blur-xl border border-cyan-500/50 rounded-xl p-3.5 shadow-2xl text-xs text-white max-w-xs space-y-2.5 z-50 animate-fadeIn">
+                            <div className="flex items-center justify-between border-b border-slate-800 pb-1.5">
+                              <span className="font-mono font-bold text-cyan-300 text-xs">Epoch: {data.timestampStr}</span>
+                              <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/40">
+                                Live Telemetry
+                              </span>
+                            </div>
+
+                            <div className="space-y-1 font-mono text-[11px]">
+                              {showTai && (
+                                <div className="flex justify-between items-center text-cyan-300">
+                                  <span className="text-slate-400 font-sans">TAI - UTC:</span>
+                                  <span className="font-extrabold text-sm">+{Number(data.taiUtcDelta).toFixed(6)} s</span>
+                                </div>
+                              )}
+                              {showGps && (
+                                <div className="flex justify-between items-center text-amber-300">
+                                  <span className="text-slate-400 font-sans">GPS - UTC:</span>
+                                  <span className="font-bold">+{Number(data.gpsUtcDelta).toFixed(6)} s</span>
+                                </div>
+                              )}
+                              {showDut1 && (
+                                <div className="flex justify-between items-center text-emerald-300">
+                                  <span className="text-slate-400 font-sans">DUT1 (UT1-UTC):</span>
+                                  <span className="font-bold">+{Number(data.dut1DeltaSec).toFixed(5)} s</span>
+                                </div>
+                              )}
+                              {showPhaseJitter && (
+                                <div className="flex justify-between items-center text-purple-300">
+                                  <span className="text-slate-400 font-sans">Phase Jitter:</span>
+                                  <span className="font-bold">{Number(data.phaseJitterNs).toFixed(3)} ns</span>
+                                </div>
+                              )}
+                            </div>
+
+                            <p className="text-[10px] text-slate-400 pt-1 border-t border-slate-800 leading-snug">
+                              Constant integer divergence of +37s maintained under IERS Bulletin C 68.
+                            </p>
+                          </div>
+                        );
+                      }
+                      return null;
                     }}
                   />
 
                   {/* Reference line for Leap Second 0.9s tolerance threshold */}
                   <ReferenceLine yAxisId="left" y={0.9} stroke="#ef4444" strokeDasharray="4 4" label={{ value: 'IERS ±0.9s Limit', fill: '#ef4444', fontSize: 9, position: 'right' }} />
-                  <ReferenceLine yAxisId="left" y={37} stroke="#06b6d4" strokeDasharray="2 2" />
-                  <ReferenceLine yAxisId="left" y={18} stroke="#f59e0b" strokeDasharray="2 2" />
+                  {showTai && <ReferenceLine yAxisId="left" y={37} stroke="#06b6d4" strokeDasharray="2 2" />}
+                  {showGps && <ReferenceLine yAxisId="left" y={18} stroke="#f59e0b" strokeDasharray="2 2" />}
 
                   {/* Visual Drag-to-Zoom Selection Area */}
                   {refAreaLeft && refAreaRight && (
@@ -936,41 +1015,47 @@ export const AtomicTelemetryWidget: React.FC = () => {
                   )}
 
                   {/* TAI Curve (+37s) */}
-                  <Area
-                    yAxisId="left"
-                    type="monotone"
-                    dataKey="taiUtcDelta"
-                    name="taiUtcDelta"
-                    stroke="#06b6d4"
-                    strokeWidth={2.5}
-                    fillOpacity={0.12}
-                    fill="#06b6d4"
-                    isAnimationActive={false}
-                  />
+                  {showTai && (
+                    <Area
+                      yAxisId="left"
+                      type="monotone"
+                      dataKey="taiUtcDelta"
+                      name="taiUtcDelta"
+                      stroke="#06b6d4"
+                      strokeWidth={2.5}
+                      fillOpacity={0.12}
+                      fill="#06b6d4"
+                      isAnimationActive={false}
+                    />
+                  )}
 
                   {/* GPS Curve (+18s) */}
-                  <Line
-                    yAxisId="left"
-                    type="monotone"
-                    dataKey="gpsUtcDelta"
-                    name="gpsUtcDelta"
-                    stroke="#f59e0b"
-                    strokeWidth={2}
-                    dot={false}
-                    isAnimationActive={false}
-                  />
+                  {showGps && (
+                    <Line
+                      yAxisId="left"
+                      type="monotone"
+                      dataKey="gpsUtcDelta"
+                      name="gpsUtcDelta"
+                      stroke="#f59e0b"
+                      strokeWidth={2}
+                      dot={false}
+                      isAnimationActive={false}
+                    />
+                  )}
 
                   {/* DUT1 micro-oscillations magnified */}
-                  <Line
-                    yAxisId="left"
-                    type="monotone"
-                    dataKey="dut1DeltaSec"
-                    name="dut1DeltaSec"
-                    stroke="#10b981"
-                    strokeWidth={1.5}
-                    dot={{ r: 2, fill: '#10b981' }}
-                    isAnimationActive={false}
-                  />
+                  {showDut1 && (
+                    <Line
+                      yAxisId="left"
+                      type="monotone"
+                      dataKey="dut1DeltaSec"
+                      name="dut1DeltaSec"
+                      stroke="#10b981"
+                      strokeWidth={1.5}
+                      dot={{ r: 2, fill: '#10b981' }}
+                      isAnimationActive={false}
+                    />
+                  )}
 
                   {/* Phase Jitter on right axis */}
                   {showPhaseJitter && (
@@ -1005,13 +1090,36 @@ export const AtomicTelemetryWidget: React.FC = () => {
                 </p>
               </div>
 
-              <div className="flex items-center gap-3 text-[11px] font-semibold">
-                <span className="flex items-center gap-1.5 text-emerald-400">
-                  <span className="w-3 h-0.5 bg-emerald-400"></span> DUT1 Variation (ms)
-                </span>
-                <span className="flex items-center gap-1.5 text-cyan-400">
-                  <span className="w-3 h-0.5 bg-cyan-400"></span> Solar Noon Precession (ms)
-                </span>
+              {/* Diurnal Legend Toggles */}
+              <div className="flex items-center gap-2 text-[11px] font-semibold">
+                <span className="text-slate-500 text-[10px] uppercase font-bold tracking-wider mr-1 hidden sm:inline">Legend:</span>
+                <button
+                  type="button"
+                  onClick={() => setShowDiurnalDut1(!showDiurnalDut1)}
+                  className={`px-2 py-1 rounded-lg border transition-all cursor-pointer flex items-center gap-1.5 ${
+                    showDiurnalDut1
+                      ? 'bg-emerald-950/70 border-emerald-500/50 text-emerald-300'
+                      : 'bg-slate-950/60 border-slate-800 text-slate-500 opacity-60 hover:opacity-100'
+                  }`}
+                  title="Toggle DUT1 Earth Rotation Variation line"
+                >
+                  <span className={`w-2.5 h-2.5 rounded-full ${showDiurnalDut1 ? 'bg-emerald-400' : 'bg-slate-600'}`}></span>
+                  <span>DUT1 Variation (ms)</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setShowDiurnalSolar(!showDiurnalSolar)}
+                  className={`px-2 py-1 rounded-lg border transition-all cursor-pointer flex items-center gap-1.5 ${
+                    showDiurnalSolar
+                      ? 'bg-cyan-950/70 border-cyan-500/50 text-cyan-300'
+                      : 'bg-slate-950/60 border-slate-800 text-slate-500 opacity-60 hover:opacity-100'
+                  }`}
+                  title="Toggle Solar Noon Precession line"
+                >
+                  <span className={`w-2.5 h-2.5 rounded-full ${showDiurnalSolar ? 'bg-cyan-400' : 'bg-slate-600'}`}></span>
+                  <span>Solar Noon Precession (ms)</span>
+                </button>
               </div>
             </div>
 
@@ -1033,8 +1141,39 @@ export const AtomicTelemetryWidget: React.FC = () => {
                     label={{ value: 'Deviation (ms)', angle: -90, position: 'insideLeft', fill: '#64748b', fontSize: 10 }}
                   />
                   <Tooltip
-                    contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '12px', fontSize: '11px' }}
-                    formatter={(value: any, name: any) => [`${value} ms`, name === 'dut1' ? 'DUT1 Earth Angle' : 'Solar Noon Precession']}
+                    content={({ active, payload }) => {
+                      if (active && payload && payload.length) {
+                        const data = payload[0].payload;
+                        return (
+                          <div className="bg-slate-900/98 backdrop-blur-xl border border-emerald-500/50 rounded-xl p-3.5 shadow-2xl text-xs text-white max-w-xs space-y-2 z-50 animate-fadeIn">
+                            <div className="flex items-center justify-between border-b border-slate-800 pb-1">
+                              <span className="font-mono font-bold text-emerald-300 text-xs">UTC Time: {data.time}</span>
+                              <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+                                Diurnal Rotation
+                              </span>
+                            </div>
+                            <div className="space-y-1 font-mono text-[11px]">
+                              {showDiurnalDut1 && (
+                                <div className="flex justify-between text-emerald-300">
+                                  <span className="text-slate-400 font-sans">DUT1 Offset:</span>
+                                  <span className="font-bold">{Number(data.dut1).toFixed(3)} ms</span>
+                                </div>
+                              )}
+                              {showDiurnalSolar && (
+                                <div className="flex justify-between text-cyan-300">
+                                  <span className="text-slate-400 font-sans">Solar Noon Drift:</span>
+                                  <span className="font-bold">{Number(data.solarDriftMs).toFixed(3)} ms</span>
+                                </div>
+                              )}
+                            </div>
+                            <p className="text-[10px] text-slate-400 pt-1 border-t border-slate-800 leading-tight">
+                              Reflects tidal friction and atmospheric zonal wind momentum exchanges.
+                            </p>
+                          </div>
+                        );
+                      }
+                      return null;
+                    }}
                   />
 
                   {/* Drag Zoom Visual Bounding Box */}
@@ -1049,8 +1188,8 @@ export const AtomicTelemetryWidget: React.FC = () => {
                     />
                   )}
 
-                  <Area type="monotone" dataKey="dut1" name="dut1" stroke="#10b981" fill="#10b981" fillOpacity={0.2} strokeWidth={2} />
-                  <Line type="monotone" dataKey="solarDriftMs" name="solarDriftMs" stroke="#06b6d4" strokeWidth={2} dot={false} />
+                  {showDiurnalDut1 && <Area type="monotone" dataKey="dut1" name="dut1" stroke="#10b981" fill="#10b981" fillOpacity={0.2} strokeWidth={2} />}
+                  {showDiurnalSolar && <Line type="monotone" dataKey="solarDriftMs" name="solarDriftMs" stroke="#06b6d4" strokeWidth={2} dot={false} />}
                 </AreaChart>
               </ResponsiveContainer>
             </div>
@@ -1071,16 +1210,50 @@ export const AtomicTelemetryWidget: React.FC = () => {
                 </p>
               </div>
 
-              <div className="flex items-center gap-3 text-[11px] font-semibold">
-                <span className="flex items-center gap-1.5 text-cyan-400">
-                  <span className="w-3 h-0.5 bg-cyan-400"></span> Sr Optical Lattice (NIST/RIKEN)
-                </span>
-                <span className="flex items-center gap-1.5 text-amber-400">
-                  <span className="w-3 h-0.5 bg-amber-400"></span> Cs-133 Fountain (SYRTE/NPL)
-                </span>
-                <span className="flex items-center gap-1.5 text-rose-400">
-                  <span className="w-3 h-0.5 bg-rose-400"></span> Commercial Rubidium
-                </span>
+              {/* Optical Stability Legend Toggles */}
+              <div className="flex flex-wrap items-center gap-2 text-[11px] font-semibold">
+                <span className="text-slate-500 text-[10px] uppercase font-bold tracking-wider mr-1 hidden sm:inline">Legend:</span>
+                <button
+                  type="button"
+                  onClick={() => setShowOptSr(!showOptSr)}
+                  className={`px-2 py-1 rounded-lg border transition-all cursor-pointer flex items-center gap-1.5 ${
+                    showOptSr
+                      ? 'bg-cyan-950/70 border-cyan-500/50 text-cyan-300'
+                      : 'bg-slate-950/60 border-slate-800 text-slate-500 opacity-60 hover:opacity-100'
+                  }`}
+                  title="Toggle Strontium Optical Lattice curve"
+                >
+                  <span className={`w-2.5 h-2.5 rounded-full ${showOptSr ? 'bg-cyan-400' : 'bg-slate-600'}`}></span>
+                  <span>Sr Optical Lattice</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setShowOptCs(!showOptCs)}
+                  className={`px-2 py-1 rounded-lg border transition-all cursor-pointer flex items-center gap-1.5 ${
+                    showOptCs
+                      ? 'bg-amber-950/70 border-amber-500/50 text-amber-300'
+                      : 'bg-slate-950/60 border-slate-800 text-slate-500 opacity-60 hover:opacity-100'
+                  }`}
+                  title="Toggle Cesium-133 Fountain curve"
+                >
+                  <span className={`w-2.5 h-2.5 rounded-full ${showOptCs ? 'bg-amber-400' : 'bg-slate-600'}`}></span>
+                  <span>Cs-133 Fountain</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setShowOptRb(!showOptRb)}
+                  className={`px-2 py-1 rounded-lg border transition-all cursor-pointer flex items-center gap-1.5 ${
+                    showOptRb
+                      ? 'bg-rose-950/70 border-rose-500/50 text-rose-300'
+                      : 'bg-slate-950/60 border-slate-800 text-slate-500 opacity-60 hover:opacity-100'
+                  }`}
+                  title="Toggle Commercial Rubidium curve"
+                >
+                  <span className={`w-2.5 h-2.5 rounded-full ${showOptRb ? 'bg-rose-400' : 'bg-slate-600'}`}></span>
+                  <span>Rubidium Standard</span>
+                </button>
               </div>
             </div>
 
@@ -1104,8 +1277,45 @@ export const AtomicTelemetryWidget: React.FC = () => {
                     label={{ value: 'Instability σy(τ) × 10⁻¹⁶', angle: -90, position: 'insideLeft', fill: '#64748b', fontSize: 10 }}
                   />
                   <Tooltip
-                    contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '12px', fontSize: '11px' }}
-                    formatter={(val: any, name: any) => [`${val} × 10⁻¹⁶`, name]}
+                    content={({ active, payload }) => {
+                      if (active && payload && payload.length) {
+                        const data = payload[0].payload;
+                        return (
+                          <div className="bg-slate-900/98 backdrop-blur-xl border border-purple-500/50 rounded-xl p-3.5 shadow-2xl text-xs text-white max-w-xs space-y-2 z-50 animate-fadeIn">
+                            <div className="flex items-center justify-between border-b border-slate-800 pb-1">
+                              <span className="font-mono font-bold text-purple-300 text-xs">Interval τ: {data.averagingTimeTau}</span>
+                              <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-purple-500/20 text-purple-300 border border-purple-500/40">
+                                Allan Deviation
+                              </span>
+                            </div>
+                            <div className="space-y-1 font-mono text-[11px]">
+                              {showOptSr && (
+                                <div className="flex justify-between text-cyan-300">
+                                  <span className="text-slate-400 font-sans">Sr Optical Lattice:</span>
+                                  <span className="font-bold">{data.opticalLatticeDrift} × 10⁻¹⁶</span>
+                                </div>
+                              )}
+                              {showOptCs && (
+                                <div className="flex justify-between text-amber-300">
+                                  <span className="text-slate-400 font-sans">Cs-133 Fountain:</span>
+                                  <span className="font-bold">{data.cesiumFountainDrift} × 10⁻¹⁶</span>
+                                </div>
+                              )}
+                              {showOptRb && (
+                                <div className="flex justify-between text-rose-300">
+                                  <span className="text-slate-400 font-sans">Rubidium Standard:</span>
+                                  <span className="font-bold">{data.commercialRubidiumDrift} × 10⁻¹⁶</span>
+                                </div>
+                              )}
+                            </div>
+                            <p className="text-[10px] text-slate-400 pt-1 border-t border-slate-800 leading-tight">
+                              Optical lattice clocks achieve fractional frequency stability surpassing 1 part in 10¹⁸.
+                            </p>
+                          </div>
+                        );
+                      }
+                      return null;
+                    }}
                   />
 
                   {/* Drag Zoom Visual Bounding Box */}
@@ -1120,9 +1330,9 @@ export const AtomicTelemetryWidget: React.FC = () => {
                     />
                   )}
 
-                  <Line type="monotone" dataKey="opticalLatticeDrift" name="Sr Optical Lattice" stroke="#06b6d4" strokeWidth={2.5} dot={false} />
-                  <Line type="monotone" dataKey="cesiumFountainDrift" name="Cs-133 Fountain" stroke="#f59e0b" strokeWidth={2} dot={false} />
-                  <Line type="monotone" dataKey="commercialRubidiumDrift" name="Rubidium Standard" stroke="#f43f5e" strokeWidth={1.5} strokeDasharray="4 4" dot={false} />
+                  {showOptSr && <Line type="monotone" dataKey="opticalLatticeDrift" name="Sr Optical Lattice" stroke="#06b6d4" strokeWidth={2.5} dot={false} />}
+                  {showOptCs && <Line type="monotone" dataKey="cesiumFountainDrift" name="Cs-133 Fountain" stroke="#f59e0b" strokeWidth={2} dot={false} />}
+                  {showOptRb && <Line type="monotone" dataKey="commercialRubidiumDrift" name="Rubidium Standard" stroke="#f43f5e" strokeWidth={1.5} strokeDasharray="4 4" dot={false} />}
                 </LineChart>
               </ResponsiveContainer>
             </div>
@@ -1143,13 +1353,36 @@ export const AtomicTelemetryWidget: React.FC = () => {
                 </p>
               </div>
 
-              <div className="flex items-center gap-3 text-[11px] font-semibold">
-                <span className="flex items-center gap-1.5 text-cyan-400">
-                  <span className="w-3 h-0.5 bg-cyan-400"></span> TAI - UTC Offset (s)
-                </span>
-                <span className="flex items-center gap-1.5 text-amber-400">
-                  <span className="w-3 h-0.5 bg-amber-400"></span> GPS - UTC Offset (s)
-                </span>
+              {/* Decadal Legend Toggles */}
+              <div className="flex items-center gap-2 text-[11px] font-semibold">
+                <span className="text-slate-500 text-[10px] uppercase font-bold tracking-wider mr-1 hidden sm:inline">Legend:</span>
+                <button
+                  type="button"
+                  onClick={() => setShowDecadalTai(!showDecadalTai)}
+                  className={`px-2 py-1 rounded-lg border transition-all cursor-pointer flex items-center gap-1.5 ${
+                    showDecadalTai
+                      ? 'bg-cyan-950/70 border-cyan-500/50 text-cyan-300'
+                      : 'bg-slate-950/60 border-slate-800 text-slate-500 opacity-60 hover:opacity-100'
+                  }`}
+                  title="Toggle TAI - UTC Offset (+37s) curve"
+                >
+                  <span className={`w-2.5 h-2.5 rounded-full ${showDecadalTai ? 'bg-cyan-400' : 'bg-slate-600'}`}></span>
+                  <span>TAI - UTC Offset (s)</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setShowDecadalGps(!showDecadalGps)}
+                  className={`px-2 py-1 rounded-lg border transition-all cursor-pointer flex items-center gap-1.5 ${
+                    showDecadalGps
+                      ? 'bg-amber-950/70 border-amber-500/50 text-amber-300'
+                      : 'bg-slate-950/60 border-slate-800 text-slate-500 opacity-60 hover:opacity-100'
+                  }`}
+                  title="Toggle GPS - UTC Offset (+18s) curve"
+                >
+                  <span className={`w-2.5 h-2.5 rounded-full ${showDecadalGps ? 'bg-amber-400' : 'bg-slate-600'}`}></span>
+                  <span>GPS - UTC Offset (s)</span>
+                </button>
               </div>
             </div>
 
@@ -1173,8 +1406,45 @@ export const AtomicTelemetryWidget: React.FC = () => {
                     label={{ value: 'Accumulated Seconds', angle: -90, position: 'insideLeft', fill: '#64748b', fontSize: 10 }}
                   />
                   <Tooltip
-                    contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '12px', fontSize: '11px' }}
-                    formatter={(val: any, name: any) => [`+${val} seconds`, name === 'taiMinusUtc' ? 'TAI - UTC' : 'GPS - UTC']}
+                    content={({ active, payload }) => {
+                      if (active && payload && payload.length) {
+                        const data = payload[0].payload;
+                        return (
+                          <div className="bg-slate-900/98 backdrop-blur-xl border border-cyan-500/50 rounded-xl p-3.5 shadow-2xl text-xs text-white max-w-xs space-y-2 z-50 animate-fadeIn">
+                            <div className="flex items-center justify-between border-b border-slate-800 pb-1">
+                              <span className="font-mono font-bold text-cyan-300 text-xs">Year {data.year}</span>
+                              <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold border ${
+                                Number(data.year) >= 2035 
+                                  ? 'bg-purple-500/20 text-purple-300 border-purple-500/40'
+                                  : 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40'
+                              }`}>
+                                {Number(data.year) >= 2035 ? 'CGPM Frozen' : 'Standard Insertion'}
+                              </span>
+                            </div>
+                            <div className="space-y-1 font-mono text-[11px]">
+                              {showDecadalTai && (
+                                <div className="flex justify-between text-cyan-300">
+                                  <span className="text-slate-400 font-sans">TAI - UTC:</span>
+                                  <span className="font-extrabold text-sm">+{data.taiMinusUtc}.000s</span>
+                                </div>
+                              )}
+                              {showDecadalGps && (
+                                <div className="flex justify-between text-amber-300">
+                                  <span className="text-slate-400 font-sans">GPS - UTC:</span>
+                                  <span className="font-bold">+{data.gpsMinusUtc}.000s</span>
+                                </div>
+                              )}
+                            </div>
+                            <p className="text-[10px] text-slate-400 pt-1 border-t border-slate-800 leading-tight">
+                              {Number(data.year) >= 2035 
+                                ? 'Resolution 4 eliminates sub-second leap insertions, allowing continuous atomic civil time.'
+                                : 'Cumulative staircase offset reflecting total historic leap second insertions.'}
+                            </p>
+                          </div>
+                        );
+                      }
+                      return null;
+                    }}
                   />
                   <ReferenceLine x="2035" stroke="#a855f7" strokeDasharray="3 3" label={{ value: '2035 CGPM Freeze', fill: '#a855f7', fontSize: 10, position: 'top' }} />
 
@@ -1190,8 +1460,8 @@ export const AtomicTelemetryWidget: React.FC = () => {
                     />
                   )}
 
-                  <Area type="stepAfter" dataKey="taiMinusUtc" name="taiMinusUtc" stroke="#06b6d4" fill="#06b6d4" fillOpacity={0.2} strokeWidth={2.5} />
-                  <Line type="stepAfter" dataKey="gpsMinusUtc" name="gpsMinusUtc" stroke="#f59e0b" strokeWidth={2} dot={false} />
+                  {showDecadalTai && <Area type="stepAfter" dataKey="taiMinusUtc" name="taiMinusUtc" stroke="#06b6d4" fill="#06b6d4" fillOpacity={0.25} strokeWidth={2.5} />}
+                  {showDecadalGps && <Line type="stepAfter" dataKey="gpsMinusUtc" name="gpsMinusUtc" stroke="#f59e0b" strokeWidth={2} dot={false} />}
                 </AreaChart>
               </ResponsiveContainer>
             </div>

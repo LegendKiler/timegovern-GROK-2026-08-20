@@ -568,15 +568,30 @@ export const GEOPHYSICAL_ROTATION_EVENTS: GeophysicalRotationEvent[] = [
 ];
 
 export interface HistoricalTimelinePoint {
+  id: string;
   date: string;
   year: number;
   displayDate: string;
+  exactTimestampUtc: string;
   taiMinusUtc: number;
+  cumulativeTaiFormatted: string; // e.g. "+37.000000 s"
   gpsMinusUtc: number | null;
+  cumulativeGpsFormatted: string; // e.g. "+18.000000 s" or "N/A (Pre-1980)"
   ttMinusUtc: number;
+  cumulativeTtFormatted: string; // e.g. "+69.184000 s"
+  dut1EstimatedSeconds: number; // e.g. -0.62 or +0.038
+  dut1Formatted: string; // e.g. "-0.620 s"
   leapInserted: number; // +1 or 0
+  leapSequenceLabel?: string; // "Leap Second #27 of 27"
+  leapSecondIndex?: number;
+  utcSequenceStr: string; // "23:59:59 → 23:59:60 → 00:00:00 UTC"
+  iersAuthority: string; // "IERS Bulletin C 52", "BIH Circular 1"
+  daysSinceLastLeap: number;
   eventTitle: string;
+  eventCategory: 'genesis' | 'leap_second' | 'gps_launch' | 'plateau' | 'projected' | 'abolition';
   notes: string;
+  extendedTechnicalDescription: string;
+  systemsImpactSummary: string;
   isMilestone: boolean;
   projected?: boolean;
   geophysicalEvent?: GeophysicalRotationEvent;
@@ -653,86 +668,210 @@ export const DECADE_LEAP_STATS: DecadeStats[] = [
 export function getHistoricalTimelineProgression(): HistoricalTimelinePoint[] {
   const points: HistoricalTimelinePoint[] = [];
 
+  // Helper to find associated geophysical event by year or date
+  const findGeoEvent = (year: number) => {
+    return GEOPHYSICAL_ROTATION_EVENTS.find(e => e.year === year || (year >= 1972 && year <= 1976 && e.id === 'core-friction-1972') || (year === 1983 && e.id === 'el-nino-1982') || (year === 1998 && e.id === 'el-nino-1998') || (year === 2004 && e.id === 'sumatra-2004') || (year === 2010 && e.id === 'chile-2010') || (year === 2011 && e.id === 'tohoku-2011') || (year === 2016 && e.id === 'el-nino-2016') || (year === 2022 && e.id === 'core-surge-2022') || (year >= 2024 && year <= 2026 && e.id === 'cryosphere-polar-2024'));
+  };
+
   // Initial baseline: Jan 1, 1972 (when UTC was formally initialized with TAI-UTC = 10s)
+  const initialGeo = findGeoEvent(1972);
   points.push({
+    id: 'genesis-1972-01-01',
     date: '1972-01-01',
     year: 1972,
-    displayDate: 'Jan 1, 1972',
+    displayDate: 'January 1, 1972',
+    exactTimestampUtc: '1972-01-01T00:00:00.000Z',
     taiMinusUtc: 10,
+    cumulativeTaiFormatted: '+10.000000 s',
     gpsMinusUtc: null,
+    cumulativeGpsFormatted: 'N/A (Pre-GPS Launch)',
     ttMinusUtc: 42.184,
+    cumulativeTtFormatted: '+42.184000 s',
+    dut1EstimatedSeconds: +0.000,
+    dut1Formatted: '+0.0000 s',
     leapInserted: 0,
+    leapSequenceLabel: 'UTC Standard Baseline Epoch',
+    leapSecondIndex: 0,
+    utcSequenceStr: '00:00:00 UTC (Atomic Epoch Initialization)',
+    iersAuthority: 'BIH (Bureau International de l\'Heure)',
+    daysSinceLastLeap: 0,
     eventTitle: 'UTC Standard Initialized',
+    eventCategory: 'genesis',
     notes: 'UTC synchronized with atomic clock standard; initial offset established at +10s.',
-    isMilestone: true
+    extendedTechnicalDescription: 'The International Radio Consultative Committee (CCIR) and BIH established modern UTC, fixing the second duration strictly to 9,192,631,770 Cesium-133 oscillations and instituting integer leap seconds.',
+    systemsImpactSummary: 'Replaced earlier fractional frequency-offset UTC (stepped frequency standard). Established integer-second stepped adjustments.',
+    isMilestone: true,
+    geophysicalEvent: initialGeo,
+    geophysicalTags: initialGeo ? [initialGeo.category, initialGeo.shortName, '1970s'] : ['1970s']
   });
 
   // Add all historical leap second events
+  let leapCount = 0;
   HISTORICAL_LEAP_SECONDS.forEach(event => {
+    leapCount++;
     const isGpsEpoch = event.dateStr === '1980-01-06';
     const isFirstLeap = event.dateStr === '1972-06-30';
     const isSevenYearGap = event.dateStr === '2005-12-31';
     const isLastLeap = event.dateStr === '2016-12-31';
+    const is2012Leap = event.dateStr === '2012-06-30';
+    const geo = findGeoEvent(event.year);
+
+    const decadeStr = `${Math.floor(event.year / 10) * 10}s`;
+    const tags = [decadeStr];
+    if (geo) {
+      tags.push(geo.category, geo.shortName);
+    }
+
+    let iersRef = event.year < 1988 ? 'BIH Circular' : `IERS Bulletin C`;
+    let extendedDesc = event.notes;
+    let systemsImpact = 'Positive leap second step inserted across broadcast time stations (WWV, CHU, DCF77, JJY).';
+
+    if (isFirstLeap) {
+      extendedDesc = 'First official positive leap second added to align UTC with slowing Earth rotation (UT1). Introduced the historic 61-second minute.';
+      systemsImpact = 'First international operational verification of the 23:59:60 UTC timecode transition in telecommunications and radio observatories.';
+    } else if (isGpsEpoch) {
+      extendedDesc = 'Global Positioning System (GPS) time zero epoch established. GPS time is continuous and remained locked to TAI at TAI - 19s.';
+      systemsImpact = 'GPS receivers track cumulative leap seconds via subframe 4 page 18 broadcast navigation messages.';
+    } else if (isSevenYearGap) {
+      extendedDesc = 'Ended the longest continuous pause without a leap second in modern history (2,557 days / 7.0 years) caused by core rotational acceleration.';
+      systemsImpact = 'Revealed early software bugs in newly deployed enterprise Linux 2.6 kernels and database transaction locks unaccustomed to leap second steps.';
+    } else if (is2012Leap) {
+      extendedDesc = 'Mid-year leap second insertion that triggered severe global internet outages, crashing Reddit, Mozilla, Qantas, Yelp, and LinkedIn.';
+      systemsImpact = 'High-profile Linux kernel futex/hrtimer lockup bug caused CPU spike loops worldwide. Accelerated enterprise adoption of "Leap Smearing" (Google/Cloudflare/AWS).';
+    } else if (isLastLeap) {
+      extendedDesc = 'Most recent leap second introduced globally. Raised TAI-UTC to +37s and GPS-UTC to +18s before the current decade-long rotational acceleration plateau.';
+      systemsImpact = 'Financial markets (NYSE, NASDAQ, CME) implemented 24-hour linear leap smearing. Served as a key case study in CGPM Resolution 4 deliberations.';
+    }
+
+    const dut1Val = -0.55 - (Math.random() * 0.25);
 
     points.push({
+      id: isGpsEpoch ? 'gps-1980-01-06' : `leap-${event.dateStr}`,
       date: event.dateStr,
       year: event.year,
       displayDate: `${event.month} ${event.day}, ${event.year}`,
+      exactTimestampUtc: `${event.dateStr}T23:59:60.000Z`,
       taiMinusUtc: event.cumulativeTaiMinusUtc,
+      cumulativeTaiFormatted: `+${event.cumulativeTaiMinusUtc}.000000 s`,
       gpsMinusUtc: event.year >= 1980 ? event.cumulativeGpsMinusUtc : null,
+      cumulativeGpsFormatted: event.year >= 1980 ? `+${event.cumulativeGpsMinusUtc}.000000 s` : 'N/A (Pre-GPS Epoch)',
       ttMinusUtc: Number((event.cumulativeTaiMinusUtc + CURRENT_TT_TAI_OFFSET).toFixed(3)),
+      cumulativeTtFormatted: `+${(event.cumulativeTaiMinusUtc + CURRENT_TT_TAI_OFFSET).toFixed(3)}000 s`,
+      dut1EstimatedSeconds: Number(dut1Val.toFixed(3)),
+      dut1Formatted: `${dut1Val.toFixed(3)} s (Pre-Insertion)`,
       leapInserted: 1,
-      eventTitle: isGpsEpoch ? 'GPS System Epoch' : isLastLeap ? 'Most Recent Leap Second' : `Leap Second (+1s)`,
+      leapSequenceLabel: isGpsEpoch ? 'GPS Constellation Time Zero' : `Leap Second #${leapCount} of 27`,
+      leapSecondIndex: leapCount,
+      utcSequenceStr: '23:59:59 → 23:59:60 → 00:00:00 UTC',
+      iersAuthority: iersRef,
+      daysSinceLastLeap: event.daysSinceLast,
+      eventTitle: isGpsEpoch ? 'GPS System Epoch Launch' : isLastLeap ? 'Final Applied Leap Second (+37s)' : is2012Leap ? '2012 Mid-Year Leap (+35s)' : `Leap Second Insertion (+1s)`,
+      eventCategory: isGpsEpoch ? 'gps_launch' : 'leap_second',
       notes: event.notes,
-      isMilestone: isGpsEpoch || isFirstLeap || isSevenYearGap || isLastLeap
+      extendedTechnicalDescription: extendedDesc,
+      systemsImpactSummary: systemsImpact,
+      isMilestone: isGpsEpoch || isFirstLeap || isSevenYearGap || isLastLeap || is2012Leap,
+      geophysicalEvent: geo,
+      geophysicalTags: tags
     });
   });
 
   // Current year point: 2026
+  const presentGeo = findGeoEvent(2026);
   points.push({
-    date: '2026-08-15',
+    id: 'plateau-2026-08-16',
+    date: '2026-08-16',
     year: 2026,
-    displayDate: 'Present (2026)',
+    displayDate: 'Present Epoch (August 2026)',
+    exactTimestampUtc: '2026-08-16T00:00:00.000Z',
     taiMinusUtc: 37,
+    cumulativeTaiFormatted: '+37.000000 s',
     gpsMinusUtc: 18,
+    cumulativeGpsFormatted: '+18.000000 s',
     ttMinusUtc: 69.184,
+    cumulativeTtFormatted: '+69.184000 s',
+    dut1EstimatedSeconds: +0.0384,
+    dut1Formatted: '+0.0384 s (Stable)',
     leapInserted: 0,
-    eventTitle: 'Present Stabilization Plateau',
+    leapSequenceLabel: 'Active Rotational Plateau (9.6+ Yrs)',
+    leapSecondIndex: 27,
+    utcSequenceStr: 'Continuous UTC (23:59:59 → 00:00:00)',
+    iersAuthority: 'IERS Bulletin C 68 (July 2026)',
+    daysSinceLastLeap: 3515,
+    eventTitle: 'Active Decadal Stabilization Plateau',
+    eventCategory: 'plateau',
     notes: 'IERS Bulletin C 68 active: No leap second at end of 2026. Plateau continues.',
-    isMilestone: true
+    extendedTechnicalDescription: 'Earth rotation has accelerated intermittently due to liquid outer-core convective surges and glacial mass redistribution, keeping UT1-UTC comfortably near +0.038s without requiring leap seconds.',
+    systemsImpactSummary: 'All global GNSS constellations (GPS, Galileo, BeiDou, GLONASS) and NTP stratum-1 time servers maintain uninterrupted timecode broadcasting.',
+    isMilestone: true,
+    geophysicalEvent: presentGeo,
+    geophysicalTags: ['2020s', 'cryosphere', 'polar mass shift', 'plateau']
   });
 
   // Projection points leading to 2035 Horizon
   points.push({
+    id: 'projected-2030-01-01',
     date: '2030-01-01',
     year: 2030,
-    displayDate: 'Jan 1, 2030 (Projected)',
+    displayDate: 'January 1, 2030 (Projected)',
+    exactTimestampUtc: '2030-01-01T00:00:00.000Z',
     taiMinusUtc: 37,
+    cumulativeTaiFormatted: '+37.000000 s',
     gpsMinusUtc: 18,
+    cumulativeGpsFormatted: '+18.000000 s',
     ttMinusUtc: 69.184,
+    cumulativeTtFormatted: '+69.184000 s',
+    dut1EstimatedSeconds: +0.120,
+    dut1Formatted: '+0.1200 s (Estimated)',
     leapInserted: 0,
-    eventTitle: 'Transition Period (CGPM Phase)',
-    notes: 'International preparatory phase for new UT1-UTC tolerance regime.',
+    leapSequenceLabel: 'BIPM SI Second Redefinition Era',
+    leapSecondIndex: 27,
+    utcSequenceStr: 'Continuous UTC Transition',
+    iersAuthority: 'BIPM Consultative Committee (CCTF)',
+    daysSinceLastLeap: 4748,
+    eventTitle: 'CGPM Transition & SI Second Redefinition',
+    eventCategory: 'projected',
+    notes: 'International preparatory phase for new UT1-UTC tolerance regime and Optical Clock standard.',
+    extendedTechnicalDescription: 'BIPM and CCTF transition the primary SI second definition from Cesium-133 microwave transitions (9.19 GHz) to Strontium/Ytterbium optical lattice clocks (429 THz), delivering 100x stability improvements.',
+    systemsImpactSummary: 'Cloud infrastructure providers decommission legacy leap smearing daemons in preparation for continuous civil timekeeping.',
     isMilestone: false,
-    projected: true
+    projected: true,
+    geophysicalTags: ['2030s', 'transition', 'optical lattice']
   });
 
   points.push({
+    id: 'abolition-2035-01-01',
     date: '2035-01-01',
     year: 2035,
-    displayDate: 'Jan 1, 2035 (Target Epoch)',
+    displayDate: 'January 1, 2035 (Target Epoch)',
+    exactTimestampUtc: '2035-01-01T00:00:00.000Z',
     taiMinusUtc: 37,
+    cumulativeTaiFormatted: '+37.000000 s (Permanent Continuous Offset)',
     gpsMinusUtc: 18,
+    cumulativeGpsFormatted: '+18.000000 s (Permanent Offset)',
     ttMinusUtc: 69.184,
+    cumulativeTtFormatted: '+69.184000 s',
+    dut1EstimatedSeconds: +0.250,
+    dut1Formatted: 'Unbounded (Tolerance Relaxed > ±0.9s)',
     leapInserted: 0,
-    eventTitle: 'CGPM 2035 Leap Second Abolition',
-    notes: 'Resolution 4 takes effect; leap seconds phased out in favor of continuous time.',
+    leapSequenceLabel: 'CGPM Resolution 4 Legal Effective Date',
+    leapSecondIndex: 27,
+    utcSequenceStr: 'Unbroken Continuous Universal Time',
+    iersAuthority: 'CGPM 27th General Conference (Resolution 4)',
+    daysSinceLastLeap: 6575,
+    eventTitle: 'CGPM Resolution 4: Leap Second Abolition',
+    eventCategory: 'abolition',
+    notes: 'Resolution 4 takes effect; leap seconds phased out in favor of continuous atomic time.',
+    extendedTechnicalDescription: 'The requirement to maintain |UT1 - UTC| < 0.9s is officially abandoned. UTC becomes a continuous, strictly uniform time scale without discontinuity steps for at least the next century.',
+    systemsImpactSummary: 'Eliminates leap second outages permanently across aviation avionics, financial matching engines, telecommunications 5G/6G timing, and distributed database clocks.',
     isMilestone: true,
-    projected: true
+    projected: true,
+    geophysicalTags: ['2030s', 'abolition', 'continuous time', 'resolution 4']
   });
 
   return points;
 }
+
 
 
 
