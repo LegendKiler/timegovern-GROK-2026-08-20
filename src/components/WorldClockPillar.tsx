@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Clock, Calendar, Globe, Share2, Plus, Trash2, ArrowRight, Check, Sun, Moon, Sliders, MapPin, AlertTriangle, ExternalLink, Download, LayoutGrid, List } from 'lucide-react';
+import { Clock, Calendar, Globe, Share2, Plus, Trash2, ArrowRight, Check, Sun, Moon, Sliders, MapPin, AlertTriangle, ExternalLink, Download, LayoutGrid, List, Users } from 'lucide-react';
 import { MAJOR_CITIES, searchCities } from '../lib/citiesData';
 import { City, TimezoneOffsetInfo } from '../types';
 import { getTimezoneOffsetInfo, formatCityDateTime, getHourSuitability, encodeSharedEvent, decodeSharedEvent } from '../lib/timezoneUtils';
@@ -7,6 +7,7 @@ import { AdBanner } from './AdBanner';
 import { AnalogClock } from './AnalogClock';
 import { WorldMapCanvas } from './WorldMapCanvas';
 import { InteractiveGlobe3D } from './InteractiveGlobe3D';
+import { MeetingPlanner } from './MeetingPlanner';
 import { generateGoogleCalendarUrl, downloadIcsFile } from '../lib/icsGenerator';
 
 interface WorldClockPillarProps {
@@ -67,6 +68,14 @@ export const WorldClockPillar: React.FC<WorldClockPillarProps> = ({ selectedCity
       }
     }
   }, [selectedCityFromSearch]);
+
+  // Handle switching to Meeting Planner with a specific city
+  const handlePlanMeetingWithCity = (city: City) => {
+    if (!plannerCities.some(c => c.id === city.id)) {
+      setPlannerCities(prev => [city, ...prev]);
+    }
+    setSubTab('converter');
+  };
 
   const handleAddCityToWatchlist = (city: City) => {
     if (!watchList.some((c) => c.id === city.id)) {
@@ -131,13 +140,14 @@ export const WorldClockPillar: React.FC<WorldClockPillarProps> = ({ selectedCity
             </button>
             <button
               onClick={() => setSubTab('converter')}
-              className={`px-3.5 py-2 rounded-lg transition-all cursor-pointer ${
+              className={`px-3.5 py-2 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
                 subTab === 'converter'
                   ? 'bg-blue-600 dark:bg-cyan-500 text-white dark:text-slate-950 font-bold shadow-md'
                   : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-slate-800/50'
               }`}
             >
-              Meeting Planner & DST
+              <Users className="w-3.5 h-3.5" />
+              <span>Meeting Planner & Overlap</span>
             </button>
             <button
               onClick={() => setSubTab('map')}
@@ -289,6 +299,16 @@ export const WorldClockPillar: React.FC<WorldClockPillarProps> = ({ selectedCity
                           </div>
                         </div>
                       </div>
+
+                      <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                        <button
+                          onClick={() => handlePlanMeetingWithCity(city)}
+                          className="w-full text-center py-1.5 px-3 bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/40 dark:hover:bg-blue-900/60 text-blue-700 dark:text-cyan-300 font-bold text-xs rounded-lg transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                        >
+                          <Users className="w-3.5 h-3.5" />
+                          <span>Plan Meeting with {city.name}</span>
+                        </button>
+                      </div>
                     </div>
                   );
                 })}
@@ -345,13 +365,23 @@ export const WorldClockPillar: React.FC<WorldClockPillarProps> = ({ selectedCity
                             )}
                           </td>
                           <td className="p-3 text-right">
-                            <button
-                              onClick={() => handleRemoveFromWatchlist(city.id)}
-                              className="p-1 text-slate-400 hover:text-red-500 rounded transition-colors"
-                              title="Remove city"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
+                            <div className="flex items-center justify-end gap-2">
+                              <button
+                                onClick={() => handlePlanMeetingWithCity(city)}
+                                className="px-2.5 py-1 bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/50 dark:hover:bg-blue-900 text-blue-600 dark:text-cyan-300 text-[11px] font-bold rounded flex items-center gap-1 transition-colors cursor-pointer"
+                                title={`Plan Meeting with ${city.name}`}
+                              >
+                                <Users className="w-3 h-3" />
+                                <span>Plan</span>
+                              </button>
+                              <button
+                                onClick={() => handleRemoveFromWatchlist(city.id)}
+                                className="p-1 text-slate-400 hover:text-red-500 rounded transition-colors"
+                                title="Remove city"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       );
@@ -369,160 +399,55 @@ export const WorldClockPillar: React.FC<WorldClockPillarProps> = ({ selectedCity
         {/* ----------------- SUB TAB 2: MEETING PLANNER & DST ----------------- */}
         {subTab === 'converter' && (
           <div className="mt-4 space-y-6">
-            {/* Interactive Hour Scrubber */}
-            <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-2 mb-3">
-                <label className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2">
-                  <Sliders className="w-4 h-4 text-blue-600" /> Time Scrubber (Drag slider to test meeting times):
-                </label>
-                <div className="flex items-center gap-4 text-[11px]">
-                  <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400"><span className="w-2.5 h-2.5 bg-emerald-500 rounded-full inline-block"></span> Work (08:00-18:00)</span>
-                  <span className="flex items-center gap-1 text-amber-600 dark:text-amber-400"><span className="w-2.5 h-2.5 bg-amber-500 rounded-full inline-block"></span> Shoulder (07-08 / 18-22)</span>
-                  <span className="flex items-center gap-1 text-red-600 dark:text-red-400"><span className="w-2.5 h-2.5 bg-red-500 rounded-full inline-block"></span> Night / Sleep</span>
-                </div>
-              </div>
-
-              <input
-                type="range"
-                min="0"
-                max="23"
-                value={scrubHour}
-                onChange={(e) => setScrubHour(Number(e.target.value))}
-                className="w-full accent-blue-600 cursor-pointer h-2 bg-slate-200 dark:bg-slate-700 rounded-lg"
-              />
-
-              <div className="flex justify-between text-[10px] font-mono text-slate-500 mt-1">
-                <span>00:00</span>
-                <span>06:00</span>
-                <span>12:00 (Noon)</span>
-                <span>18:00</span>
-                <span>23:00</span>
-              </div>
-            </div>
-
-            {/* Export & Share Action Bar */}
-            <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-white">
-              <div>
-                <span className="text-xs font-bold text-blue-400 block">Export Selected Meeting Slot ({scrubHour.toString().padStart(2, '0')}:00 UTC)</span>
-                <span className="text-[11px] text-slate-400">Sync meeting time directly to Google Calendar or export as an .ics file for Outlook & Apple Calendar.</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <a
-                  href={generateGoogleCalendarUrl(`Global Team Meeting (${scrubHour}:00 UTC)`, new Date().toISOString(), 60, `Cities: ${plannerCities.map(c => c.name).join(', ')}`)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-colors"
-                >
-                  <ExternalLink className="w-3.5 h-3.5" /> Google Calendar
-                </a>
-                <button
-                  onClick={() => downloadIcsFile(`Global Team Meeting (${scrubHour}:00 UTC)`, new Date().toISOString(), 60, `Cities: ${plannerCities.map(c => c.name).join(', ')}`)}
-                  className="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-colors"
-                >
-                  <Download className="w-3.5 h-3.5" /> Download .ICS File
-                </button>
-              </div>
-            </div>
-
-            {/* Overlapping Hours Visual Table */}
-            <div className="space-y-3">
-              <h3 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
-                Selected Cities Hour-by-Hour Alignment
-              </h3>
-
-              {plannerCities.map((city) => {
-                const offsetInfo = getTimezoneOffsetInfo(now, city.timezone);
-                const cityBaseDate = new Date(now);
-                cityBaseDate.setHours(scrubHour, 0, 0, 0);
-
-                return (
-                  <div key={city.id} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-3">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold text-slate-900 dark:text-white text-xs">{city.name}</span>
-                        <span className="text-[10px] text-slate-500">({city.country})</span>
-                        <span className="text-[10px] font-mono bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 px-1.5 py-0.5 rounded border border-blue-200 dark:border-blue-800">
-                          {offsetInfo.offsetFormatted}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* 24 hour bar */}
-                    <div className="grid grid-cols-24 gap-1">
-                      {Array.from({ length: 24 }).map((_, h) => {
-                        const localDate = new Date(now);
-                        localDate.setUTCHours(h + (offsetInfo.offsetMinutes / 60));
-                        const localH = (localDate.getUTCHours() + 24) % 24;
-                        const suitability = getHourSuitability(localH);
-
-                        const colorMap = {
-                          WORK_HOURS: 'bg-emerald-500 text-white font-bold',
-                          SHOULDER_HOURS: 'bg-amber-400 dark:bg-amber-500 text-slate-900 font-medium',
-                          SLEEP_HOURS: 'bg-slate-200 dark:bg-slate-800 text-slate-500'
-                        };
-
-                        return (
-                          <div
-                            key={h}
-                            onClick={() => setScrubHour(localH)}
-                            className={`p-1 text-center rounded text-[9px] font-mono cursor-pointer transition-transform hover:scale-110 ${colorMap[suitability]} ${
-                              localH === scrubHour ? 'ring-2 ring-blue-600 ring-offset-1' : ''
-                            }`}
-                            title={`${city.name}: ${localH.toString().padStart(2, '0')}:00 - ${suitability}`}
-                          >
-                            {localH.toString().padStart(2, '0')}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+            {/* Primary Meeting Planner Utility */}
+            <MeetingPlanner 
+              initialCities={plannerCities} 
+              onAddCityToWatchlist={handleAddCityToWatchlist} 
+            />
 
             {/* Upcoming DST Shifts Table */}
-            <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-md">
-              <h3 className="text-sm font-bold text-white mb-2 flex items-center gap-2">
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-lg text-white">
+              <h3 className="text-sm font-extrabold text-white mb-2 flex items-center gap-2">
                 <Sun className="w-4 h-4 text-amber-400" /> Upcoming Daylight Saving Time (DST) Transitions (2026/2027)
               </h3>
               <p className="text-xs text-slate-400 mb-4">
-                Upcoming clock changes for major global time zones ("Spring Forward" / "Fall Back").
+                Upcoming clock changes for major global time zones ("Spring Forward" / "Fall Back"). All timezone calculations in Meeting Planner automatically account for these shifts!
               </p>
 
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs">
                   <thead className="bg-slate-800 text-slate-300 uppercase text-[10px] tracking-wider border-b border-slate-700">
                     <tr>
-                      <th className="p-2.5">Region / Timezone</th>
-                      <th className="p-2.5">Next Transition Date</th>
-                      <th className="p-2.5">Direction</th>
-                      <th className="p-2.5">New Offset</th>
+                      <th className="p-3">Region / Timezone</th>
+                      <th className="p-3">Next Transition Date</th>
+                      <th className="p-3">Direction</th>
+                      <th className="p-3">New Offset</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-800 text-slate-200">
                     <tr>
-                      <td className="p-2.5 font-bold text-white">North America (US / Canada - Eastern Time)</td>
-                      <td className="p-2.5 font-mono text-amber-400">Sunday, Nov 1, 2026 @ 02:00 AM</td>
-                      <td className="p-2.5"><span className="bg-blue-950 text-blue-400 text-[10px] px-2 py-0.5 rounded border border-blue-800 font-bold">FALL BACK (-1h)</span></td>
-                      <td className="p-2.5 font-mono">EST (UTC-5)</td>
+                      <td className="p-3 font-bold text-white">North America (US / Canada - Eastern Time)</td>
+                      <td className="p-3 font-mono text-amber-400">Sunday, Nov 1, 2026 @ 02:00 AM</td>
+                      <td className="p-3"><span className="bg-blue-950 text-blue-400 text-[10px] px-2 py-0.5 rounded border border-blue-800 font-bold">FALL BACK (-1h)</span></td>
+                      <td className="p-3 font-mono">EST (UTC-5)</td>
                     </tr>
                     <tr>
-                      <td className="p-2.5 font-bold text-white">United Kingdom (GMT / BST)</td>
-                      <td className="p-2.5 font-mono text-amber-400">Sunday, Oct 25, 2026 @ 02:00 AM</td>
-                      <td className="p-2.5"><span className="bg-blue-950 text-blue-400 text-[10px] px-2 py-0.5 rounded border border-blue-800 font-bold">FALL BACK (-1h)</span></td>
-                      <td className="p-2.5 font-mono">GMT (UTC+0)</td>
+                      <td className="p-3 font-bold text-white">United Kingdom (GMT / BST)</td>
+                      <td className="p-3 font-mono text-amber-400">Sunday, Oct 25, 2026 @ 02:00 AM</td>
+                      <td className="p-3"><span className="bg-blue-950 text-blue-400 text-[10px] px-2 py-0.5 rounded border border-blue-800 font-bold">FALL BACK (-1h)</span></td>
+                      <td className="p-3 font-mono">GMT (UTC+0)</td>
                     </tr>
                     <tr>
-                      <td className="p-2.5 font-bold text-white">Central Europe (CET / CEST)</td>
-                      <td className="p-2.5 font-mono text-amber-400">Sunday, Oct 25, 2026 @ 03:00 AM</td>
-                      <td className="p-2.5"><span className="bg-blue-950 text-blue-400 text-[10px] px-2 py-0.5 rounded border border-blue-800 font-bold">FALL BACK (-1h)</span></td>
-                      <td className="p-2.5 font-mono">CET (UTC+1)</td>
+                      <td className="p-3 font-bold text-white">Central Europe (CET / CEST)</td>
+                      <td className="p-3 font-mono text-amber-400">Sunday, Oct 25, 2026 @ 03:00 AM</td>
+                      <td className="p-3"><span className="bg-blue-950 text-blue-400 text-[10px] px-2 py-0.5 rounded border border-blue-800 font-bold">FALL BACK (-1h)</span></td>
+                      <td className="p-3 font-mono">CET (UTC+1)</td>
                     </tr>
                     <tr>
-                      <td className="p-2.5 font-bold text-white">Australia (AEST - Sydney/Melbourne)</td>
-                      <td className="p-2.5 font-mono text-emerald-400">Sunday, Oct 4, 2026 @ 02:00 AM</td>
-                      <td className="p-2.5"><span className="bg-emerald-950 text-emerald-400 text-[10px] px-2 py-0.5 rounded border border-emerald-800 font-bold">SPRING FORWARD (+1h)</span></td>
-                      <td className="p-2.5 font-mono">AEDT (UTC+11)</td>
+                      <td className="p-3 font-bold text-white">Australia (AEST - Sydney/Melbourne)</td>
+                      <td className="p-3 font-mono text-emerald-400">Sunday, Oct 4, 2026 @ 02:00 AM</td>
+                      <td className="p-3"><span className="bg-emerald-950 text-emerald-400 text-[10px] px-2 py-0.5 rounded border border-emerald-800 font-bold">SPRING FORWARD (+1h)</span></td>
+                      <td className="p-3 font-mono">AEDT (UTC+11)</td>
                     </tr>
                   </tbody>
                 </table>

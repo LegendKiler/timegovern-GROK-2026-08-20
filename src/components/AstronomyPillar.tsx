@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Sun, Moon, Eye, Compass, Calendar, MapPin, Sparkles, Navigation } from 'lucide-react';
+import { Sun, Moon, Eye, Compass, Calendar, MapPin, Sparkles, Navigation, Clock, Zap } from 'lucide-react';
 import { MAJOR_CITIES } from '../lib/citiesData';
 import { City, SunEphemeris, MoonData, CelestialBodyPosition } from '../types';
 import { calculateSunEphemeris, calculateMoonData, calculateNightSkyObjects, ECLIPSE_CATALOG } from '../lib/astronomyEngine';
+import { LeapSecondUtility } from './LeapSecondUtility';
 
 export const AstronomyPillar: React.FC = () => {
-  const [subTab, setSubTab] = useState<'sun' | 'moon' | 'eclipse' | 'sky'>('sun');
+  const [subTab, setSubTab] = useState<'sun' | 'moon' | 'eclipse' | 'sky' | 'leap-second'>('sun');
   const [selectedCity, setSelectedCity] = useState<City>(MAJOR_CITIES[0]); // New York
   const [targetDate, setTargetDate] = useState<Date>(new Date());
 
@@ -143,6 +144,15 @@ export const AstronomyPillar: React.FC = () => {
               }`}
             >
               Night Sky Planetarium
+            </button>
+            <button
+              onClick={() => setSubTab('leap-second')}
+              className={`px-3 py-1.5 rounded-md transition-all cursor-pointer flex items-center gap-1.5 ${
+                subTab === 'leap-second' ? 'bg-blue-600 dark:bg-cyan-500 text-white dark:text-slate-950 font-bold shadow-xs' : 'text-slate-600 dark:text-slate-300'
+              }`}
+            >
+              <Clock className="w-3.5 h-3.5" />
+              <span>Leap Second & TAI-UTC</span>
             </button>
           </div>
         </div>
@@ -322,6 +332,13 @@ export const AstronomyPillar: React.FC = () => {
                 />
               </div>
             </div>
+          </div>
+        )}
+
+        {/* ---------------- SUB TAB 5: LEAP SECOND & ATOMIC TIME SCALES ---------------- */}
+        {subTab === 'leap-second' && (
+          <div className="mt-4">
+            <LeapSecondUtility />
           </div>
         )}
       </div>

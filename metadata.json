@@ -1,6 +1,6 @@
 {
   "name": "Timegovern - Global Time & Astronomy Platform",
-  "description": "High-precision global time, temporal governance, time zones, astronomy, calendars, and weather platform for Timegovern.com.",
+  "description": "High-precision global time, temporal governance, leap second & TAI-UTC offset telemetry, time zones, astronomy, calendars, and weather platform for Timegovern.com.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

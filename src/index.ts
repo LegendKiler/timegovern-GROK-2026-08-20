@@ -1,6 +1,7 @@
 import { D1Database } from '@cloudflare/workers-types';
 import { handleSeedDb } from './api/admin/seed-db';
 import { handleSearch } from './api/search';
+import { handleLeapSeconds } from './api/leapSeconds';
 import { ensureSchema } from './db/init';
 
 export interface Env {
@@ -94,6 +95,16 @@ export default {
         }),
         { status: 200, headers: { ...corsHeaders, ...securityHeaders } }
       );
+    }
+
+    // 4b. Leap Seconds & TAI-UTC Time Scales API route (/api/leap-seconds or /api/time/tai-utc)
+    if (
+      url.pathname === '/api/leap-seconds' || 
+      url.pathname === '/api/leap-seconds/' ||
+      url.pathname === '/api/time/tai-utc' ||
+      url.pathname === '/api/time/tai-utc/'
+    ) {
+      return await handleLeapSeconds(request);
     }
 
     // 5. Contact Us Submission API route (/api/contact)
