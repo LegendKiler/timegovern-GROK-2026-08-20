@@ -3,6 +3,7 @@ import { handleSeedDb } from './api/admin/seed-db';
 import { handleSearch } from './api/search';
 import { handleLeapSeconds } from './api/leapSeconds';
 import { handleNews } from './api/news';
+import { handleDriftAlerts } from './api/driftAlerts';
 import { ensureSchema } from './db/init';
 
 export interface Env {
@@ -106,6 +107,11 @@ export default {
       url.pathname === '/api/time/tai-utc/'
     ) {
       return await handleLeapSeconds(request);
+    }
+
+    // 4c. Custom TAI-UTC Drift Alerts & Notifications API route (/api/drift-alerts)
+    if (url.pathname.startsWith('/api/drift-alerts') || url.pathname.startsWith('/api/alerts/drift')) {
+      return await handleDriftAlerts(request, env);
     }
 
     // 5. Contact Us Submission API route (/api/contact)

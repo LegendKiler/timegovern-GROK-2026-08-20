@@ -41,7 +41,9 @@ import {
   ChevronRight,
   ZoomIn,
   ZoomOut,
-  MoveHorizontal
+  MoveHorizontal,
+  Bell,
+  Mail
 } from 'lucide-react';
 import {
   CURRENT_TAI_UTC_OFFSET,
@@ -50,6 +52,7 @@ import {
   HISTORICAL_LEAP_SECONDS
 } from '../lib/leapSecondData';
 import { getCalibratedNow } from '../lib/atomicSync';
+import { DriftAlertConfigModal } from './DriftAlertConfigModal';
 
 export interface AtomicTelemetryPoint {
   index: number;
@@ -90,7 +93,29 @@ export const AtomicTelemetryWidget: React.FC = () => {
   const [showDecadalTai, setShowDecadalTai] = useState<boolean>(true);
   const [showDecadalGps, setShowDecadalGps] = useState<boolean>(true);
 
+  // Live Data Auto-Poll State for /api/time/tai-utc
+  const [isLiveDataPolling, setIsLiveDataPolling] = useState<boolean>(true);
+  const [taiUtcOffset, setTaiUtcOffset] = useState<number>(CURRENT_TAI_UTC_OFFSET);
+  const [gpsUtcOffset, setGpsUtcOffset] = useState<number>(CURRENT_GPS_UTC_OFFSET);
+  const [ttUtcOffset, setTtUtcOffset] = useState<number>(CURRENT_TT_UTC_OFFSET);
+  const [dut1Offset, setDut1Offset] = useState<number>(0.0384);
+  const [pollCountdown, setPollCountdown] = useState<number>(60);
+  const [isPollingApi, setIsPollingApi] = useState<boolean>(false);
+  const [lastPolledAt, setLastPolledAt] = useState<Date | null>(null);
+  const [pollLatencyMs, setPollLatencyMs] = useState<number | null>(null);
+  const [pollError, setPollError] = useState<string | null>(null);
+  const [atomicApiMetadata, setAtomicApiMetadata] = useState<{
+    stratum: number;
+    primarySource: string;
+    rootDelayMs: number;
+    rootDispersionMs: number;
+    leapIndicator: string;
+    serverEpochNanos: string;
+    bulletin: string;
+  } | null>(null);
+
   // Live stream buffer state
+  const [isDriftAlertModalOpen, setIsDriftAlertModalOpen] = useState<boolean>(false);
   const [liveStreamData, setLiveStreamData] = useState<AtomicTelemetryPoint[]>([]);
   const pointIndexRef = useRef<number>(0);
   const [copiedTelemetry, setCopiedTelemetry] = useState<boolean>(false);
@@ -108,6 +133,83 @@ export const AtomicTelemetryWidget: React.FC = () => {
   const [currentPhaseDriftNs, setCurrentPhaseDriftNs] = useState<number>(0.032);
   const [fractionalFreqStability, setFractionalFreqStability] = useState<string>('1.14 × 10⁻¹⁶');
 
+  // Function to poll the /api/time/tai-utc endpoint
+  const pollTaiUtcEndpoint = async () => {
+    setIsPollingApi(true);
+    setPollError(null);
+    const startT = performance.now();
+    try {
+      const res = await fetch(`/api/time/tai-utc?echo=${Date.now()}`);
+      const duration = Math.round(performance.now() - startT);
+      setPollLatencyMs(duration);
+
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status} ${res.statusText}`);
+      }
+      const data = await res.json();
+      
+      if (data && data.offsets) {
+        if (typeof data.offsets.tai_minus_utc_seconds === 'number') {
+          setTaiUtcOffset(data.offsets.tai_minus_utc_seconds);
+        }
+        if (typeof data.offsets.gps_minus_utc_seconds === 'number') {
+          setGpsUtcOffset(data.offsets.gps_minus_utc_seconds);
+        }
+        if (typeof data.offsets.tt_minus_utc_seconds === 'number') {
+          setTtUtcOffset(data.offsets.tt_minus_utc_seconds);
+        }
+        if (typeof data.offsets.dut1_ut1_minus_utc_seconds === 'number') {
+          setDut1Offset(data.offsets.dut1_ut1_minus_utc_seconds);
+        }
+      } else if (data && data.atomic_sync) {
+        if (typeof data.atomic_sync.tai_utc_offset_seconds === 'number') {
+          setTaiUtcOffset(data.atomic_sync.tai_utc_offset_seconds);
+        }
+        if (typeof data.atomic_sync.gps_utc_offset_seconds === 'number') {
+          setGpsUtcOffset(data.atomic_sync.gps_utc_offset_seconds);
+        }
+      }
+
+      setAtomicApiMetadata({
+        stratum: data.atomic_sync?.stratum ?? 1,
+        primarySource: data.atomic_sync?.primary_source ?? 'BIPM-TAI (Circular T)',
+        rootDelayMs: data.atomic_sync?.root_delay_ms ?? 0.12,
+        rootDispersionMs: data.atomic_sync?.root_dispersion_ms ?? 0.04,
+        leapIndicator: data.atomic_sync?.leap_indicator ?? 'none_scheduled',
+        serverEpochNanos: data.server_epoch_nanos ?? (BigInt(Date.now()) * 1000000n + 42000n).toString(),
+        bulletin: data.iers_bulletin?.bulletin ?? 'Bulletin C 68'
+      });
+
+      setLastPolledAt(new Date());
+      setPollCountdown(60);
+    } catch (err: any) {
+      console.warn('TAI-UTC live polling error:', err);
+      setPollError(err?.message || 'Failed to poll /api/time/tai-utc');
+    } finally {
+      setIsPollingApi(false);
+    }
+  };
+
+  // 60-Second Automated Live Data Polling Interval
+  useEffect(() => {
+    if (!isLiveDataPolling) return;
+
+    // Initial fetch on mount or when toggled on
+    pollTaiUtcEndpoint();
+
+    const timer = setInterval(() => {
+      setPollCountdown(prev => {
+        if (prev <= 1) {
+          pollTaiUtcEndpoint();
+          return 60;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [isLiveDataPolling]);
+
   // Generate initial stream data buffer on mount
   useEffect(() => {
     const initial: AtomicTelemetryPoint[] = [];
@@ -116,18 +218,18 @@ export const AtomicTelemetryWidget: React.FC = () => {
       const t = new Date(now - i * sampleRateMs);
       const timeSec = t.getUTCSeconds() + t.getUTCMilliseconds() / 1000;
       const baseJitter = (Math.sin(i * 0.4) * 0.025) + ((Math.random() - 0.5) * 0.015);
-      const dut1Wobble = 0.0384 + Math.sin(i * 0.15) * 0.0006;
+      const dut1Wobble = dut1Offset + Math.sin(i * 0.15) * 0.0006;
 
       initial.push({
         index: initial.length,
         timestamp: `${t.getUTCHours().toString().padStart(2, '0')}:${t.getUTCMinutes().toString().padStart(2, '0')}:${t.getUTCSeconds().toString().padStart(2, '0')}.${Math.floor(t.getUTCMilliseconds() / 100)}`,
         timeSec: Number(timeSec.toFixed(2)),
         utcRawSec: Number(timeSec.toFixed(3)),
-        taiSec: Number((timeSec + CURRENT_TAI_UTC_OFFSET).toFixed(3)),
-        gpsSec: Number((timeSec + CURRENT_GPS_UTC_OFFSET).toFixed(3)),
-        ttSec: Number((timeSec + CURRENT_TT_UTC_OFFSET).toFixed(3)),
-        taiUtcDelta: CURRENT_TAI_UTC_OFFSET,
-        gpsUtcDelta: CURRENT_GPS_UTC_OFFSET,
+        taiSec: Number((timeSec + taiUtcOffset).toFixed(3)),
+        gpsSec: Number((timeSec + gpsUtcOffset).toFixed(3)),
+        ttSec: Number((timeSec + ttUtcOffset).toFixed(3)),
+        taiUtcDelta: taiUtcOffset,
+        gpsUtcDelta: gpsUtcOffset,
         dut1DeltaSec: Number(dut1Wobble.toFixed(5)),
         phaseJitterNs: Number((baseJitter * 10).toFixed(3)),
         fractionalFreqDrift: Number((1.12 + Math.random() * 0.06).toFixed(2)),
@@ -136,7 +238,7 @@ export const AtomicTelemetryWidget: React.FC = () => {
     }
     setLiveStreamData(initial);
     pointIndexRef.current = initial.length;
-  }, [bufferSize]);
+  }, [bufferSize, sampleRateMs, taiUtcOffset, gpsUtcOffset, ttUtcOffset, dut1Offset]);
 
   // Live real-time streaming interval
   useEffect(() => {
@@ -149,14 +251,14 @@ export const AtomicTelemetryWidget: React.FC = () => {
       const utcSeconds = now.getUTCSeconds().toString().padStart(2, '0');
       const utcMs = now.getUTCMilliseconds().toString().padStart(3, '0');
 
-      // TAI time string (+37s)
-      const taiDate = new Date(now.getTime() + CURRENT_TAI_UTC_OFFSET * 1000);
+      // TAI time string (dynamically synchronized with taiUtcOffset)
+      const taiDate = new Date(now.getTime() + taiUtcOffset * 1000);
       const taiHours = taiDate.getUTCHours().toString().padStart(2, '0');
       const taiMinutes = taiDate.getUTCMinutes().toString().padStart(2, '0');
       const taiSeconds = taiDate.getUTCSeconds().toString().padStart(2, '0');
 
-      // GPS time string (+18s)
-      const gpsDate = new Date(now.getTime() + CURRENT_GPS_UTC_OFFSET * 1000);
+      // GPS time string (dynamically synchronized with gpsUtcOffset)
+      const gpsDate = new Date(now.getTime() + gpsUtcOffset * 1000);
       const gpsHours = gpsDate.getUTCHours().toString().padStart(2, '0');
       const gpsMinutes = gpsDate.getUTCMinutes().toString().padStart(2, '0');
       const gpsSeconds = gpsDate.getUTCSeconds().toString().padStart(2, '0');
@@ -168,7 +270,7 @@ export const AtomicTelemetryWidget: React.FC = () => {
       const timeSec = now.getUTCSeconds() + now.getUTCMilliseconds() / 1000;
       const stepIdx = pointIndexRef.current++;
       const microJitter = (Math.sin(stepIdx * 0.35) * 0.02) + ((Math.random() - 0.5) * 0.012);
-      const dut1Wobble = 0.0384 + Math.sin(stepIdx * 0.12) * 0.0008;
+      const dut1Wobble = dut1Offset + Math.sin(stepIdx * 0.12) * 0.0008;
       const jitterNs = Number((microJitter * 10).toFixed(3));
       setCurrentPhaseDriftNs(jitterNs);
 
@@ -177,11 +279,11 @@ export const AtomicTelemetryWidget: React.FC = () => {
         timestamp: `${utcHours}:${utcMinutes}:${utcSeconds}.${Math.floor(now.getUTCMilliseconds() / 100)}`,
         timeSec: Number(timeSec.toFixed(2)),
         utcRawSec: 0,
-        taiSec: CURRENT_TAI_UTC_OFFSET,
-        gpsSec: CURRENT_GPS_UTC_OFFSET,
-        ttSec: CURRENT_TT_UTC_OFFSET,
-        taiUtcDelta: CURRENT_TAI_UTC_OFFSET,
-        gpsUtcDelta: CURRENT_GPS_UTC_OFFSET,
+        taiSec: taiUtcOffset,
+        gpsSec: gpsUtcOffset,
+        ttSec: ttUtcOffset,
+        taiUtcDelta: taiUtcOffset,
+        gpsUtcDelta: gpsUtcOffset,
         dut1DeltaSec: Number(dut1Wobble.toFixed(5)),
         phaseJitterNs: jitterNs,
         fractionalFreqDrift: Number((1.1 + Math.random() * 0.08).toFixed(2)),
@@ -195,7 +297,7 @@ export const AtomicTelemetryWidget: React.FC = () => {
     }, sampleRateMs);
 
     return () => clearInterval(interval);
-  }, [isPlaying, sampleRateMs]);
+  }, [isPlaying, sampleRateMs, taiUtcOffset, gpsUtcOffset, ttUtcOffset, dut1Offset]);
 
   // Synthetic Diurnal 24-Hour Dataset
   const diurnalData = useMemo(() => {
@@ -445,11 +547,17 @@ export const AtomicTelemetryWidget: React.FC = () => {
             </span>
             <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 flex items-center gap-1">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
-              TAI - UTC = +37.000000000s
+              TAI - UTC = +{taiUtcOffset.toFixed(9)}s
             </span>
             <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-semibold bg-purple-500/20 text-purple-300 border border-purple-400/30 flex items-center gap-1">
-              <Cpu className="w-3 h-3 text-purple-400" /> BIPM SI Standard Lock
+              <Cpu className="w-3 h-3 text-purple-400" /> {atomicApiMetadata?.primarySource || 'BIPM SI Standard Lock'}
             </span>
+            {isLiveDataPolling && (
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-400/30 flex items-center gap-1">
+                <Radio className="w-3 h-3 text-cyan-400 animate-pulse" />
+                Poll /api/time/tai-utc (Next: {pollCountdown}s)
+              </span>
+            )}
           </div>
 
           <h2 className="text-xl sm:text-2xl font-black font-display text-white flex items-center gap-2.5">
@@ -463,6 +571,53 @@ export const AtomicTelemetryWidget: React.FC = () => {
 
         {/* Global Stream Action Buttons */}
         <div className="flex flex-wrap items-center gap-2 self-start lg:self-center shrink-0">
+          {/* Live Data Toggle Button */}
+          <button
+            id="live-data-toggle-btn"
+            onClick={() => {
+              const nextVal = !isLiveDataPolling;
+              setIsLiveDataPolling(nextVal);
+              if (nextVal) {
+                pollTaiUtcEndpoint();
+              }
+            }}
+            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 border shadow-md ${
+              isLiveDataPolling
+                ? 'bg-emerald-500/20 text-emerald-300 border-emerald-400/60 shadow-emerald-950/40'
+                : 'bg-slate-800 text-slate-400 border-slate-700 hover:text-white hover:border-slate-600'
+            }`}
+            title="Toggle automatic 60-second polling of the /api/time/tai-utc endpoint"
+          >
+            <div className="relative flex items-center justify-center">
+              <Radio className={`w-3.5 h-3.5 ${isLiveDataPolling ? 'text-emerald-400' : 'text-slate-500'}`} />
+              {isLiveDataPolling && (
+                <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+              )}
+            </div>
+            <span>Live Data: {isLiveDataPolling ? 'ON' : 'OFF'}</span>
+            {isLiveDataPolling && (
+              <span className="font-mono text-[10px] bg-emerald-950/90 text-emerald-300 px-1.5 py-0.5 rounded border border-emerald-500/40">
+                {pollCountdown}s
+              </span>
+            )}
+          </button>
+
+          {/* Manual Sync / Poll Button */}
+          <button
+            id="manual-poll-btn"
+            onClick={() => pollTaiUtcEndpoint()}
+            disabled={isPollingApi}
+            className={`px-3 py-2 rounded-xl text-xs font-semibold border transition-all cursor-pointer flex items-center gap-1.5 ${
+              isPollingApi
+                ? 'bg-slate-800 text-cyan-300 border-cyan-500/50 cursor-wait'
+                : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700 hover:border-slate-600'
+            }`}
+            title="Poll /api/time/tai-utc endpoint immediately"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${isPollingApi ? 'animate-spin text-cyan-400' : 'text-slate-400'}`} />
+            <span className="hidden sm:inline">{isPollingApi ? 'Syncing...' : 'Sync Now'}</span>
+          </button>
+
           <button
             onClick={() => setIsPlaying(!isPlaying)}
             className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 shadow-md ${
@@ -500,6 +655,68 @@ export const AtomicTelemetryWidget: React.FC = () => {
             <Download className="w-3.5 h-3.5" />
             <span>CSV</span>
           </button>
+
+          <button
+            id="drift-email-alert-trigger-btn"
+            onClick={() => setIsDriftAlertModalOpen(true)}
+            className="px-3.5 py-2 bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-500 hover:to-rose-600 text-white rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 shadow-md"
+            title="Configure custom email alerts when TAI-UTC drift exceeds your safety thresholds"
+          >
+            <Bell className="w-3.5 h-3.5 text-rose-200 animate-pulse" />
+            <span>Drift Alerts</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Live Data API Telemetry Status Bar */}
+      <div className="bg-slate-950/80 border border-slate-800/90 rounded-2xl p-3.5 flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs">
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-2">
+            <span className={`w-2.5 h-2.5 rounded-full ${isLiveDataPolling ? 'bg-emerald-400 animate-pulse' : 'bg-slate-600'}`}></span>
+            <span className="font-bold text-slate-200">
+              {isLiveDataPolling ? 'Live Telemetry Auto-Poll' : 'Live Data Polling Paused'}
+            </span>
+          </div>
+          <span className="font-mono text-[11px] bg-slate-900 border border-slate-800 px-2 py-0.5 rounded text-cyan-300">
+            GET /api/time/tai-utc
+          </span>
+          <span className="text-[11px] text-slate-400">
+            Interval: <strong className="text-slate-200 font-mono">60s</strong>
+          </span>
+          {lastPolledAt && (
+            <span className="text-[11px] text-slate-400 flex items-center gap-1">
+              <span>Last Polled:</span>
+              <strong className="text-emerald-300 font-mono">
+                {lastPolledAt.toISOString().slice(11, 19)} UTC
+              </strong>
+              {pollLatencyMs !== null && (
+                <span className="text-slate-500 font-mono text-[10px]">({pollLatencyMs}ms)</span>
+              )}
+            </span>
+          )}
+          {pollError && (
+            <span className="text-[11px] text-rose-400 bg-rose-950/40 border border-rose-500/30 px-2 py-0.5 rounded">
+              Sync warning: {pollError}
+            </span>
+          )}
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2.5 text-[11px]">
+          <span className="text-slate-400">Current Server Offset:</span>
+          <span className="font-mono font-black text-cyan-300 bg-cyan-950/60 border border-cyan-500/40 px-2 py-0.5 rounded">
+            TAI - UTC = +{taiUtcOffset}s
+          </span>
+          <span className="font-mono font-bold text-amber-300 bg-amber-950/60 border border-amber-500/40 px-2 py-0.5 rounded">
+            GPS = +{gpsUtcOffset}s
+          </span>
+          {isLiveDataPolling && (
+            <div className="flex items-center gap-1.5 pl-2 border-l border-slate-800">
+              <span className="text-slate-400 text-[10px]">Next Sync in:</span>
+              <span className="font-mono font-bold text-emerald-400 bg-emerald-950/80 px-2 py-0.5 rounded border border-emerald-500/30">
+                {pollCountdown}s
+              </span>
+            </div>
+          )}
         </div>
       </div>
 
@@ -509,7 +726,7 @@ export const AtomicTelemetryWidget: React.FC = () => {
         <div className="bg-slate-950/90 border border-slate-800 p-3.5 rounded-2xl flex flex-col justify-between space-y-1">
           <div className="flex items-center justify-between">
             <span className="text-[10px] uppercase font-bold text-cyan-400">TAI Atomic Time</span>
-            <span className="text-[9px] font-mono text-cyan-500 font-bold">+37.000s</span>
+            <span className="text-[9px] font-mono text-cyan-500 font-bold">+{taiUtcOffset.toFixed(3)}s</span>
           </div>
           <div className="text-base sm:text-lg font-mono font-black text-cyan-300 tracking-tight truncate">
             {currentTaiDisplay || '00:00:37.000'}
@@ -526,14 +743,14 @@ export const AtomicTelemetryWidget: React.FC = () => {
           <div className="text-base sm:text-lg font-mono font-black text-white tracking-tight truncate">
             {currentUtcDisplay || '00:00:00.000'}
           </div>
-          <span className="text-[9px] text-slate-400 block font-mono">IERS Bulletin C 68</span>
+          <span className="text-[9px] text-slate-400 block font-mono">{atomicApiMetadata?.bulletin || 'IERS Bulletin C 68'}</span>
         </div>
 
         {/* Gauge 3: GPS Constellation Time */}
         <div className="bg-slate-950/90 border border-slate-800 p-3.5 rounded-2xl flex flex-col justify-between space-y-1">
           <div className="flex items-center justify-between">
             <span className="text-[10px] uppercase font-bold text-amber-400">GPS Navigation</span>
-            <span className="text-[9px] font-mono text-amber-500 font-bold">+18.000s</span>
+            <span className="text-[9px] font-mono text-amber-500 font-bold">+{gpsUtcOffset.toFixed(3)}s</span>
           </div>
           <div className="text-base sm:text-lg font-mono font-black text-amber-300 tracking-tight truncate">
             {currentGpsDisplay || '00:00:18.000'}
@@ -548,7 +765,7 @@ export const AtomicTelemetryWidget: React.FC = () => {
             <span className="text-[9px] font-mono text-emerald-300 font-bold">&lt; 0.9s</span>
           </div>
           <div className="text-base sm:text-lg font-mono font-black text-emerald-300 tracking-tight">
-            +0.0384 s
+            +{dut1Offset.toFixed(4)} s
           </div>
           <span className="text-[9px] text-slate-400 block font-mono">Earth Angle Alignment</span>
         </div>
@@ -840,7 +1057,7 @@ export const AtomicTelemetryWidget: React.FC = () => {
                   Continuous High-Resolution Phase Stream ({displayLiveData.length} Epochs Visible)
                 </span>
                 <span className="text-[10px] font-mono text-cyan-400 bg-cyan-950/60 border border-cyan-500/30 px-2 py-0.5 rounded">
-                  Δ(TAI - UTC) = +37.000s
+                  Δ(TAI - UTC) = +{taiUtcOffset.toFixed(3)}s
                 </span>
                 {!isPlaying && (
                   <span className="text-[10px] font-mono text-amber-300 bg-amber-950/60 border border-amber-500/30 px-2 py-0.5 rounded">
@@ -863,7 +1080,7 @@ export const AtomicTelemetryWidget: React.FC = () => {
                   title="Toggle TAI - UTC Offset line"
                 >
                   <span className={`w-2.5 h-2.5 rounded-full ${showTai ? 'bg-cyan-400' : 'bg-slate-600'}`}></span>
-                  <span>TAI Offset (+37s)</span>
+                  <span>TAI Offset (+{taiUtcOffset}s)</span>
                 </button>
 
                 <button
@@ -877,7 +1094,7 @@ export const AtomicTelemetryWidget: React.FC = () => {
                   title="Toggle GPS Offset line"
                 >
                   <span className={`w-2.5 h-2.5 rounded-full ${showGps ? 'bg-amber-400' : 'bg-slate-600'}`}></span>
-                  <span>GPS Offset (+18s)</span>
+                  <span>GPS Offset (+{gpsUtcOffset}s)</span>
                 </button>
 
                 <button
@@ -891,7 +1108,7 @@ export const AtomicTelemetryWidget: React.FC = () => {
                   title="Toggle DUT1 Earth Wobble line"
                 >
                   <span className={`w-2.5 h-2.5 rounded-full ${showDut1 ? 'bg-emerald-400' : 'bg-slate-600'}`}></span>
-                  <span>DUT1 Earth (+0.038s)</span>
+                  <span>DUT1 Earth (+{dut1Offset.toFixed(3)}s)</span>
                 </button>
 
                 <button
@@ -929,8 +1146,8 @@ export const AtomicTelemetryWidget: React.FC = () => {
                   />
                   <YAxis 
                     yAxisId="left"
-                    domain={[0, 42]} 
-                    ticks={[0, 10, 18, 25, 37, 40]}
+                    domain={[0, Math.max(42, taiUtcOffset + 5)]} 
+                    ticks={[0, 10, gpsUtcOffset, 25, taiUtcOffset, Math.max(40, taiUtcOffset + 3)]}
                     stroke="#64748b" 
                     tick={{ fill: '#94a3b8', fontSize: 10, fontFamily: 'monospace' }}
                     label={{ value: 'Offset Seconds (s)', angle: -90, position: 'insideLeft', fill: '#64748b', fontSize: 10 }}
@@ -987,7 +1204,7 @@ export const AtomicTelemetryWidget: React.FC = () => {
                             </div>
 
                             <p className="text-[10px] text-slate-400 pt-1 border-t border-slate-800 leading-snug">
-                              Constant integer divergence of +37s maintained under IERS Bulletin C 68.
+                              Constant integer divergence of +{taiUtcOffset}s maintained under {atomicApiMetadata?.bulletin || 'IERS Bulletin C 68'}.
                             </p>
                           </div>
                         );
@@ -998,8 +1215,8 @@ export const AtomicTelemetryWidget: React.FC = () => {
 
                   {/* Reference line for Leap Second 0.9s tolerance threshold */}
                   <ReferenceLine yAxisId="left" y={0.9} stroke="#ef4444" strokeDasharray="4 4" label={{ value: 'IERS ±0.9s Limit', fill: '#ef4444', fontSize: 9, position: 'right' }} />
-                  {showTai && <ReferenceLine yAxisId="left" y={37} stroke="#06b6d4" strokeDasharray="2 2" />}
-                  {showGps && <ReferenceLine yAxisId="left" y={18} stroke="#f59e0b" strokeDasharray="2 2" />}
+                  {showTai && <ReferenceLine yAxisId="left" y={taiUtcOffset} stroke="#06b6d4" strokeDasharray="2 2" />}
+                  {showGps && <ReferenceLine yAxisId="left" y={gpsUtcOffset} stroke="#f59e0b" strokeDasharray="2 2" />}
 
                   {/* Visual Drag-to-Zoom Selection Area */}
                   {refAreaLeft && refAreaRight && (
@@ -1498,6 +1715,13 @@ export const AtomicTelemetryWidget: React.FC = () => {
           </p>
         </div>
       </div>
+
+      {/* Global Drift Alert Configuration Modal */}
+      <DriftAlertConfigModal
+        isOpen={isDriftAlertModalOpen}
+        onClose={() => setIsDriftAlertModalOpen(false)}
+        initialThresholdMicros={100}
+      />
     </div>
   );
 };

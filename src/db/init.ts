@@ -92,6 +92,24 @@ export async function ensureSchema(db?: D1Database): Promise<void> {
           created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         );
       `),
+      // 8. TAI-UTC Drift Alert Subscriptions Table
+      db.prepare(`
+        CREATE TABLE IF NOT EXISTS drift_alert_subscriptions (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          email TEXT NOT NULL,
+          threshold_micros REAL NOT NULL,
+          threshold_display TEXT NOT NULL,
+          alert_name TEXT NOT NULL,
+          system_context TEXT DEFAULT 'General Metrology',
+          notification_frequency TEXT DEFAULT 'immediate',
+          trigger_condition TEXT DEFAULT 'exceeds_threshold',
+          webhook_url TEXT,
+          is_active INTEGER DEFAULT 1,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          last_tested_at DATETIME,
+          last_triggered_at DATETIME
+        );
+      `),
       // Performance Indexes
       db.prepare(`CREATE INDEX IF NOT EXISTS idx_cities_name ON cities(name);`),
       db.prepare(`CREATE INDEX IF NOT EXISTS idx_cities_timezone ON cities(timezone);`),
@@ -100,7 +118,8 @@ export async function ensureSchema(db?: D1Database): Promise<void> {
       db.prepare(`CREATE INDEX IF NOT EXISTS idx_news_slug ON news(slug);`),
       db.prepare(`CREATE INDEX IF NOT EXISTS idx_news_category ON news(category);`),
       db.prepare(`CREATE INDEX IF NOT EXISTS idx_contact_email ON contact_messages(email);`),
-      db.prepare(`CREATE INDEX IF NOT EXISTS idx_newsletter_email ON newsletter_subscribers(email);`)
+      db.prepare(`CREATE INDEX IF NOT EXISTS idx_newsletter_email ON newsletter_subscribers(email);`),
+      db.prepare(`CREATE INDEX IF NOT EXISTS idx_drift_alerts_email ON drift_alert_subscriptions(email);`)
     ]);
 
     isSchemaInitialized = true;

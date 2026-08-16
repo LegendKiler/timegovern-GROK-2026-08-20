@@ -14,7 +14,10 @@ import {
   X,
   Sparkles,
   Layers,
-  ArrowRight
+  ArrowRight,
+  Bell,
+  Mail,
+  Send
 } from 'lucide-react';
 import {
   TIME_SYNC_WARNING_PRESETS,
@@ -23,6 +26,7 @@ import {
   evaluateDriftExceedance
 } from '../lib/timeSyncTolerance';
 import { HistoricalTimelinePoint, CURRENT_TAI_UTC_OFFSET } from '../lib/leapSecondData';
+import { DriftAlertConfigModal } from './DriftAlertConfigModal';
 
 interface TimeSyncWarningZoneDrawerProps {
   showWarningZone: boolean;
@@ -43,10 +47,41 @@ export const TimeSyncWarningZoneDrawer: React.FC<TimeSyncWarningZoneDrawerProps>
 }) => {
   const [customInputValue, setCustomInputValue] = useState<string>(() => thresholdMicros.toString());
   const [customUnit, setCustomUnit] = useState<'µs' | 'ms' | 's'>('µs');
-  const [activeTab, setActiveTab] = useState<'presets' | 'custom' | 'impact'>('presets');
+  const [activeTab, setActiveTab] = useState<'presets' | 'custom' | 'impact' | 'alerts'>('presets');
+  const [isAlertModalOpen, setIsAlertModalOpen] = useState<boolean>(false);
+  const [quickAlertEmail, setQuickAlertEmail] = useState<string>('Nadeem101@gmail.com');
+  const [isSavingQuickAlert, setIsSavingQuickAlert] = useState<boolean>(false);
+  const [quickAlertSuccess, setQuickAlertSuccess] = useState<string | null>(null);
 
   // Find active preset if matches exactly
   const activePreset = TIME_SYNC_WARNING_PRESETS.find(p => p.thresholdMicros === thresholdMicros);
+
+  const handleQuickSubscribeAlert = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!quickAlertEmail || !quickAlertEmail.includes('@')) return;
+    setIsSavingQuickAlert(true);
+    setQuickAlertSuccess(null);
+    try {
+      const res = await fetch('/api/drift-alerts/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: quickAlertEmail,
+          threshold_micros: thresholdMicros,
+          threshold_display: formatMicroseconds(thresholdMicros),
+          alert_name: `${activePreset ? activePreset.name : 'Custom'} Drift Alert (${formatMicroseconds(thresholdMicros)})`,
+          system_context: activePreset ? activePreset.standardBody : 'General Infrastructure'
+        })
+      });
+      if (res.ok) {
+        setQuickAlertSuccess(`Alert activated for ${quickAlertEmail} at ${formatMicroseconds(thresholdMicros)} threshold.`);
+      }
+    } catch (err) {
+      console.warn('Quick alert subscribe failed:', err);
+    } finally {
+      setIsSavingQuickAlert(false);
+    }
+  };
 
   // Exceedance statistics across timeline
   const pointsExceeding = timeline.filter(p => (p.taiMinusUtc * 1_000_000) > thresholdMicros);
@@ -183,7 +218,20 @@ export const TimeSyncWarningZoneDrawer: React.FC<TimeSyncWarningZoneDrawerProps>
           }`}
         >
           <Cpu className="w-3.5 h-3.5" />
-          <span>Telemetry & System Impact Analysis</span>
+          <span>Impact Analysis</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('alerts')}
+          className={`px-3 py-1 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
+            activeTab === 'alerts'
+              ? 'bg-rose-600 text-white font-bold shadow-xs'
+              : 'text-rose-300 hover:text-white bg-rose-950/40 border border-rose-500/30'
+          }`}
+        >
+          <Bell className="w-3.5 h-3.5 text-rose-400" />
+          <span>Email Drift Alerts</span>
         </button>
       </div>
 
@@ -380,6 +428,96 @@ export const TimeSyncWarningZoneDrawer: React.FC<TimeSyncWarningZoneDrawerProps>
           )}
         </div>
       </div>
+
+      {/* 4. CUSTOM EMAIL ALERTS TAB */}
+      {activeTab === 'alerts' && (
+        <div className="bg-slate-900/90 border border-rose-500/40 rounded-2xl p-4 sm:p-5 space-y-4 animate-fadeIn">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
+            <div className="flex items-center gap-2.5">
+              <span className="p-2 rounded-xl bg-rose-500/20 text-rose-300 border border-rose-500/40">
+                <Bell className="w-5 h-5 text-rose-400 animate-pulse" />
+              </span>
+              <div>
+                <h5 className="font-extrabold text-sm text-white flex items-center gap-2">
+                  TAI-UTC Drift Exceedance Email Alert Configurator
+                </h5>
+                <p className="text-[11px] text-slate-400">
+                  Receive instant automated emergency dispatches whenever drift exceeds <strong className="text-amber-300 font-mono">{formatMicroseconds(thresholdMicros)}</strong>.
+                </p>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setIsAlertModalOpen(true)}
+              className="px-3.5 py-1.5 bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-500 hover:to-rose-600 text-white font-bold text-xs rounded-xl shadow-md cursor-pointer flex items-center gap-1.5 self-start sm:self-center shrink-0"
+            >
+              <Sliders className="w-3.5 h-3.5" />
+              <span>Advanced Alert Dispatcher</span>
+            </button>
+          </div>
+
+          {quickAlertSuccess && (
+            <div className="p-3 rounded-xl bg-emerald-950/80 border border-emerald-500/50 text-emerald-200 text-xs flex items-center gap-2 animate-fadeIn">
+              <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+              <p className="font-bold">{quickAlertSuccess}</p>
+            </div>
+          )}
+
+          <form onSubmit={handleQuickSubscribeAlert} className="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
+            <div className="space-y-1 md:col-span-2">
+              <label className="text-[11px] font-bold text-slate-300 flex items-center gap-1.5">
+                <Mail className="w-3.5 h-3.5 text-amber-400" />
+                <span>Destination Email for Drift Breach Notifications:</span>
+              </label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="email"
+                  required
+                  value={quickAlertEmail}
+                  onChange={(e) => setQuickAlertEmail(e.target.value)}
+                  placeholder="e.g. Nadeem101@gmail.com"
+                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:border-rose-400 focus:outline-none"
+                />
+              </div>
+            </div>
+
+            <div>
+              <button
+                type="submit"
+                disabled={isSavingQuickAlert}
+                className="w-full py-2 px-4 bg-rose-600 hover:bg-rose-500 text-white font-bold rounded-xl text-xs transition-colors flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
+              >
+                <Send className="w-3.5 h-3.5" />
+                <span>{isSavingQuickAlert ? 'Activating...' : `Subscribe at ${formatMicroseconds(thresholdMicros)}`}</span>
+              </button>
+            </div>
+          </form>
+
+          {/* Real-time Status Card */}
+          <div className="p-3 bg-slate-950/90 rounded-xl border border-slate-800 text-[11px] text-slate-300 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+              <span>Current atomic drift is <strong>+{CURRENT_TAI_UTC_OFFSET}s (+37,000,000 µs)</strong> vs safety ceiling <strong>{formatMicroseconds(thresholdMicros)}</strong>.</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setIsAlertModalOpen(true)}
+              className="text-amber-400 hover:text-amber-300 font-bold underline cursor-pointer shrink-0"
+            >
+              Manage / Test All Rules &rarr;
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Global Drift Alert Configuration Modal */}
+      <DriftAlertConfigModal
+        isOpen={isAlertModalOpen}
+        onClose={() => setIsAlertModalOpen(false)}
+        initialThresholdMicros={thresholdMicros}
+        defaultEmail={quickAlertEmail}
+      />
     </div>
   );
 };

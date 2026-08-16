@@ -48,7 +48,10 @@ import {
   FileText,
   CheckCircle2,
   Bookmark,
-  MousePointerClick
+  MousePointerClick,
+  RefreshCw,
+  Bell,
+  Mail
 } from 'lucide-react';
 import {
   HistoricalTimelinePoint,
@@ -67,6 +70,7 @@ import {
   evaluateDriftExceedance
 } from '../lib/timeSyncTolerance';
 import { TimeSyncWarningZoneDrawer } from './TimeSyncWarningZoneDrawer';
+import { DriftAlertConfigModal } from './DriftAlertConfigModal';
 
 const KEY_MILESTONE_IDS = [
   'genesis-1972-01-01',
@@ -94,6 +98,60 @@ export const LeapSecondHistoricalChart: React.FC = () => {
   const [warningThresholdMicros, setWarningThresholdMicros] = useState<number>(100); // Default 100 µs (MiFID II / 5G / PTP boundary)
   const [showWarningDrawer, setShowWarningDrawer] = useState<boolean>(false);
 
+  // Live Data Polling State for /api/time/tai-utc (60s interval)
+  const [isLiveDataPolling, setIsLiveDataPolling] = useState<boolean>(false);
+  const [liveTaiUtcOffset, setLiveTaiUtcOffset] = useState<number>(CURRENT_TAI_UTC_OFFSET);
+  const [liveGpsUtcOffset, setLiveGpsUtcOffset] = useState<number>(CURRENT_GPS_UTC_OFFSET);
+  const [pollCountdown, setPollCountdown] = useState<number>(60);
+  const [isPollingApi, setIsPollingApi] = useState<boolean>(false);
+  const [lastPolledAt, setLastPolledAt] = useState<Date | null>(null);
+
+  // Poll /api/time/tai-utc function
+  const pollTaiUtcApi = async () => {
+    setIsPollingApi(true);
+    try {
+      const res = await fetch(`/api/time/tai-utc?echo=${Date.now()}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data?.offsets?.tai_minus_utc_seconds) {
+          setLiveTaiUtcOffset(data.offsets.tai_minus_utc_seconds);
+        } else if (data?.atomic_sync?.tai_utc_offset_seconds) {
+          setLiveTaiUtcOffset(data.atomic_sync.tai_utc_offset_seconds);
+        }
+        if (data?.offsets?.gps_minus_utc_seconds) {
+          setLiveGpsUtcOffset(data.offsets.gps_minus_utc_seconds);
+        } else if (data?.atomic_sync?.gps_utc_offset_seconds) {
+          setLiveGpsUtcOffset(data.atomic_sync.gps_utc_offset_seconds);
+        }
+        setLastPolledAt(new Date());
+        setPollCountdown(60);
+      }
+    } catch (err) {
+      console.warn('Live poll error in LeapSecondHistoricalChart:', err);
+    } finally {
+      setIsPollingApi(false);
+    }
+  };
+
+  // 60-second polling interval effect
+  useEffect(() => {
+    if (!isLiveDataPolling) return;
+
+    pollTaiUtcApi();
+
+    const interval = setInterval(() => {
+      setPollCountdown(prev => {
+        if (prev <= 1) {
+          pollTaiUtcApi();
+          return 60;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [isLiveDataPolling]);
+
   // Series visibility toggles for cumulative view
   const [showTai, setShowTai] = useState<boolean>(true);
   const [showGps, setShowGps] = useState<boolean>(true);
@@ -105,6 +163,7 @@ export const LeapSecondHistoricalChart: React.FC = () => {
   const fullTimeline = useMemo(() => getHistoricalTimelineProgression(), []);
 
   // Visible Leap Second Markers State
+  const [isDriftAlertModalOpen, setIsDriftAlertModalOpen] = useState<boolean>(false);
   const [showLeapMarkers, setShowLeapMarkers] = useState<boolean>(true);
   const [selectedEventMarkerIds, setSelectedEventMarkerIds] = useState<string[]>(() => {
     return fullTimeline.map(p => p.id);
@@ -573,6 +632,47 @@ Systems Impact: ${point.systemsImpactSummary}`;
         {/* Series Visibility Toggles (when in Cumulative Mode) */}
         {viewMode === 'cumulative' && (
           <div className="flex flex-wrap items-center gap-2">
+            {/* Live Data Telemetry 60s Polling Toggle */}
+            <button
+              onClick={() => {
+                const nextVal = !isLiveDataPolling;
+                setIsLiveDataPolling(nextVal);
+                if (nextVal) {
+                  pollTaiUtcApi();
+                }
+              }}
+              className={`px-2.5 py-1 rounded-lg border text-[11px] font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                isLiveDataPolling
+                  ? 'bg-emerald-500/20 text-emerald-300 border-emerald-400/60 shadow-xs'
+                  : 'bg-slate-950 text-slate-400 border-slate-800 hover:text-white'
+              }`}
+              title="Toggle automatic 60-second polling of /api/time/tai-utc"
+            >
+              <div className="relative flex items-center justify-center">
+                <Radio className={`w-3 h-3 ${isLiveDataPolling ? 'text-emerald-400' : 'text-slate-500'}`} />
+                {isLiveDataPolling && (
+                  <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+                )}
+              </div>
+              <span>Live Poll: {isLiveDataPolling ? 'ON' : 'OFF'}</span>
+              {isLiveDataPolling && (
+                <span className="font-mono text-[10px] bg-emerald-950 px-1 py-0.2 rounded border border-emerald-500/40 text-emerald-300">
+                  {pollCountdown}s
+                </span>
+              )}
+            </button>
+
+            {isLiveDataPolling && (
+              <button
+                onClick={() => pollTaiUtcApi()}
+                disabled={isPollingApi}
+                className="p-1 rounded-lg bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-300 cursor-pointer"
+                title="Poll /api/time/tai-utc immediately"
+              >
+                <RefreshCw className={`w-3 h-3 ${isPollingApi ? 'animate-spin text-cyan-400' : 'text-slate-400'}`} />
+              </button>
+            )}
+
             <span className="text-slate-500 text-[10px] uppercase font-bold tracking-wider mr-1 hidden sm:inline">Legend:</span>
             <button
               onClick={() => setShowTai(!showTai)}
@@ -584,7 +684,7 @@ Systems Impact: ${point.systemsImpactSummary}`;
               title="Toggle TAI - UTC offset line"
             >
               <span className={`w-2.5 h-2.5 rounded-full ${showTai ? 'bg-cyan-400' : 'bg-slate-600'} inline-block`}></span>
-              <span>TAI - UTC (+{CURRENT_TAI_UTC_OFFSET}s)</span>
+              <span>TAI - UTC (+{liveTaiUtcOffset}s)</span>
             </button>
 
             <button
@@ -597,7 +697,7 @@ Systems Impact: ${point.systemsImpactSummary}`;
               title="Toggle GPS - UTC offset line"
             >
               <span className={`w-2.5 h-2.5 rounded-full ${showGps ? 'bg-amber-400' : 'bg-slate-600'} inline-block`}></span>
-              <span>GPS - UTC (+{CURRENT_GPS_UTC_OFFSET}s)</span>
+              <span>GPS - UTC (+{liveGpsUtcOffset}s)</span>
             </button>
 
             <button
@@ -757,6 +857,18 @@ Systems Impact: ${point.systemsImpactSummary}`;
             >
               <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
               <span>{showWarningDrawer ? 'Close Warning Config' : `Warning Config (${formatMicroseconds(warningThresholdMicros)})`}</span>
+            </button>
+
+            {/* Custom Email Alerts Button */}
+            <button
+              type="button"
+              id="historical-drift-email-alert-btn"
+              onClick={() => setIsDriftAlertModalOpen(true)}
+              className="px-2.5 py-1 rounded-lg border border-rose-500/40 bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 text-[11px] font-bold transition-all cursor-pointer flex items-center gap-1.5 shadow-xs"
+              title="Configure automated email notifications for TAI-UTC drift breaches"
+            >
+              <Bell className="w-3.5 h-3.5 text-rose-400 animate-pulse" />
+              <span>Drift Email Alerts</span>
             </button>
 
             {/* Event Picker Drawer Trigger */}
@@ -1868,6 +1980,13 @@ Systems Impact: ${point.systemsImpactSummary}`;
           </p>
         </div>
       </div>
+
+      {/* Global Drift Alert Configuration Modal */}
+      <DriftAlertConfigModal
+        isOpen={isDriftAlertModalOpen}
+        onClose={() => setIsDriftAlertModalOpen(false)}
+        initialThresholdMicros={warningThresholdMicros}
+      />
     </div>
   );
 };
