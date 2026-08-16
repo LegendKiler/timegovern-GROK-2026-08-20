@@ -3,7 +3,7 @@ import {
   Clock, Zap, ShieldCheck, RefreshCw, AlertCircle, Sparkles, 
   ExternalLink, Download, Copy, Check, Play, Pause, RotateCcw, 
   ChevronRight, Calendar, Info, Globe, Activity, Sliders, ArrowRight,
-  Bell, BellRing, BellOff, Volume2, VolumeX, CheckCircle2, X
+  Bell, BellRing, BellOff, Volume2, VolumeX, CheckCircle2, X, FileSpreadsheet
 } from 'lucide-react';
 import { 
   getTimeScaleOffsets, 
@@ -14,7 +14,9 @@ import {
   CURRENT_GPS_UTC_OFFSET, 
   CURRENT_TT_UTC_OFFSET,
   TimeScaleOffsetData,
-  LeapSecondEvent
+  LeapSecondEvent,
+  generateLeapSecondCsv,
+  downloadCsvFile
 } from '../lib/leapSecondData';
 import { audioSynth } from '../lib/audioSynth';
 
@@ -316,6 +318,33 @@ export const LeapSecondUtility: React.FC<LeapSecondUtilityProps> = ({ compact = 
     setTimeout(() => setCopiedJson(false), 3000);
   };
 
+  const [downloadingCsv, setDownloadingCsv] = useState<boolean>(false);
+
+  const handleExportCsv = (filteredOnly: boolean = false) => {
+    setDownloadingCsv(true);
+    try {
+      const dataToExport = filteredOnly ? filteredHistorical : HISTORICAL_LEAP_SECONDS;
+      const csvString = generateLeapSecondCsv(dataToExport, timeData);
+      const filename = filteredOnly 
+        ? `timegovern-leap-seconds-filtered-${selectedDecade}s.csv`
+        : `timegovern-leap-seconds-schedule-history-${new Date().toISOString().split('T')[0]}.csv`;
+      
+      downloadCsvFile(csvString, filename);
+
+      setAlertToast({
+        show: true,
+        title: 'CSV Dataset Exported',
+        message: `Successfully downloaded ${filename} with schedule data and ${dataToExport.length} historical records.`,
+        type: 'success'
+      });
+      setTimeout(() => setAlertToast(null), 4000);
+    } catch (err) {
+      console.error('Failed to export CSV:', err);
+    } finally {
+      setTimeout(() => setDownloadingCsv(false), 600);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* 1. Header Banner */}
@@ -344,7 +373,16 @@ export const LeapSecondUtility: React.FC<LeapSecondUtilityProps> = ({ compact = 
             </p>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              onClick={() => handleExportCsv(false)}
+              disabled={downloadingCsv}
+              className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow-md transition-all cursor-pointer flex items-center gap-1.5"
+              title="Export complete leap second schedule and historical records as CSV"
+            >
+              <Download className="w-3.5 h-3.5" />
+              <span>{downloadingCsv ? 'Exporting...' : 'Export CSV'}</span>
+            </button>
             <button
               onClick={fetchLiveEdgeData}
               disabled={isFetchingApi}
@@ -352,14 +390,14 @@ export const LeapSecondUtility: React.FC<LeapSecondUtilityProps> = ({ compact = 
               title="Sync fresh telemetry from Cloudflare Edge"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${isFetchingApi ? 'animate-spin' : ''}`} />
-              <span>{isFetchingApi ? 'Syncing...' : 'Sync Edge Telemetry'}</span>
+              <span>{isFetchingApi ? 'Syncing...' : 'Sync Edge'}</span>
             </button>
             <button
               onClick={handleCopyJsonTelemetry}
               className="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-xl shadow-md transition-all cursor-pointer flex items-center gap-1.5"
             >
               {copiedJson ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-              <span>{copiedJson ? 'JSON Copied!' : 'Copy Telemetry'}</span>
+              <span>{copiedJson ? 'Copied!' : 'Copy JSON'}</span>
             </button>
           </div>
         </div>
@@ -903,7 +941,7 @@ export const LeapSecondUtility: React.FC<LeapSecondUtilityProps> = ({ compact = 
             </p>
           </div>
 
-          {/* Search & Decade Filters */}
+          {/* Search, Decade Filters & CSV Export */}
           <div className="flex flex-wrap items-center gap-2">
             <input
               type="text"
@@ -927,6 +965,16 @@ export const LeapSecondUtility: React.FC<LeapSecondUtilityProps> = ({ compact = 
                 </button>
               ))}
             </div>
+
+            <button
+              onClick={() => handleExportCsv(selectedDecade !== 'all' || searchFilter.trim() !== '')}
+              disabled={downloadingCsv}
+              className="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-emerald-600 hover:text-white dark:hover:bg-emerald-600 dark:hover:text-white text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-700 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 shadow-xs"
+              title="Download table data as CSV file"
+            >
+              <FileSpreadsheet className="w-3.5 h-3.5" />
+              <span>Export CSV ({filteredHistorical.length})</span>
+            </button>
           </div>
         </div>
 

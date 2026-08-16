@@ -161,3 +161,62 @@ export function getCountdownBreakdown(targetDateIso: string, fromDate: Date = ne
     formatted: `${days}d ${hours}h ${minutes}m ${seconds}s`
   };
 }
+
+// Generate structured CSV dataset of Leap Seconds Schedule and Historical Archives
+export function generateLeapSecondCsv(
+  events: LeapSecondEvent[] = HISTORICAL_LEAP_SECONDS,
+  currentOffsets: TimeScaleOffsetData = getTimeScaleOffsets()
+): string {
+  const lines: string[] = [];
+
+  // Metadata comments / header block
+  lines.push('# ==============================================================================');
+  lines.push('# TIMEGOVERN LEAP SECOND REGISTRY & TIME SCALE OFFSETS DATASET');
+  lines.push(`# Export Generated UTC: ${new Date().toISOString()}`);
+  lines.push(`# Authority: IERS (International Earth Rotation and Reference Systems Service) & BIPM`);
+  lines.push(`# Active Bulletin: ${IERS_BULLETIN_INFO.bulletinNumber} (Published ${IERS_BULLETIN_INFO.publishedDate})`);
+  lines.push(`# Announcement: "${IERS_BULLETIN_INFO.announcement.replace(/"/g, '""')}"`);
+  lines.push(`# Current TAI - UTC Offset: +${CURRENT_TAI_UTC_OFFSET} seconds`);
+  lines.push(`# Current GPS - UTC Offset: +${CURRENT_GPS_UTC_OFFSET} seconds`);
+  lines.push(`# Current TT - UTC Offset: +${CURRENT_TT_UTC_OFFSET.toFixed(3)} seconds`);
+  lines.push(`# Current DUT1 (UT1 - UTC): +${currentOffsets.dut1Seconds.toFixed(4)} seconds`);
+  lines.push(`# Next IERS Evaluation Window: ${IERS_BULLETIN_INFO.nextOpportunityIso}`);
+  lines.push(`# CGPM 2035 Horizon (Abolition of Leap Seconds): ${IERS_BULLETIN_INFO.cgpm2035HorizonIso}`);
+  lines.push('# ==============================================================================');
+  lines.push('');
+
+  // 1. Upcoming Schedule Section
+  lines.push('# SECTION 1: UPCOMING SCHEDULE & EVALUATION WINDOWS');
+  lines.push('Window Date,Evaluation Epoch UTC,Type,Status,Scheduled TAI-UTC (s),Notes');
+  lines.push(`"2026-12-31","2026-12-31T23:59:59Z","Evaluation","No Insertion (Bulletin C 68)",37,"Confirmed no leap second added at end of 2026"`);
+  lines.push(`"2027-06-30","2027-06-30T23:59:59Z","Evaluation","Pending Bulletin C 69",37,"Next prospective evaluation window"`);
+  lines.push(`"2035-01-01","2035-01-01T00:00:00Z","Phase-Out","CGPM Resolution 4 (2022)",37,"Relaxation of 0.9s tolerance limit to discontinue leap seconds"`);
+  lines.push('');
+
+  // 2. Historical Registry Section
+  lines.push('# SECTION 2: HISTORICAL LEAP SECOND INSERTIONS REGISTRY (1972-PRESENT)');
+  lines.push('Event ID,Date (UTC),Year,Month,Day,Adjustment Type,TAI - UTC Offset (s),GPS - UTC Offset (s),Interval Since Last (Days),Notes');
+
+  events.forEach((ev, idx) => {
+    const id = events.length - idx;
+    const safeNotes = `"${ev.notes.replace(/"/g, '""')}"`;
+    lines.push(`${id},"${ev.dateStr}",${ev.year},"${ev.month}",${ev.day},"${ev.type}",${ev.cumulativeTaiMinusUtc},${ev.cumulativeGpsMinusUtc},${ev.daysSinceLast},${safeNotes}`);
+  });
+
+  return lines.join('\r\n');
+}
+
+// Client-side helper to download CSV blob
+export function downloadCsvFile(csvContent: string, filename: string = 'timegovern-leap-second-schedule.csv') {
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.setAttribute('href', url);
+  link.setAttribute('download', filename);
+  link.style.visibility = 'hidden';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
