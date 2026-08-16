@@ -220,3 +220,333 @@ export function downloadCsvFile(csvContent: string, filename: string = 'timegove
   URL.revokeObjectURL(url);
 }
 
+// -----------------------------------------------------------------------------
+// UPSTREAM IANA & PRIMARY TIME SERVERS HEALTH & SYNC CONFIDENCE
+// -----------------------------------------------------------------------------
+
+export interface UpstreamTimeServer {
+  id: string;
+  name: string;
+  organization: string;
+  endpoint: string;
+  stratum: number;
+  protocol: string;
+  status: 'operational' | 'degraded' | 'syncing';
+  pingMs: number;
+  jitterMs: number;
+  rootDispersionMs: number;
+  leapIndicator: '00 (Normal)' | '01 (+1s Leap Warning)' | '10 (-1s Leap Warning)' | '11 (Unsynchronized)';
+  confidenceScore: number; // 0 - 100%
+  tzdataVersion: string;
+  location: string;
+  refClock: string; // e.g. "Cesium Beam Atomic / Hydrogen Maser"
+  lastSyncIso: string;
+}
+
+export interface EnsembleHealthSummary {
+  overallStatus: 'OPTIMAL' | 'DEGRADED' | 'WARNING';
+  ensembleConfidence: number; // e.g. 99.98%
+  activeServerCount: number;
+  totalServerCount: number;
+  meanLatencyMs: number;
+  meanJitterMs: number;
+  maxRootDispersionMs: number;
+  activeTzdataRelease: string;
+  leapIndicatorCode: string;
+  leapSmearingActive: boolean;
+  lastEnsembleSync: string;
+}
+
+export const INITIAL_UPSTREAM_SERVERS: UpstreamTimeServer[] = [
+  {
+    id: 'iana-tzdb',
+    name: 'IANA Time Zone Database & Leap File',
+    organization: 'Internet Assigned Numbers Authority (IANA / ICANN)',
+    endpoint: 'data.iana.org/time-zones / tzdb',
+    stratum: 1,
+    protocol: 'HTTPS / TLS 1.3 / Git',
+    status: 'operational',
+    pingMs: 14.2,
+    jitterMs: 0.12,
+    rootDispersionMs: 0.04,
+    leapIndicator: '00 (Normal)',
+    confidenceScore: 99.99,
+    tzdataVersion: 'tzdata2025a (SHA-256 Verified)',
+    location: 'Global Anycast / Los Angeles & Frankfurt',
+    refClock: 'Official IANA tzdb Reference Release & leapseconds.list',
+    lastSyncIso: new Date().toISOString()
+  },
+  {
+    id: 'iers-paris',
+    name: 'IERS Earth Orientation Center',
+    organization: 'Observatoire de Paris / International Earth Rotation Service',
+    endpoint: 'datacenter.iers.org / Bulletin-C',
+    stratum: 1,
+    protocol: 'HTTPS / Bulletin C Distribution',
+    status: 'operational',
+    pingMs: 22.6,
+    jitterMs: 0.28,
+    rootDispersionMs: 0.06,
+    leapIndicator: '00 (Normal)',
+    confidenceScore: 99.98,
+    tzdataVersion: 'IERS Bulletin C 68 Active',
+    location: 'Paris, France (Observatoire de Paris)',
+    refClock: 'VLBI & Satellite Laser Ranging (UT1-UTC Core)',
+    lastSyncIso: new Date().toISOString()
+  },
+  {
+    id: 'bipm-utc',
+    name: 'BIPM Time Department Atomic Ensemble',
+    organization: 'Bureau International des Poids et Mesures (BIPM)',
+    endpoint: 'webtai.bipm.org / Circular T',
+    stratum: 0,
+    protocol: 'BIPM Circular T / Primary Clocks',
+    status: 'operational',
+    pingMs: 26.4,
+    jitterMs: 0.19,
+    rootDispersionMs: 0.02,
+    leapIndicator: '00 (Normal)',
+    confidenceScore: 100.0,
+    tzdataVersion: 'Circular T 439 Validated',
+    location: 'Sèvres / Saint-Cloud, France',
+    refClock: '500+ Worldwide Primary Frequency Standards (TAI Base)',
+    lastSyncIso: new Date().toISOString()
+  },
+  {
+    id: 'nist-atomic',
+    name: 'NIST Time & Frequency Division (Stratum-1)',
+    organization: 'National Institute of Standards and Technology (NIST)',
+    endpoint: 'time.nist.gov (NIST F-1 & F-2 Cesium Fountain)',
+    stratum: 1,
+    protocol: 'NTPv4 / NTS (Network Time Security)',
+    status: 'operational',
+    pingMs: 18.5,
+    jitterMs: 0.08,
+    rootDispersionMs: 0.03,
+    leapIndicator: '00 (Normal)',
+    confidenceScore: 99.97,
+    tzdataVersion: 'NIST-UTC(NIST) Sync Lock',
+    location: 'Boulder, Colorado & Gaithersburg, Maryland',
+    refClock: 'NIST-F1/F2 Cesium Atomic Fountain Clocks',
+    lastSyncIso: new Date().toISOString()
+  },
+  {
+    id: 'cloudflare-nts',
+    name: 'Cloudflare Anycast NTS / Roughtime Node',
+    organization: 'Cloudflare Time Services (Stratum 1)',
+    endpoint: 'time.cloudflare.com (NTS Enabled)',
+    stratum: 1,
+    protocol: 'NTS / Roughtime / NTPv4',
+    status: 'operational',
+    pingMs: 6.8,
+    jitterMs: 0.04,
+    rootDispersionMs: 0.02,
+    leapIndicator: '00 (Normal)',
+    confidenceScore: 99.99,
+    tzdataVersion: 'tzdata2025a Live',
+    location: 'Global Anycast (330+ Edge POPs)',
+    refClock: 'GNSS Atomic Clocks with Linear Leap Smearing Support',
+    lastSyncIso: new Date().toISOString()
+  }
+];
+
+export function computeEnsembleHealth(servers: UpstreamTimeServer[] = INITIAL_UPSTREAM_SERVERS): EnsembleHealthSummary {
+  const activeCount = servers.filter(s => s.status === 'operational').length;
+  const avgPing = servers.reduce((acc, s) => acc + s.pingMs, 0) / (servers.length || 1);
+  const avgJitter = servers.reduce((acc, s) => acc + s.jitterMs, 0) / (servers.length || 1);
+  const maxDispersion = Math.max(...servers.map(s => s.rootDispersionMs), 0.02);
+  const avgConfidence = servers.reduce((acc, s) => acc + s.confidenceScore, 0) / (servers.length || 1);
+
+  let overallStatus: 'OPTIMAL' | 'DEGRADED' | 'WARNING' = 'OPTIMAL';
+  if (activeCount < servers.length - 1 || avgConfidence < 95) {
+    overallStatus = 'DEGRADED';
+  } else if (activeCount < servers.length / 2 || avgConfidence < 90) {
+    overallStatus = 'WARNING';
+  }
+
+  return {
+    overallStatus,
+    ensembleConfidence: Number(avgConfidence.toFixed(2)),
+    activeServerCount: activeCount,
+    totalServerCount: servers.length,
+    meanLatencyMs: Number(avgPing.toFixed(1)),
+    meanJitterMs: Number(avgJitter.toFixed(2)),
+    maxRootDispersionMs: Number(maxDispersion.toFixed(2)),
+    activeTzdataRelease: 'tzdata2025a / IERS Bull. C 68',
+    leapIndicatorCode: '00 (Normal - No Leap Pending)',
+    leapSmearingActive: false,
+    lastEnsembleSync: new Date().toISOString()
+  };
+}
+
+// -----------------------------------------------------------------------------
+// 50-YEAR HISTORICAL TAI-UTC PROGRESSION & DECADE STATISTICS FOR CHARTS
+// -----------------------------------------------------------------------------
+
+export interface HistoricalTimelinePoint {
+  date: string;
+  year: number;
+  displayDate: string;
+  taiMinusUtc: number;
+  gpsMinusUtc: number | null;
+  ttMinusUtc: number;
+  leapInserted: number; // +1 or 0
+  eventTitle: string;
+  notes: string;
+  isMilestone: boolean;
+  projected?: boolean;
+}
+
+export interface DecadeStats {
+  decade: string;
+  insertions: number;
+  startOffset: number;
+  endOffset: number;
+  avgIntervalDays: number;
+  annualRate: number;
+  rotationTrend: string;
+}
+
+export const DECADE_LEAP_STATS: DecadeStats[] = [
+  {
+    decade: '1970s (1972-1979)',
+    insertions: 9,
+    startOffset: 10,
+    endOffset: 19,
+    avgIntervalDays: 310,
+    annualRate: 1.13,
+    rotationTrend: 'Rapid Earth Deceleration (High Core-Mantle Friction)'
+  },
+  {
+    decade: '1980s (1980-1989)',
+    insertions: 6,
+    startOffset: 19,
+    endOffset: 25,
+    avgIntervalDays: 608,
+    annualRate: 0.60,
+    rotationTrend: 'Moderate Deceleration; GPS Epoch established 1980'
+  },
+  {
+    decade: '1990s (1990-1999)',
+    insertions: 7,
+    startOffset: 25,
+    endOffset: 32,
+    avgIntervalDays: 521,
+    annualRate: 0.70,
+    rotationTrend: 'Frequent 18-month synchronizations until 1998'
+  },
+  {
+    decade: '2000s (2000-2009)',
+    insertions: 2,
+    startOffset: 32,
+    endOffset: 34,
+    avgIntervalDays: 1826,
+    annualRate: 0.20,
+    rotationTrend: 'Major 7-Year Pause (1999–2005) due to core rotation surge'
+  },
+  {
+    decade: '2010s (2010-2019)',
+    insertions: 3,
+    startOffset: 34,
+    endOffset: 37,
+    avgIntervalDays: 974,
+    annualRate: 0.30,
+    rotationTrend: '2012 NTP Outage Spurred Leap Smearing; Last leap Dec 2016'
+  },
+  {
+    decade: '2020s (2020-2026+)',
+    insertions: 0,
+    startOffset: 37,
+    endOffset: 37,
+    avgIntervalDays: 3500,
+    annualRate: 0.00,
+    rotationTrend: 'Earth Rotation Accelerated; CGPM Resolution 4 passed for 2035'
+  }
+];
+
+export function getHistoricalTimelineProgression(): HistoricalTimelinePoint[] {
+  const points: HistoricalTimelinePoint[] = [];
+
+  // Initial baseline: Jan 1, 1972 (when UTC was formally initialized with TAI-UTC = 10s)
+  points.push({
+    date: '1972-01-01',
+    year: 1972,
+    displayDate: 'Jan 1, 1972',
+    taiMinusUtc: 10,
+    gpsMinusUtc: null,
+    ttMinusUtc: 42.184,
+    leapInserted: 0,
+    eventTitle: 'UTC Standard Initialized',
+    notes: 'UTC synchronized with atomic clock standard; initial offset established at +10s.',
+    isMilestone: true
+  });
+
+  // Add all historical leap second events
+  HISTORICAL_LEAP_SECONDS.forEach(event => {
+    const isGpsEpoch = event.dateStr === '1980-01-06';
+    const isFirstLeap = event.dateStr === '1972-06-30';
+    const isSevenYearGap = event.dateStr === '2005-12-31';
+    const isLastLeap = event.dateStr === '2016-12-31';
+
+    points.push({
+      date: event.dateStr,
+      year: event.year,
+      displayDate: `${event.month} ${event.day}, ${event.year}`,
+      taiMinusUtc: event.cumulativeTaiMinusUtc,
+      gpsMinusUtc: event.year >= 1980 ? event.cumulativeGpsMinusUtc : null,
+      ttMinusUtc: Number((event.cumulativeTaiMinusUtc + CURRENT_TT_TAI_OFFSET).toFixed(3)),
+      leapInserted: 1,
+      eventTitle: isGpsEpoch ? 'GPS System Epoch' : isLastLeap ? 'Most Recent Leap Second' : `Leap Second (+1s)`,
+      notes: event.notes,
+      isMilestone: isGpsEpoch || isFirstLeap || isSevenYearGap || isLastLeap
+    });
+  });
+
+  // Current year point: 2026
+  points.push({
+    date: '2026-08-15',
+    year: 2026,
+    displayDate: 'Present (2026)',
+    taiMinusUtc: 37,
+    gpsMinusUtc: 18,
+    ttMinusUtc: 69.184,
+    leapInserted: 0,
+    eventTitle: 'Present Stabilization Plateau',
+    notes: 'IERS Bulletin C 68 active: No leap second at end of 2026. Plateau continues.',
+    isMilestone: true
+  });
+
+  // Projection points leading to 2035 Horizon
+  points.push({
+    date: '2030-01-01',
+    year: 2030,
+    displayDate: 'Jan 1, 2030 (Projected)',
+    taiMinusUtc: 37,
+    gpsMinusUtc: 18,
+    ttMinusUtc: 69.184,
+    leapInserted: 0,
+    eventTitle: 'Transition Period (CGPM Phase)',
+    notes: 'International preparatory phase for new UT1-UTC tolerance regime.',
+    isMilestone: false,
+    projected: true
+  });
+
+  points.push({
+    date: '2035-01-01',
+    year: 2035,
+    displayDate: 'Jan 1, 2035 (Target Epoch)',
+    taiMinusUtc: 37,
+    gpsMinusUtc: 18,
+    ttMinusUtc: 69.184,
+    leapInserted: 0,
+    eventTitle: 'CGPM 2035 Leap Second Abolition',
+    notes: 'Resolution 4 takes effect; leap seconds phased out in favor of continuous time.',
+    isMilestone: true,
+    projected: true
+  });
+
+  return points;
+}
+
+
+

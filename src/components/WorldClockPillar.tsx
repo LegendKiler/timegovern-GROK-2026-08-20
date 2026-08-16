@@ -8,6 +8,7 @@ import { AnalogClock } from './AnalogClock';
 import { WorldMapCanvas } from './WorldMapCanvas';
 import { InteractiveGlobe3D } from './InteractiveGlobe3D';
 import { MeetingPlanner } from './MeetingPlanner';
+import { GlobalTimeOffsetConverter } from './GlobalTimeOffsetConverter';
 import { generateGoogleCalendarUrl, downloadIcsFile } from '../lib/icsGenerator';
 
 interface WorldClockPillarProps {
@@ -399,6 +400,9 @@ export const WorldClockPillar: React.FC<WorldClockPillarProps> = ({ selectedCity
         {/* ----------------- SUB TAB 2: MEETING PLANNER & DST ----------------- */}
         {subTab === 'converter' && (
           <div className="mt-4 space-y-6">
+            {/* Global Atomic Time Offset Converter */}
+            <GlobalTimeOffsetConverter />
+
             {/* Primary Meeting Planner Utility */}
             <MeetingPlanner 
               initialCities={plannerCities} 

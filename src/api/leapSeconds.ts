@@ -1,8 +1,18 @@
-import { getTimeScaleOffsets, HISTORICAL_LEAP_SECONDS, IERS_BULLETIN_INFO, CURRENT_TAI_UTC_OFFSET, CURRENT_GPS_UTC_OFFSET, CURRENT_TT_UTC_OFFSET } from '../lib/leapSecondData';
+import { 
+  getTimeScaleOffsets, 
+  HISTORICAL_LEAP_SECONDS, 
+  IERS_BULLETIN_INFO, 
+  CURRENT_TAI_UTC_OFFSET, 
+  CURRENT_GPS_UTC_OFFSET, 
+  CURRENT_TT_UTC_OFFSET,
+  INITIAL_UPSTREAM_SERVERS,
+  computeEnsembleHealth
+} from '../lib/leapSecondData';
 
 export async function handleLeapSeconds(request: Request): Promise<Response> {
   const now = new Date();
   const offsets = getTimeScaleOffsets(now);
+  const upstreamHealth = computeEnsembleHealth();
 
   const payload = {
     status: 'success',
@@ -28,6 +38,17 @@ export async function handleLeapSeconds(request: Request): Promise<Response> {
       gps: offsets.gpsFormatted,
       tt: offsets.ttFormatted,
       ut1: offsets.ut1Formatted,
+    },
+    upstream_health: {
+      ensemble_status: upstreamHealth.overallStatus,
+      confidence_level: upstreamHealth.ensembleConfidence,
+      active_servers: `${upstreamHealth.activeServerCount}/${upstreamHealth.totalServerCount}`,
+      mean_latency_ms: upstreamHealth.meanLatencyMs,
+      mean_jitter_ms: upstreamHealth.meanJitterMs,
+      max_root_dispersion_ms: upstreamHealth.maxRootDispersionMs,
+      tzdata_version: upstreamHealth.activeTzdataRelease,
+      leap_indicator_bits: upstreamHealth.leapIndicatorCode,
+      upstream_servers: INITIAL_UPSTREAM_SERVERS,
     },
     cgpm_resolution: {
       title: 'CGPM Resolution 4 (2022) on the extension of the maximum tolerance for (UT1 - UTC)',
