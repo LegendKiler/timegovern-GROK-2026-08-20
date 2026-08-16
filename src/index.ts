@@ -2,6 +2,7 @@ import { D1Database } from '@cloudflare/workers-types';
 import { handleSeedDb } from './api/admin/seed-db';
 import { handleSearch } from './api/search';
 import { handleLeapSeconds } from './api/leapSeconds';
+import { handleNews } from './api/news';
 import { ensureSchema } from './db/init';
 
 export interface Env {
@@ -218,72 +219,9 @@ export default {
       }
     }
 
-    // 8. Dynamic News Feed Proxy API route (/api/news)
+    // 8. Dynamic News Feed with Google Search Grounding API route (/api/news)
     if (url.pathname === '/api/news' || url.pathname === '/api/news/') {
-      const now = new Date();
-      const newsArticles = [
-        {
-          id: 'news-1',
-          title: 'European Union & UK Confirm October 2026 Daylight Saving Fall Back Time Schedule',
-          category: 'dst',
-          date: new Date(now.getTime() - 2 * 3600 * 1000).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' }),
-          timeAgo: '2 hours ago',
-          author: 'Melbourne Time Bureau',
-          readTime: '3 min read',
-          featured: true,
-          summary: 'Official IANA tzdata 2026 release confirms daylight saving transition dates across EU member states and UK GMT switch.',
-          content: 'Millions across Europe and North America will adjust their clocks for the autumn transition. TimeGovern servers have updated regional leap second and offset matrix maps automatically.',
-          imageUrl: 'https://images.unsplash.com/photo-1508962914676-134849a727f0?auto=format&fit=crop&w=800&q=80',
-          sourceUrl: 'https://news.google.com/search?q=daylight+saving+time'
-        },
-        {
-          id: 'news-2',
-          title: 'NASA & Astronomy Observatories Issue Sky Map for 2026 Perseid Meteor Shower Peak',
-          category: 'astronomy',
-          date: new Date(now.getTime() - 5 * 3600 * 1000).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' }),
-          timeAgo: '5 hours ago',
-          author: 'Dr. Marcus Vance (Astronomical Ephemeris Lead)',
-          readTime: '5 min read',
-          featured: true,
-          summary: 'Optimal dark sky viewing hours and zenith hourly rate coordinates published for southern and northern hemispheres.',
-          content: 'Stargazers can observe up to 100 meteors per hour under dark moonless skies. Use TimeGovern Astronomy tool to track exact local moonrise and dark hours.',
-          imageUrl: 'https://images.unsplash.com/photo-1506703719100-a0f3a48c0f86?auto=format&fit=crop&w=800&q=80',
-          sourceUrl: 'https://news.google.com/search?q=astronomy+meteor+shower'
-        },
-        {
-          id: 'news-3',
-          title: 'Quantum Optical Atomic Clock Breakthough Achieves 1-Second Precision in 300 Billion Years',
-          category: 'technology',
-          date: new Date(now.getTime() - 12 * 3600 * 1000).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' }),
-          timeAgo: '12 hours ago',
-          author: 'Prof. Hiroshi Tanaka',
-          readTime: '4 min read',
-          featured: false,
-          summary: 'Sub-femtosecond stability measured at NIST and RIKEN laboratories redefining international SI time standards.',
-          content: 'New optical lattice clocks measure gravitational time dilation at millimeter height shifts, paving the way for deep space navigation and financial high-frequency timestamping.',
-          imageUrl: 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=800&q=80',
-          sourceUrl: 'https://news.google.com/search?q=quantum+atomic+clock'
-        },
-        {
-          id: 'news-4',
-          title: 'Global Timezone Realignment: Australia, Jordan & Gulf States Sync Workday Calendars',
-          category: 'timezones',
-          date: new Date(now.getTime() - 24 * 3600 * 1000).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' }),
-          timeAgo: '1 day ago',
-          author: 'TimeGovern Brunswick HQ',
-          readTime: '4 min read',
-          featured: false,
-          summary: 'Updated timezone boundaries published for regional commerce and international airline dispatch routing.',
-          content: 'Recent policy updates in Melbourne, Amman, and Dubai realign local business hours. IANA tzdata version 2026a patches have been pushed to all TimeGovern API endpoints.',
-          imageUrl: 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=800&q=80',
-          sourceUrl: 'https://news.google.com/search?q=timezones+dst+updates'
-        }
-      ];
-
-      return new Response(
-        JSON.stringify({ success: true, updated_at: now.toISOString(), articles: newsArticles }),
-        { status: 200, headers: { ...corsHeaders, ...securityHeaders, 'Cache-Control': 'public, max-age=180' } }
-      );
+      return await handleNews(request);
     }
 
     // SEO Crawlers: robots.txt

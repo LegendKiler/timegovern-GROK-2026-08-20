@@ -383,6 +383,190 @@ export function computeEnsembleHealth(servers: UpstreamTimeServer[] = INITIAL_UP
 // 50-YEAR HISTORICAL TAI-UTC PROGRESSION & DECADE STATISTICS FOR CHARTS
 // -----------------------------------------------------------------------------
 
+export interface GeophysicalRotationEvent {
+  id: string;
+  year: number;
+  date: string;
+  displayDate: string;
+  name: string;
+  shortName: string;
+  category: 'seismic' | 'atmospheric' | 'core_mantle' | 'cryosphere';
+  magnitude?: string;
+  lodImpactMicros: number; // microsecond change in Length of Day (negative = faster Earth rotation, positive = slower)
+  axisShiftCm: number; // Figure axis polar displacement in centimeters
+  decade: string;
+  taiUtcOffsetAtEpoch: number;
+  nearestLeapDate?: string;
+  description: string;
+  scientificImpact: string;
+  significance: 'Critical Seismic' | 'Major Atmospheric' | 'Planetary Core Shift' | 'Polar Mass Redistribution';
+}
+
+export const GEOPHYSICAL_ROTATION_EVENTS: GeophysicalRotationEvent[] = [
+  {
+    id: 'sumatra-2004',
+    year: 2004,
+    date: '2004-12-26',
+    displayDate: 'Dec 26, 2004',
+    name: '2004 Indian Ocean Megathrust Earthquake (Sumatra)',
+    shortName: '2004 Sumatra M9.1',
+    category: 'seismic',
+    magnitude: 'Mw 9.1–9.3',
+    lodImpactMicros: -2.68,
+    axisShiftCm: 7.0,
+    decade: '2000s',
+    taiUtcOffsetAtEpoch: 32,
+    nearestLeapDate: 'Dec 31, 2005 (+33s)',
+    description: 'Catastrophic subduction earthquake off Sumatra displaced huge oceanic crust mass towards Earth\'s core.',
+    scientificImpact: 'NASA JPL models calculated Earth\'s equatorial oblateness decreased, accelerating rotation speed by 2.68 µs/day and tilting the North Pole figure axis by 7.0 cm.',
+    significance: 'Critical Seismic'
+  },
+  {
+    id: 'chile-2010',
+    year: 2010,
+    date: '2010-02-27',
+    displayDate: 'Feb 27, 2010',
+    name: '2010 Maule Chile Megathrust Earthquake',
+    shortName: '2010 Maule Chile M8.8',
+    category: 'seismic',
+    magnitude: 'Mw 8.8',
+    lodImpactMicros: -1.26,
+    axisShiftCm: 8.0,
+    decade: '2010s',
+    taiUtcOffsetAtEpoch: 34,
+    nearestLeapDate: 'Jun 30, 2012 (+35s)',
+    description: 'Massive plate subduction along the South American coast compressed Earth\'s lithosphere.',
+    scientificImpact: 'Shortened the length of Earth\'s day by 1.26 microseconds and shifted the planetary mean figure axis by approximately 8.0 cm (3.1 inches).',
+    significance: 'Critical Seismic'
+  },
+  {
+    id: 'tohoku-2011',
+    year: 2011,
+    date: '2011-03-11',
+    displayDate: 'Mar 11, 2011',
+    name: '2011 Great East Japan Megathrust Earthquake (Tōhoku)',
+    shortName: '2011 Tōhoku M9.0',
+    category: 'seismic',
+    magnitude: 'Mw 9.0–9.1',
+    lodImpactMicros: -1.80,
+    axisShiftCm: 17.0,
+    decade: '2010s',
+    taiUtcOffsetAtEpoch: 34,
+    nearestLeapDate: 'Jun 30, 2012 (+35s)',
+    description: 'Subduction zone rupture off Honshu shifted the seabed 50m horizontally and 7m vertically.',
+    scientificImpact: 'Redistributed planetary mass inward towards the spin axis, increasing rotation speed by 1.80 µs/day and shifting Earth\'s figure axis by 17.0 cm towards 133° East.',
+    significance: 'Critical Seismic'
+  },
+  {
+    id: 'el-nino-1982',
+    year: 1983,
+    date: '1983-01-01',
+    displayDate: '1982–1983',
+    name: '1982–1983 Super El Niño Atmospheric Angular Momentum Surge',
+    shortName: '1982–83 El Niño Peak',
+    category: 'atmospheric',
+    magnitude: 'ONI Index +2.2',
+    lodImpactMicros: +200.0,
+    axisShiftCm: 3.5,
+    decade: '1980s',
+    taiUtcOffsetAtEpoch: 21,
+    nearestLeapDate: 'Jun 30, 1983 (+22s)',
+    description: 'Intense atmospheric momentum exchange caused solid Earth rotation to decelerate sharply.',
+    scientificImpact: 'Strong eastward equatorial jet streams robbed solid Earth of angular momentum, increasing the astronomical day length by over 0.20 ms and prompting rapid leap second insertion.',
+    significance: 'Major Atmospheric'
+  },
+  {
+    id: 'el-nino-1998',
+    year: 1998,
+    date: '1998-01-01',
+    displayDate: '1997–1998',
+    name: '1997–1998 Century Super El Niño Event',
+    shortName: '1998 Super El Niño',
+    category: 'atmospheric',
+    magnitude: 'ONI Index +2.4',
+    lodImpactMicros: +300.0,
+    axisShiftCm: 4.2,
+    decade: '1990s',
+    taiUtcOffsetAtEpoch: 31,
+    nearestLeapDate: 'Dec 31, 1998 (+32s)',
+    description: 'Historic atmospheric circulation anomalies peaked right before the unprecedented 1999–2005 leap second drought.',
+    scientificImpact: 'Created extreme swings in atmospheric angular momentum (AAM) and oceanic excitation functions, preceding a 7-year stabilization plateau in TAI-UTC drift.',
+    significance: 'Major Atmospheric'
+  },
+  {
+    id: 'el-nino-2016',
+    year: 2016,
+    date: '2016-01-01',
+    displayDate: '2015–2016',
+    name: '2015–2016 Godzilla El Niño Warming & Deceleration Cycle',
+    shortName: '2015–16 El Niño Cycle',
+    category: 'atmospheric',
+    magnitude: 'ONI Index +2.6',
+    lodImpactMicros: +180.0,
+    axisShiftCm: 3.0,
+    decade: '2010s',
+    taiUtcOffsetAtEpoch: 36,
+    nearestLeapDate: 'Dec 31, 2016 (+37s - Final Leap Second)',
+    description: 'Atmospheric drag transfer triggered the 27th and final leap second insertion before the current decadal plateau.',
+    scientificImpact: 'Zonal tropospheric winds slowed Earth rotational period, providing the final ~0.8s UT1 lag needed to trigger the Dec 31, 2016 leap second (+37s).',
+    significance: 'Major Atmospheric'
+  },
+  {
+    id: 'core-surge-2022',
+    year: 2022,
+    date: '2022-06-29',
+    displayDate: 'June 29, 2022',
+    name: '2020–2022 Planetary Core-Mantle Rotation Acceleration',
+    shortName: '2022 Core Acceleration',
+    category: 'core_mantle',
+    magnitude: 'Record -1.59 ms',
+    lodImpactMicros: -1590.0,
+    axisShiftCm: 2.8,
+    decade: '2020s',
+    taiUtcOffsetAtEpoch: 37,
+    nearestLeapDate: 'None (Decadal Plateau)',
+    description: 'Earth recorded its fastest rotational day in modern atomic history (-1.59 ms shorter than standard 86,400s).',
+    scientificImpact: 'Fluid outer core vortex dynamics and Chandler wobble variations briefly accelerated Earth, sparking global scientific debates on negative leap seconds and accelerating CGPM 2035 resolution.',
+    significance: 'Planetary Core Shift'
+  },
+  {
+    id: 'core-friction-1972',
+    year: 1972,
+    date: '1972-06-30',
+    displayDate: '1972–1976',
+    name: '1970s Core-Mantle Viscous Coupling & Tidal Deceleration Peak',
+    shortName: '1970s Core Deceleration',
+    category: 'core_mantle',
+    magnitude: 'High Coupling Torque',
+    lodImpactMicros: +1100.0,
+    axisShiftCm: 1.5,
+    decade: '1970s',
+    taiUtcOffsetAtEpoch: 11,
+    nearestLeapDate: 'Jun 30, 1972 (+11s)',
+    description: 'Peak period of lunar tidal friction and core-mantle boundary drag.',
+    scientificImpact: 'Earth rotation lagged atomic standard by >3 ms per day, driving 9 leap second insertions in the first decade of UTC operation (1972–1979).',
+    significance: 'Planetary Core Shift'
+  },
+  {
+    id: 'cryosphere-polar-2024',
+    year: 2024,
+    date: '2024-01-01',
+    displayDate: '2024–2026',
+    name: 'Polar Ice Sheet Mass Loss & Global Sea-Level Flattening',
+    shortName: '2024-26 Polar Mass Shift',
+    category: 'cryosphere',
+    magnitude: 'GRACE-FO Mass Anomaly',
+    lodImpactMicros: +600.0,
+    axisShiftCm: 10.5,
+    decade: '2020s',
+    taiUtcOffsetAtEpoch: 37,
+    nearestLeapDate: 'None (Plateau to 2035)',
+    description: 'Melting ice in Greenland and Antarctica transports water mass toward equatorial latitudes, flattening the geoid.',
+    scientificImpact: 'Increases Earth\'s moment of inertia, slowing rotation just enough to counterbalance core-driven speedups and preserving the TAI-UTC plateau without requiring negative leap seconds.',
+    significance: 'Polar Mass Redistribution'
+  }
+];
+
 export interface HistoricalTimelinePoint {
   date: string;
   year: number;
@@ -395,6 +579,8 @@ export interface HistoricalTimelinePoint {
   notes: string;
   isMilestone: boolean;
   projected?: boolean;
+  geophysicalEvent?: GeophysicalRotationEvent;
+  geophysicalTags?: string[];
 }
 
 export interface DecadeStats {

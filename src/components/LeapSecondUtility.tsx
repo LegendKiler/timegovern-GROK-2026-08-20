@@ -24,9 +24,13 @@ import {
   computeEnsembleHealth
 } from '../lib/leapSecondData';
 import { audioSynth } from '../lib/audioSynth';
+import { getCalibratedNow, getSavedSyncReport, AtomicSyncReport } from '../lib/atomicSync';
+import { LocalTimeBiasSyncCard } from './LocalTimeBiasSyncCard';
+import { AtomicTelemetryWidget } from './AtomicTelemetryWidget';
 import { LeapSecondHistoricalChart } from './LeapSecondHistoricalChart';
 import { TimeOffsetSimulator } from './TimeOffsetSimulator';
 import { GlobalTimeOffsetConverter } from './GlobalTimeOffsetConverter';
+import { LeapSecondFAQ } from './LeapSecondFAQ';
 
 interface LeapSecondUtilityProps {
   compact?: boolean;
@@ -68,6 +72,9 @@ export const LeapSecondUtility: React.FC<LeapSecondUtilityProps> = ({ compact = 
   const [permissionStatus, setPermissionStatus] = useState<'default' | 'granted' | 'denied' | 'unsupported'>('default');
   const [alertToast, setAlertToast] = useState<{ show: boolean; title: string; message: string; type: 'success' | 'info' | 'warning' } | null>(null);
   const [testAlertTriggered, setTestAlertTriggered] = useState<boolean>(false);
+
+  // Local System Clock Bias Sync Report State
+  const [syncReport, setSyncReport] = useState<AtomicSyncReport | null>(() => getSavedSyncReport());
 
   // Check browser notification support & permission on mount
   useEffect(() => {
@@ -223,7 +230,7 @@ export const LeapSecondUtility: React.FC<LeapSecondUtilityProps> = ({ compact = 
   // Live real-time tick interval (every 50ms for smooth millisecond display)
   useEffect(() => {
     const interval = setInterval(() => {
-      const now = new Date();
+      const now = getCalibratedNow();
       setTimeData(getTimeScaleOffsets(now));
       setCountdown(getCountdownBreakdown(IERS_BULLETIN_INFO.nextOpportunityIso, now));
       setCgpmCountdown(getCountdownBreakdown(IERS_BULLETIN_INFO.cgpm2035HorizonIso, now));
@@ -425,6 +432,30 @@ export const LeapSecondUtility: React.FC<LeapSecondUtilityProps> = ({ compact = 
                   Edge Latency: {apiLatency}ms
                 </span>
               )}
+              {syncReport && (syncReport.status === 'skew_detected' || syncReport.status === 'critical_skew' || Math.abs(syncReport.driftMs) >= 15) && (
+                <button
+                  onClick={() => {
+                    const el = document.getElementById('local-time-bias-sync-card');
+                    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                  }}
+                  className={`px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold flex items-center gap-1.5 animate-subtle-pulse shadow-sm cursor-pointer transition-all ${
+                    syncReport.status === 'critical_skew'
+                      ? 'bg-rose-500/20 text-rose-300 border border-rose-500/50 shadow-rose-500/20'
+                      : 'bg-amber-500/20 text-amber-300 border border-amber-400/50 shadow-amber-500/20'
+                  }`}
+                  title="Significant local OS clock deviation from atomic standard detected"
+                >
+                  <span className="relative flex h-2 w-2">
+                    <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
+                      syncReport.status === 'critical_skew' ? 'bg-rose-400' : 'bg-amber-400'
+                    }`}></span>
+                    <span className={`relative inline-flex rounded-full h-2 w-2 ${
+                      syncReport.status === 'critical_skew' ? 'bg-rose-500' : 'bg-amber-500'
+                    }`}></span>
+                  </span>
+                  <span>Clock Bias Skew: {syncReport.driftMs >= 0 ? `+${syncReport.driftMs.toFixed(1)}ms` : `${syncReport.driftMs.toFixed(1)}ms`}</span>
+                </button>
+              )}
             </div>
             <h2 className="text-xl sm:text-2xl font-extrabold font-display flex items-center gap-2 text-white">
               <Clock className="w-6 h-6 text-cyan-400 animate-pulse" />
@@ -436,6 +467,17 @@ export const LeapSecondUtility: React.FC<LeapSecondUtilityProps> = ({ compact = 
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
+            <button
+              onClick={() => {
+                const el = document.getElementById('local-time-bias-sync-card');
+                if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              }}
+              className="px-3.5 py-2 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-black text-xs rounded-xl shadow-md transition-all cursor-pointer flex items-center gap-1.5"
+              title="Measure and synchronize local OS clock drift against atomic reference"
+            >
+              <Zap className="w-3.5 h-3.5 text-slate-950" />
+              <span>Sync Clock Bias</span>
+            </button>
             <button
               onClick={() => handleExportCsv(false)}
               disabled={downloadingCsv}
@@ -854,6 +896,9 @@ export const LeapSecondUtility: React.FC<LeapSecondUtilityProps> = ({ compact = 
         </div>
       )}
 
+      {/* 2c. Local System Time Bias & Atomic Reference Sync */}
+      <LocalTimeBiasSyncCard onSyncComplete={(rep) => setSyncReport(rep)} />
+
       {/* 3. Live Countdown Cards: Next IERS Evaluation & CGPM 2035 Horizon */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         {/* Countdown 1: Next Prospective Leap Second Window */}
@@ -1203,13 +1248,16 @@ export const LeapSecondUtility: React.FC<LeapSecondUtilityProps> = ({ compact = 
         </div>
       </div>
 
-      {/* 5. Global Atomic Time Offset Converter */}
+      {/* 5. Atomic Telemetry Dashboard: Real-Time TAI vs UTC Divergence & Phase Visualizer */}
+      <AtomicTelemetryWidget />
+
+      {/* 6. Global Atomic Time Offset Converter */}
       <GlobalTimeOffsetConverter />
 
-      {/* 6. Interactive Global Time Offset Simulator */}
+      {/* 7. Interactive Global Time Offset Simulator */}
       <TimeOffsetSimulator />
 
-      {/* 7. 50-Year Historical TAI-UTC Progression Chart */}
+      {/* 8. 50-Year Historical TAI-UTC Progression Chart */}
       <LeapSecondHistoricalChart />
 
       {/* 8. Complete Historical Leap Seconds Archive Table */}
@@ -1342,6 +1390,9 @@ export const LeapSecondUtility: React.FC<LeapSecondUtilityProps> = ({ compact = 
           </p>
         </div>
       </div>
+
+      {/* 9. Expandable Knowledge Base & Expert FAQ */}
+      <LeapSecondFAQ />
     </div>
   );
 };
