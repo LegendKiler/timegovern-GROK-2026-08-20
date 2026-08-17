@@ -166,5 +166,38 @@ export default defineConfig(() => {
       host: '0.0.0.0',
       hmr: process.env.DISABLE_HMR !== 'true',
     },
+    build: {
+      chunkSizeWarningLimit: 1200,
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            if (id.includes('node_modules')) {
+              // Separate Three.js and 3D rendering pipeline
+              if (id.includes('three') || id.includes('@react-three')) {
+                return 'vendor-three';
+              }
+              // Separate PDF generation tools
+              if (id.includes('jspdf') || id.includes('html2canvas') || id.includes('purify')) {
+                return 'vendor-pdf';
+              }
+              // Separate Recharts & data visualization tools
+              if (id.includes('recharts') || id.includes('d3')) {
+                return 'vendor-charts';
+              }
+              // Separate Lucide icons & animation engines
+              if (id.includes('lucide-react') || id.includes('motion') || id.includes('gsap')) {
+                return 'vendor-ui-motion';
+              }
+              // Separate React Core runtime
+              if (id.includes('react') || id.includes('react-dom')) {
+                return 'vendor-react-core';
+              }
+              // Other node_modules dependencies
+              return 'vendor-core';
+            }
+          },
+        },
+      },
+    },
   };
 });

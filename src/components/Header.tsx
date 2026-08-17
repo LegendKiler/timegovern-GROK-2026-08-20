@@ -3,7 +3,7 @@ import {
   Clock, Calendar, Sun, Moon, CloudRain, Timer, Search, Globe, Database, 
   ShieldCheck, Zap, QrCode, User, Activity, Code, Layers, Newspaper, 
   Calculator, Building2, Star, Pin, Check, X, Filter, MapPin, ChevronDown, 
-  SlidersHorizontal, ArrowRight, Sparkles 
+  SlidersHorizontal, ArrowRight, Sparkles, Keyboard 
 } from 'lucide-react';
 import { MAJOR_CITIES, searchCities, filterCitiesByRegionAndQuery, REGION_CATEGORIES, CityRegion } from '../lib/citiesData';
 import { getPinnedCities, isCityPinned, togglePinCity, subscribeToPinnedCities } from '../lib/pinnedCitiesStorage';
@@ -20,6 +20,7 @@ interface HeaderProps {
   onOpenAccountModal: () => void;
   onOpenSecurityModal?: () => void;
   onOpenTemplateGallery?: () => void;
+  onOpenShortcutsModal?: () => void;
   isDarkMode: boolean;
   setIsDarkMode: (val: boolean) => void;
   templateTheme: 'swiss-quartz' | 'stripe-corporate' | 'emerald-precision' | 'editorial-classic';
@@ -36,6 +37,7 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenAccountModal,
   onOpenSecurityModal,
   onOpenTemplateGallery,
+  onOpenShortcutsModal,
   isDarkMode,
   setIsDarkMode,
   templateTheme,
@@ -303,6 +305,19 @@ export const Header: React.FC<HeaderProps> = ({
             <Database className="w-3.5 h-3.5 text-indigo-400" />
             <span>Architecture Specs</span>
           </button>
+
+          {/* Keyboard Shortcuts Cheatsheet Trigger */}
+          {onOpenShortcutsModal && (
+            <button
+              onClick={onOpenShortcutsModal}
+              className="flex items-center gap-1.5 px-2.5 py-1 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 rounded-lg border border-amber-500/40 transition-all cursor-pointer text-[11px] font-bold shadow-xs"
+              title="View all Power User Global Keyboard Shortcuts (Press ?)"
+            >
+              <Keyboard className="w-3.5 h-3.5 text-amber-400" />
+              <span>Shortcuts</span>
+              <kbd className="px-1 py-0.2 bg-slate-900/90 text-amber-300 font-mono text-[9px] rounded border border-amber-500/40">?</kbd>
+            </button>
+          )}
         </div>
       </div>
 
@@ -342,18 +357,27 @@ export const Header: React.FC<HeaderProps> = ({
             />
 
             {/* Clear Query Button */}
-            {searchQuery && (
+            {searchQuery ? (
               <button
                 type="button"
                 onClick={() => {
                   setSearchQuery('');
                   searchInputRef.current?.focus();
                 }}
-                className="absolute right-24 p-1 text-slate-400 hover:text-white transition-colors cursor-pointer"
+                className="absolute right-28 p-1 text-slate-400 hover:text-white transition-colors cursor-pointer"
                 title="Clear query"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
+            ) : (
+              <div className="absolute right-28 hidden sm:flex items-center gap-1 pointer-events-none">
+                <kbd className="px-1.5 py-0.5 bg-slate-800/90 text-slate-400 border border-slate-700 rounded text-[10px] font-mono font-bold shadow-xs">
+                  Ctrl
+                </kbd>
+                <kbd className="px-1.5 py-0.5 bg-slate-800/90 text-slate-400 border border-slate-700 rounded text-[10px] font-mono font-bold shadow-xs">
+                  K
+                </kbd>
+              </div>
             )}
 
             {/* Search / Set Primary Button */}
@@ -620,157 +644,178 @@ export const Header: React.FC<HeaderProps> = ({
       <nav className={isDarkMode ? 'bg-[#0b101f]/95 border-t border-slate-800' : 'bg-slate-800 text-white shadow-md'}>
         <div className="max-w-[1920px] mx-auto px-4 sm:px-6 flex items-center overflow-x-auto no-scrollbar text-xs font-semibold">
           <button
-            onClick={() => setActivePillar(9)}
-            className={`flex items-center gap-2 px-4 py-3 border-b-2 transition-all whitespace-nowrap cursor-pointer ${
-              activePillar === 9
-                ? isDarkMode
-                  ? 'border-cyan-400 text-cyan-300 bg-cyan-950/30 font-bold'
-                  : 'border-cyan-400 text-cyan-300 bg-slate-700 font-bold'
-                : 'border-transparent text-slate-300 hover:text-white hover:bg-slate-700/50'
-            }`}
-          >
-            <Newspaper className="w-4 h-4 text-cyan-400" />
-            <span>News & Articles</span>
-          </button>
-
-          <button
             onClick={() => setActivePillar(1)}
-            className={`flex items-center gap-2 px-4 py-3 border-b-2 transition-all whitespace-nowrap cursor-pointer ${
+            className={`flex items-center gap-1.5 px-3.5 py-3 border-b-2 transition-all whitespace-nowrap cursor-pointer ${
               activePillar === 1
                 ? isDarkMode
                   ? 'border-cyan-400 text-cyan-300 bg-cyan-950/30 font-bold'
                   : 'border-cyan-400 text-cyan-300 bg-slate-700 font-bold'
                 : 'border-transparent text-slate-300 hover:text-white hover:bg-slate-700/50'
             }`}
+            title="World Clock & Regions (Press 1)"
           >
             <Clock className="w-4 h-4 text-cyan-400" />
-            <span>World Clock & Regions</span>
+            <span>World Clock</span>
+            <kbd className="text-[9px] font-mono text-cyan-300/80 bg-slate-950/60 px-1 py-0.2 rounded border border-slate-700/60 ml-0.5">1</kbd>
           </button>
 
           <button
             onClick={() => setActivePillar(2)}
-            className={`flex items-center gap-2 px-4 py-3 border-b-2 transition-all whitespace-nowrap cursor-pointer ${
+            className={`flex items-center gap-1.5 px-3.5 py-3 border-b-2 transition-all whitespace-nowrap cursor-pointer ${
               activePillar === 2
                 ? isDarkMode
                   ? 'border-cyan-400 text-cyan-300 bg-cyan-950/30 font-bold'
                   : 'border-cyan-400 text-cyan-300 bg-slate-700 font-bold'
                 : 'border-transparent text-slate-300 hover:text-white hover:bg-slate-700/50'
             }`}
+            title="Calendar & Holidays (Press 2)"
           >
             <Calendar className="w-4 h-4 text-indigo-400" />
             <span>Calendar</span>
-          </button>
-
-          <button
-            onClick={() => setActivePillar(4)}
-            className={`flex items-center gap-2 px-4 py-3 border-b-2 transition-all whitespace-nowrap cursor-pointer ${
-              activePillar === 4
-                ? isDarkMode
-                  ? 'border-cyan-400 text-cyan-300 bg-cyan-950/30 font-bold'
-                  : 'border-cyan-400 text-cyan-300 bg-slate-700 font-bold'
-                : 'border-transparent text-slate-300 hover:text-white hover:bg-slate-700/50'
-            }`}
-          >
-            <CloudRain className="w-4 h-4 text-sky-400" />
-            <span>Weather</span>
+            <kbd className="text-[9px] font-mono text-indigo-300/80 bg-slate-950/60 px-1 py-0.2 rounded border border-slate-700/60 ml-0.5">2</kbd>
           </button>
 
           <button
             onClick={() => setActivePillar(3)}
-            className={`flex items-center gap-2 px-4 py-3 border-b-2 transition-all whitespace-nowrap cursor-pointer ${
+            className={`flex items-center gap-1.5 px-3.5 py-3 border-b-2 transition-all whitespace-nowrap cursor-pointer ${
               activePillar === 3
                 ? isDarkMode
                   ? 'border-cyan-400 text-cyan-300 bg-cyan-950/30 font-bold'
                   : 'border-cyan-400 text-cyan-300 bg-slate-700 font-bold'
                 : 'border-transparent text-slate-300 hover:text-white hover:bg-slate-700/50'
             }`}
+            title="Sun, Moon & Space (Press 3)"
           >
             <Sun className="w-4 h-4 text-amber-400" />
-            <span>Sun, Moon & Space</span>
+            <span>Sun & Moon</span>
+            <kbd className="text-[9px] font-mono text-amber-300/80 bg-slate-950/60 px-1 py-0.2 rounded border border-slate-700/60 ml-0.5">3</kbd>
+          </button>
+
+          <button
+            onClick={() => setActivePillar(4)}
+            className={`flex items-center gap-1.5 px-3.5 py-3 border-b-2 transition-all whitespace-nowrap cursor-pointer ${
+              activePillar === 4
+                ? isDarkMode
+                  ? 'border-cyan-400 text-cyan-300 bg-cyan-950/30 font-bold'
+                  : 'border-cyan-400 text-cyan-300 bg-slate-700 font-bold'
+                : 'border-transparent text-slate-300 hover:text-white hover:bg-slate-700/50'
+            }`}
+            title="Weather Forecasts (Press 4)"
+          >
+            <CloudRain className="w-4 h-4 text-sky-400" />
+            <span>Weather</span>
+            <kbd className="text-[9px] font-mono text-sky-300/80 bg-slate-950/60 px-1 py-0.2 rounded border border-slate-700/60 ml-0.5">4</kbd>
           </button>
 
           <button
             onClick={() => setActivePillar(5)}
-            className={`flex items-center gap-2 px-4 py-3 border-b-2 transition-all whitespace-nowrap cursor-pointer ${
+            className={`flex items-center gap-1.5 px-3.5 py-3 border-b-2 transition-all whitespace-nowrap cursor-pointer ${
               activePillar === 5
                 ? isDarkMode
                   ? 'border-cyan-400 text-cyan-300 bg-cyan-950/30 font-bold'
                   : 'border-cyan-400 text-cyan-300 bg-slate-700 font-bold'
                 : 'border-transparent text-slate-300 hover:text-white hover:bg-slate-700/50'
             }`}
+            title="Timers & Stopwatch (Press 5)"
           >
             <Timer className="w-4 h-4 text-emerald-400" />
             <span>Timers</span>
-          </button>
-
-          <button
-            onClick={() => setActivePillar(10)}
-            className={`flex items-center gap-2 px-4 py-3 border-b-2 transition-all whitespace-nowrap cursor-pointer ${
-              activePillar === 10
-                ? isDarkMode
-                  ? 'border-cyan-400 text-cyan-300 bg-cyan-950/30 font-bold'
-                  : 'border-cyan-400 text-cyan-300 bg-slate-700 font-bold'
-                : 'border-transparent text-slate-300 hover:text-white hover:bg-slate-700/50'
-            }`}
-          >
-            <Calculator className="w-4 h-4 text-rose-400" />
-            <span>Calculators</span>
+            <kbd className="text-[9px] font-mono text-emerald-300/80 bg-slate-950/60 px-1 py-0.2 rounded border border-slate-700/60 ml-0.5">5</kbd>
           </button>
 
           <button
             onClick={() => setActivePillar(6)}
-            className={`flex items-center gap-2 px-4 py-3 border-b-2 transition-all whitespace-nowrap cursor-pointer ${
+            className={`flex items-center gap-1.5 px-3.5 py-3 border-b-2 transition-all whitespace-nowrap cursor-pointer ${
               activePillar === 6
                 ? isDarkMode
                   ? 'border-cyan-400 text-cyan-300 bg-cyan-950/30 font-bold'
                   : 'border-cyan-400 text-cyan-300 bg-slate-700 font-bold'
                 : 'border-transparent text-slate-300 hover:text-white hover:bg-slate-700/50'
             }`}
+            title="Live Tickers & Worldometers (Press 6)"
           >
             <Activity className="w-4 h-4 text-rose-400" />
             <span>Live Tickers</span>
+            <kbd className="text-[9px] font-mono text-rose-300/80 bg-slate-950/60 px-1 py-0.2 rounded border border-slate-700/60 ml-0.5">6</kbd>
           </button>
 
           <button
             onClick={() => setActivePillar(7)}
-            className={`flex items-center gap-2 px-4 py-3 border-b-2 transition-all whitespace-nowrap cursor-pointer ${
+            className={`flex items-center gap-1.5 px-3.5 py-3 border-b-2 transition-all whitespace-nowrap cursor-pointer ${
               activePillar === 7
                 ? isDarkMode
                   ? 'border-cyan-400 text-cyan-300 bg-cyan-950/30 font-bold'
                   : 'border-cyan-400 text-cyan-300 bg-slate-700 font-bold'
                 : 'border-transparent text-slate-300 hover:text-white hover:bg-slate-700/50'
             }`}
+            title="Embed Widgets (Press 7)"
           >
             <Code className="w-4 h-4 text-teal-400" />
-            <span>Embed Widgets</span>
+            <span>Widgets</span>
+            <kbd className="text-[9px] font-mono text-teal-300/80 bg-slate-950/60 px-1 py-0.2 rounded border border-slate-700/60 ml-0.5">7</kbd>
           </button>
 
           <button
             onClick={() => setActivePillar(8)}
-            className={`flex items-center gap-2 px-4 py-3 border-b-2 transition-all whitespace-nowrap cursor-pointer ${
+            className={`flex items-center gap-1.5 px-3.5 py-3 border-b-2 transition-all whitespace-nowrap cursor-pointer ${
               activePillar === 8
                 ? isDarkMode
                   ? 'border-cyan-400 text-cyan-300 bg-cyan-950/30 font-bold'
                   : 'border-cyan-400 text-cyan-300 bg-slate-700 font-bold'
                 : 'border-transparent text-slate-300 hover:text-white hover:bg-slate-700/50'
             }`}
+            title="API & Dev Portal (Press 8)"
           >
             <Layers className="w-4 h-4 text-purple-400" />
-            <span>API & Dev Portal</span>
+            <span>API & Dev</span>
+            <kbd className="text-[9px] font-mono text-purple-300/80 bg-slate-950/60 px-1 py-0.2 rounded border border-slate-700/60 ml-0.5">8</kbd>
+          </button>
+
+          <button
+            onClick={() => setActivePillar(9)}
+            className={`flex items-center gap-1.5 px-3.5 py-3 border-b-2 transition-all whitespace-nowrap cursor-pointer ${
+              activePillar === 9
+                ? isDarkMode
+                  ? 'border-cyan-400 text-cyan-300 bg-cyan-950/30 font-bold'
+                  : 'border-cyan-400 text-cyan-300 bg-slate-700 font-bold'
+                : 'border-transparent text-slate-300 hover:text-white hover:bg-slate-700/50'
+            }`}
+            title="News & Articles (Press 9)"
+          >
+            <Newspaper className="w-4 h-4 text-cyan-400" />
+            <span>News</span>
+            <kbd className="text-[9px] font-mono text-cyan-300/80 bg-slate-950/60 px-1 py-0.2 rounded border border-slate-700/60 ml-0.5">9</kbd>
+          </button>
+
+          <button
+            onClick={() => setActivePillar(10)}
+            className={`flex items-center gap-1.5 px-3.5 py-3 border-b-2 transition-all whitespace-nowrap cursor-pointer ${
+              activePillar === 10
+                ? isDarkMode
+                  ? 'border-cyan-400 text-cyan-300 bg-cyan-950/30 font-bold'
+                  : 'border-cyan-400 text-cyan-300 bg-slate-700 font-bold'
+                : 'border-transparent text-slate-300 hover:text-white hover:bg-slate-700/50'
+            }`}
+            title="Calculators & Converters (Press 0)"
+          >
+            <Calculator className="w-4 h-4 text-rose-400" />
+            <span>Calculators</span>
+            <kbd className="text-[9px] font-mono text-rose-300/80 bg-slate-950/60 px-1 py-0.2 rounded border border-slate-700/60 ml-0.5">0</kbd>
           </button>
 
           <button
             onClick={() => setActivePillar(11)}
-            className={`flex items-center gap-2 px-4 py-3 border-b-2 transition-all whitespace-nowrap cursor-pointer ${
+            className={`flex items-center gap-1.5 px-3.5 py-3 border-b-2 transition-all whitespace-nowrap cursor-pointer ${
               activePillar === 11
                 ? isDarkMode
                   ? 'border-cyan-400 text-cyan-300 bg-cyan-950/30 font-bold'
                   : 'border-cyan-400 text-cyan-300 bg-slate-700 font-bold'
                 : 'border-transparent text-slate-300 hover:text-white hover:bg-slate-700/50'
             }`}
+            title="Company & Contact (Melb HQ)"
           >
             <Building2 className="w-4 h-4 text-amber-400" />
-            <span>Company & Contact (Melb HQ)</span>
+            <span>Company</span>
           </button>
         </div>
       </nav>

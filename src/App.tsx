@@ -17,8 +17,11 @@ import { UserAccountModal } from './components/UserAccountModal';
 import { SecurityTrustModal } from './components/SecurityTrustModal';
 import { TemplateGalleryModal, TemplateTheme } from './components/TemplateGalleryModal';
 import { AdBanner } from './components/AdBanner';
+import { KeyboardShortcutsModal } from './components/KeyboardShortcutsModal';
+import { ShortcutToast } from './components/ShortcutToast';
+import { useGlobalShortcuts } from './hooks/useGlobalShortcuts';
 import { City } from './types';
-import { Globe, Database, ShieldCheck, Eye, EyeOff, Heart, Mail, Share2, Facebook, Twitter, Linkedin, Instagram, Youtube } from 'lucide-react';
+import { Globe, Database, ShieldCheck, Eye, EyeOff, Heart, Mail, Share2, Facebook, Twitter, Linkedin, Instagram, Youtube, Keyboard } from 'lucide-react';
 
 export default function App() {
   const [activePillar, setActivePillar] = useState<number>(1);
@@ -29,9 +32,42 @@ export default function App() {
   const [isAccountModalOpen, setIsAccountModalOpen] = useState<boolean>(false);
   const [isSecurityModalOpen, setIsSecurityModalOpen] = useState<boolean>(false);
   const [isTemplateGalleryOpen, setIsTemplateGalleryOpen] = useState<boolean>(false);
+  const [isShortcutsModalOpen, setIsShortcutsModalOpen] = useState<boolean>(false);
   const [showAds, setShowAds] = useState<boolean>(true);
   const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
   const [templateTheme, setTemplateTheme] = useState<TemplateTheme>('swiss-quartz');
+
+  // Register Global Keyboard Shortcut System
+  const { lastFeedback: shortcutFeedback, isMac } = useGlobalShortcuts({
+    onSelectPillar: (pillarIndex: number) => setActivePillar(pillarIndex),
+    onFocusSearch: () => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      const input = document.querySelector('input[placeholder*="Search global city"]') as HTMLInputElement;
+      input?.focus();
+    },
+    onToggleDarkMode: () => setIsDarkMode((prev) => !prev),
+    onCycleTheme: () => {
+      const themes: TemplateTheme[] = ['swiss-quartz', 'stripe-corporate', 'emerald-precision', 'editorial-classic'];
+      setTemplateTheme((current) => {
+        const nextIdx = (themes.indexOf(current) + 1) % themes.length;
+        return themes[nextIdx];
+      });
+    },
+    onOpenShortcutsModal: () => setIsShortcutsModalOpen(true),
+    onOpenSecurityModal: () => setIsSecurityModalOpen(true),
+    onOpenQrModal: () => setIsQrModalOpen(true),
+    onOpenAccountModal: () => setIsAccountModalOpen(true),
+    onOpenArchModal: () => setIsArchModalOpen(true),
+    onToggleAds: () => setShowAds((prev) => !prev),
+    onCloseModals: () => {
+      setIsArchModalOpen(false);
+      setIsQrModalOpen(false);
+      setIsAccountModalOpen(false);
+      setIsSecurityModalOpen(false);
+      setIsTemplateGalleryOpen(false);
+      setIsShortcutsModalOpen(false);
+    },
+  });
 
   const handleSelectCity = (city: City) => {
     setSelectedCityFromSearch(city);
@@ -70,6 +106,7 @@ export default function App() {
         onOpenAccountModal={() => setIsAccountModalOpen(true)}
         onOpenSecurityModal={() => setIsSecurityModalOpen(true)}
         onOpenTemplateGallery={() => setIsTemplateGalleryOpen(true)}
+        onOpenShortcutsModal={() => setIsShortcutsModalOpen(true)}
         isDarkMode={isDarkMode}
         setIsDarkMode={setIsDarkMode}
         templateTheme={templateTheme}
@@ -232,18 +269,38 @@ export default function App() {
               <li><span className="text-slate-300 font-semibold">timegovern.no</span> (Norwegian)</li>
               <li><span className="text-slate-300 font-semibold">timegovern.de</span> (German)</li>
             </ul>
-            <div className="flex items-center gap-2 text-slate-400">
+            <div className="flex items-center gap-2 text-slate-400 mb-3">
               <span className="hover:text-cyan-400 cursor-pointer p-1.5 bg-slate-800 rounded-lg"><Facebook className="w-4 h-4" /></span>
               <span className="hover:text-cyan-400 cursor-pointer p-1.5 bg-slate-800 rounded-lg"><Twitter className="w-4 h-4" /></span>
               <span className="hover:text-cyan-400 cursor-pointer p-1.5 bg-slate-800 rounded-lg"><Linkedin className="w-4 h-4" /></span>
               <span className="hover:text-cyan-400 cursor-pointer p-1.5 bg-slate-800 rounded-lg"><Instagram className="w-4 h-4" /></span>
               <span className="hover:text-cyan-400 cursor-pointer p-1.5 bg-slate-800 rounded-lg"><Youtube className="w-4 h-4" /></span>
             </div>
+
+            {/* Power User Global Shortcuts trigger */}
+            <button
+              onClick={() => setIsShortcutsModalOpen(true)}
+              className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-slate-800 hover:bg-slate-700 text-amber-300 rounded-xl border border-slate-700 hover:border-amber-500/50 transition-all text-xs font-bold shadow-sm cursor-pointer"
+            >
+              <Keyboard className="w-4 h-4 text-amber-400" />
+              <span>Keyboard Shortcuts</span>
+              <kbd className="px-1.5 py-0.5 bg-slate-900 text-amber-400 font-mono text-[10px] rounded border border-amber-500/30">?</kbd>
+            </button>
           </div>
         </div>
 
-        <div className="max-w-[1920px] mx-auto px-4 sm:px-6 mt-10 pt-5 border-t border-slate-800/80 text-center text-[11px] text-slate-400 font-mono">
-          © {new Date().getFullYear()} Timegovern.com. All rights reserved. Precision atomic clock synchronization & global temporal governance.
+        <div className="max-w-[1920px] mx-auto px-4 sm:px-6 mt-10 pt-5 border-t border-slate-800/80 text-center text-[11px] text-slate-400 font-mono flex flex-col sm:flex-row items-center justify-between gap-3">
+          <span>© {new Date().getFullYear()} Timegovern.com. All rights reserved. Precision atomic clock synchronization & global temporal governance.</span>
+          <div className="flex items-center gap-2 text-slate-400">
+            <span>Power User Mode:</span>
+            <span className="inline-flex items-center gap-1 bg-slate-950 px-2 py-0.5 rounded-md border border-slate-800 text-cyan-300 font-mono text-[10px]">
+              <kbd className="text-amber-400">1-9</kbd> Navigate
+              <span className="text-slate-600">|</span>
+              <kbd className="text-amber-400">Ctrl+K</kbd> Search
+              <span className="text-slate-600">|</span>
+              <kbd className="text-amber-400">?</kbd> Cheatsheet
+            </span>
+          </div>
         </div>
       </footer>
 
@@ -281,6 +338,39 @@ export default function App() {
           setIsTemplateGalleryOpen(false);
         }}
       />
+
+      {/* Global Keyboard Shortcuts Cheatsheet Modal */}
+      <KeyboardShortcutsModal
+        isOpen={isShortcutsModalOpen}
+        onClose={() => setIsShortcutsModalOpen(false)}
+        onSelectPillar={(pillar) => {
+          setActivePillar(pillar);
+          setIsShortcutsModalOpen(false);
+        }}
+        onFocusSearch={() => {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+          const input = document.querySelector('input[placeholder*="Search global city"]') as HTMLInputElement;
+          input?.focus();
+        }}
+        onToggleDarkMode={() => setIsDarkMode((prev) => !prev)}
+        onCycleTheme={() => {
+          const themes: TemplateTheme[] = ['swiss-quartz', 'stripe-corporate', 'emerald-precision', 'editorial-classic'];
+          setTemplateTheme((current) => {
+            const nextIdx = (themes.indexOf(current) + 1) % themes.length;
+            return themes[nextIdx];
+          });
+        }}
+        onOpenSecurityModal={() => setIsSecurityModalOpen(true)}
+        onOpenQrModal={() => setIsQrModalOpen(true)}
+        onOpenAccountModal={() => setIsAccountModalOpen(true)}
+        onOpenArchModal={() => setIsArchModalOpen(true)}
+        onToggleAds={() => setShowAds((prev) => !prev)}
+        isMac={isMac}
+        activePillar={activePillar}
+      />
+
+      {/* Tactile Shortcut Toast HUD */}
+      <ShortcutToast feedback={shortcutFeedback} />
 
       {/* Bottom Sticky Anchor Ad Slot */}
       {showAds && <AdBanner type="anchor-bottom" />}
