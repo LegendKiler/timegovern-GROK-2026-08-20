@@ -6,11 +6,15 @@ export interface DateDiffResult {
   months: number;
   days: number;
   totalWeeks: number;
+  exactWeeks: number;
+  weeksAndDays: { weeks: number; days: number };
   totalHours: number;
   totalMinutes: number;
   businessDays: number;
   weekendDaysCount: number;
   holidaysCount: number;
+  workingHours: number;
+  holidaysList: { name: string; date: string; type: string }[];
 }
 
 /**
@@ -21,7 +25,8 @@ export function calculateDaysBetweenDates(
   endDate: Date,
   countryCode = 'US',
   weekendDays: number[] = [0, 6], // 0=Sun, 6=Sat
-  excludeHolidays = false
+  excludeHolidays = false,
+  includeEndDate = true
 ): DateDiffResult {
   const start = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
   const end = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
@@ -30,8 +35,15 @@ export function calculateDaysBetweenDates(
   const d1 = isReverse ? end : start;
   const d2 = isReverse ? start : end;
 
+  // Base difference in ms
   const totalTimeMs = d2.getTime() - d1.getTime();
-  const totalDays = Math.round(totalTimeMs / 86400000);
+  let rawDays = Math.round(totalTimeMs / 86400000);
+  
+  if (includeEndDate && rawDays >= 0) {
+    rawDays += 1;
+  }
+
+  const totalDays = Math.max(0, rawDays);
 
   // Breakdown years, months, days
   let years = d2.getFullYear() - d1.getFullYear();
@@ -52,28 +64,35 @@ export function calculateDaysBetweenDates(
   let businessDays = 0;
   let weekendDaysCount = 0;
   let holidaysCount = 0;
+  const holidaysList: { name: string; date: string; type: string }[] = [];
 
-  const holidaysSet = new Set<string>();
+  const holidaysMap = new Map<string, { name: string; date: string; type: string }>();
   if (excludeHolidays) {
     for (let y = d1.getFullYear(); y <= d2.getFullYear(); y++) {
       const hList = getPublicHolidaysForCountry(countryCode, y);
-      hList.forEach((h) => holidaysSet.add(h.date));
+      hList.forEach((h) => holidaysMap.set(h.date, h));
     }
   }
 
   const curr = new Date(d1);
-  while (curr <= d2) {
+  const targetEnd = new Date(d2);
+  if (!includeEndDate) {
+    targetEnd.setDate(targetEnd.getDate() - 1);
+  }
+
+  while (curr <= targetEnd) {
     const dayOfWeek = curr.getDay();
     const pad = (n: number) => n.toString().padStart(2, '0');
     const isoDateStr = `${curr.getFullYear()}-${pad(curr.getMonth() + 1)}-${pad(curr.getDate())}`;
 
     const isWeekend = weekendDays.includes(dayOfWeek);
-    const isHoliday = excludeHolidays && holidaysSet.has(isoDateStr);
+    const holidayInfo = excludeHolidays ? holidaysMap.get(isoDateStr) : undefined;
 
     if (isWeekend) {
       weekendDaysCount++;
-    } else if (isHoliday) {
+    } else if (holidayInfo) {
       holidaysCount++;
+      holidaysList.push(holidayInfo);
     } else {
       businessDays++;
     }
@@ -81,17 +100,25 @@ export function calculateDaysBetweenDates(
     curr.setDate(curr.getDate() + 1);
   }
 
+  const exactWeeks = totalDays > 0 ? Number((totalDays / 7).toFixed(2)) : 0;
+  const fullWeeks = Math.floor(totalDays / 7);
+  const remainderDays = totalDays % 7;
+
   return {
     totalDays: isReverse ? -totalDays : totalDays,
     years: isReverse ? -years : years,
     months: isReverse ? -months : months,
     days: isReverse ? -days : days,
-    totalWeeks: Math.floor(totalDays / 7),
+    totalWeeks: fullWeeks,
+    exactWeeks,
+    weeksAndDays: { weeks: fullWeeks, days: remainderDays },
     totalHours: totalDays * 24,
     totalMinutes: totalDays * 1440,
     businessDays,
     weekendDaysCount,
-    holidaysCount
+    holidaysCount,
+    workingHours: businessDays * 8,
+    holidaysList
   };
 }
 

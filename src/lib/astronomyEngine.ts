@@ -1,4 +1,4 @@
-import { CelestialBodyPosition, EclipseEvent, MoonData, SunEphemeris } from '../types';
+import { CelestialBodyPosition, EclipseEvent, MoonData, SunEphemeris, SolarNoonDetails, LunarDayInfo, MajorLunarPhaseEvent, MonthlyLunarCalendarData } from '../types';
 
 /**
  * Astronomical Ephemeris Engine based on Meeus & NOAA Solar/Lunar Algorithms
@@ -246,3 +246,452 @@ export const ECLIPSE_CATALOG: EclipseEvent[] = [
     pathCoordinates: [[36, -5], [30, 20], [25, 33], [12, 45]]
   }
 ];
+
+/**
+ * High-Precision Solar Noon & Meridian Transit Engine
+ * Based on NOAA Solar Calculator & Jean Meeus Astronomical Algorithms
+ */
+export function calculateSolarNoonDetails(
+  lat: number,
+  lng: number,
+  date: Date,
+  timeZone = 'UTC'
+): SolarNoonDetails {
+  const year = date.getFullYear();
+  const month = date.getMonth();
+  const day = date.getDate();
+
+  // Day of Year
+  const startOfYear = new Date(year, 0, 1);
+  const dayOfYear = Math.floor((new Date(year, month, day).getTime() - startOfYear.getTime()) / 86400000) + 1;
+
+  // Julian Date & Century for 12:00:00 UTC on given day
+  const jdNoon = Date.UTC(year, month, day, 12, 0, 0) / 86400000 + 2440587.5;
+  const T = (jdNoon - 2451545.0) / 36525.0;
+
+  // Geometric Mean Longitude of Sun (deg)
+  let L0 = 280.46646 + T * (36000.76983 + 0.0003032 * T);
+  L0 = (L0 % 360 + 360) % 360;
+
+  // Geometric Mean Anomaly of Sun (deg)
+  let M = 357.52911 + T * (35999.05029 - 0.0001537 * T);
+  M = (M % 360 + 360) % 360;
+  const MRad = M * DEG2RAD;
+
+  // Eccentricity of Earth's Orbit
+  const e = 0.016708634 - T * (0.000042037 + 0.0000001267 * T);
+
+  // Sun Equation of Center (deg)
+  const C =
+    Math.sin(MRad) * (1.914602 - T * (0.004817 + 0.000014 * T)) +
+    Math.sin(2 * MRad) * (0.019993 - 0.000101 * T) +
+    Math.sin(3 * MRad) * 0.000289;
+
+  // Sun True Longitude & Apparent Longitude (deg)
+  const sunTrueLong = L0 + C;
+  const omega = 125.04 - 1934.136 * T;
+  const lambda = sunTrueLong - 0.00569 - 0.00478 * Math.sin(omega * DEG2RAD);
+
+  // Mean Obliquity of the Ecliptic (deg)
+  const eps0 = 23 + (26 + (21.448 - T * (46.815 + T * (0.00059 - T * 0.001813))) / 60) / 60;
+  const eps = eps0 + 0.00256 * Math.cos(omega * DEG2RAD);
+  const epsRad = eps * DEG2RAD;
+
+  // Solar Declination (deg)
+  const sinDec = Math.sin(epsRad) * Math.sin(lambda * DEG2RAD);
+  const solarDeclinationDeg = Math.asin(sinDec) * RAD2DEG;
+
+  // Equation of Time (EoT) in minutes
+  const y = Math.tan(epsRad / 2) * Math.tan(epsRad / 2);
+  const L0Rad = L0 * DEG2RAD;
+  const eotRad =
+    y * Math.sin(2 * L0Rad) -
+    2 * e * Math.sin(MRad) +
+    4 * e * y * Math.sin(MRad) * Math.cos(2 * L0Rad) -
+    0.5 * y * y * Math.sin(4 * L0Rad) -
+    1.25 * e * e * Math.sin(2 * MRad);
+  const equationOfTimeMinutes = eotRad * 4 * RAD2DEG;
+
+  // Solar Noon in UTC minutes from 00:00 UTC (720 min = 12:00:00)
+  // East longitude is positive, so it reaches solar noon earlier (subtract 4 min/deg)
+  let solarNoonUtcMinutes = 720 - lng * 4 - equationOfTimeMinutes;
+  while (solarNoonUtcMinutes < 0) solarNoonUtcMinutes += 1440;
+  while (solarNoonUtcMinutes >= 1440) solarNoonUtcMinutes -= 1440;
+
+  const utcHours = Math.floor(solarNoonUtcMinutes / 60);
+  const utcMinutes = Math.floor(solarNoonUtcMinutes % 60);
+  const utcSeconds = Math.round(((solarNoonUtcMinutes % 60) % 1) * 60);
+
+  const solarNoonUtc = new Date(Date.UTC(year, month, day, utcHours, utcMinutes, utcSeconds));
+
+  // Determine timezone offset in minutes at solar noon instant
+  let tzOffsetMinutes = 0;
+  try {
+    const utcStr = solarNoonUtc.toLocaleString('en-US', { timeZone: 'UTC' });
+    const localStr = solarNoonUtc.toLocaleString('en-US', { timeZone });
+    tzOffsetMinutes = Math.round((new Date(localStr).getTime() - new Date(utcStr).getTime()) / 60000);
+  } catch (err) {
+    tzOffsetMinutes = 0;
+  }
+
+  // Standard meridian of timezone (deg)
+  const standardMeridianDeg = (tzOffsetMinutes / 60) * 15;
+  // Meridian offset in minutes (difference between city longitude and standard meridian)
+  const meridianOffsetMinutes = (standardMeridianDeg - lng) * 4;
+  // Longitude in time (min)
+  const longitudeOffsetMinutes = lng * 4;
+
+  // Format strings
+  const pad = (n: number) => n.toString().padStart(2, '0');
+  const solarNoonUtcStr = `${pad(solarNoonUtc.getUTCHours())}:${pad(solarNoonUtc.getUTCMinutes())}:${pad(solarNoonUtc.getUTCSeconds())} UTC`;
+
+  let solarNoonLocalStr = '';
+  try {
+    solarNoonLocalStr = solarNoonUtc.toLocaleTimeString('en-US', {
+      timeZone,
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: true
+    });
+  } catch (e) {
+    solarNoonLocalStr = solarNoonUtcStr;
+  }
+
+  // Maximum Solar Elevation at Solar Noon (Culmination)
+  const maxSolarElevationDeg = Math.max(0, 90 - Math.abs(lat - solarDeclinationDeg));
+  const zenithAngleDeg = 90 - maxSolarElevationDeg;
+
+  // Shadow length ratio (shadow length = object height * shadowRatio)
+  const shadowRatio = maxSolarElevationDeg > 0.01 ? 1 / Math.tan(maxSolarElevationDeg * DEG2RAD) : 999;
+
+  // Culmination direction
+  let culminationDirection: 'Due South' | 'Due North' | 'Directly Overhead (Zenith)';
+  if (Math.abs(lat - solarDeclinationDeg) < 0.1) {
+    culminationDirection = 'Directly Overhead (Zenith)';
+  } else if (lat > solarDeclinationDeg) {
+    culminationDirection = 'Due South';
+  } else {
+    culminationDirection = 'Due North';
+  }
+
+  // Difference between 12:00:00 Clock Noon and Solar Noon
+  // Local Solar Noon Time (minutes from 00:00 local time)
+  const localSolarMinutes = (solarNoonUtcMinutes + tzOffsetMinutes + 1440) % 1440;
+  const clockNoonDifferenceMinutes = localSolarMinutes - 720; // 720 = 12:00
+
+  const diffAbs = Math.abs(clockNoonDifferenceMinutes);
+  const diffM = Math.floor(diffAbs);
+  const diffS = Math.round((diffAbs - diffM) * 60);
+  const signLabel = clockNoonDifferenceMinutes >= 0 ? 'later than' : 'earlier than';
+  const clockNoonDifferenceFormatted = `${diffM}m ${pad(diffS)}s ${signLabel} 12:00 clock noon`;
+
+  // Equation of Time formatted
+  const eotSign = equationOfTimeMinutes >= 0 ? '+' : '-';
+  const eotAbs = Math.abs(equationOfTimeMinutes);
+  const eotM = Math.floor(eotAbs);
+  const eotS = Math.round((eotAbs - eotM) * 60);
+  const equationOfTimeFormatted = `${eotSign}${eotM}m ${pad(eotS)}s`;
+
+  return {
+    solarNoonUtc,
+    solarNoonLocalStr,
+    solarNoonUtcStr,
+    solarDeclinationDeg: Number(solarDeclinationDeg.toFixed(2)),
+    equationOfTimeMinutes: Number(equationOfTimeMinutes.toFixed(2)),
+    equationOfTimeFormatted,
+    longitudeOffsetMinutes: Number(longitudeOffsetMinutes.toFixed(1)),
+    standardMeridianDeg: Number(standardMeridianDeg.toFixed(1)),
+    meridianOffsetMinutes: Number(meridianOffsetMinutes.toFixed(1)),
+    maxSolarElevationDeg: Number(maxSolarElevationDeg.toFixed(1)),
+    zenithAngleDeg: Number(zenithAngleDeg.toFixed(1)),
+    shadowRatio: Number(shadowRatio.toFixed(2)),
+    culminationDirection,
+    clockNoonDifferenceMinutes: Number(clockNoonDifferenceMinutes.toFixed(2)),
+    clockNoonDifferenceFormatted,
+    dayOfYear
+  };
+}
+
+/**
+ * Traditional Names for the Full Moon by Month (Farmer's Almanac & Native Tradition)
+ */
+export const TRADITIONAL_FULL_MOON_NAMES: { [key: number]: { name: string; description: string } } = {
+  0: { name: 'Wolf Moon', description: 'Named for hungry wolves howling outside villages in the depth of midwinter.' },
+  1: { name: 'Snow Moon', description: 'Typically the month of heaviest snowfall in the Northern Hemisphere.' },
+  2: { name: 'Worm Moon', description: 'Earthworms emerge as the soil warms, inviting robins at the start of spring.' },
+  3: { name: 'Pink Moon', description: 'Named for moss pink (wild ground phlox), one of the earliest spring flowers.' },
+  4: { name: 'Flower Moon', description: 'Celebrates the abundant blossoming of wildflowers and agricultural plantings.' },
+  5: { name: 'Strawberry Moon', description: 'Peak harvesting season for sweet ripening wild strawberries.' },
+  6: { name: 'Buck Moon', description: 'New velvety antlers of young buck deer push out of their foreheads.' },
+  7: { name: 'Sturgeon Moon', description: 'Abundant freshwater sturgeon in North American Great Lakes and rivers.' },
+  8: { name: 'Harvest / Corn Moon', description: 'Closest full moon to autumnal equinox, providing evening light for harvesting.' },
+  9: { name: "Hunter's Moon", description: 'Crops cleared from fields allow hunters to easily track prey for winter food stores.' },
+  10: { name: 'Beaver Moon', description: 'Time when beavers finish building their winter lodges and dams.' },
+  11: { name: 'Cold Moon', description: 'Signifies the onset of winter freezing temperatures and long nights.' }
+};
+
+/**
+ * Calculate the Moon's approximate Tropical Zodiac Sign & Constellation
+ */
+export function getMoonZodiacSign(date: Date): { sign: string; symbol: string; degree: number } {
+  const jd = getJulianDate(date);
+  const d = jd - 2451545.0; // days from J2000.0
+
+  // Mean longitude of the Moon (deg)
+  let L = (218.316 + 13.176396 * d) % 360;
+  if (L < 0) L += 360;
+
+  // Mean anomaly of the Moon (deg)
+  let M = (134.963 + 13.064993 * d) % 360;
+  if (M < 0) M += 360;
+
+  // Mean anomaly of the Sun (deg)
+  let MSun = (357.529 + 0.98560028 * d) % 360;
+  if (MSun < 0) MSun += 360;
+
+  // Evection and equation of center correction
+  const lambda = (L + 6.289 * Math.sin(M * DEG2RAD) - 1.274 * Math.sin((2 * L - 2 * MSun - M) * DEG2RAD) + 360) % 360;
+
+  const signs = [
+    { sign: 'Aries', symbol: '♈' },
+    { sign: 'Taurus', symbol: '♉' },
+    { sign: 'Gemini', symbol: '♊' },
+    { sign: 'Cancer', symbol: '♋' },
+    { sign: 'Leo', symbol: '♌' },
+    { sign: 'Virgo', symbol: '♍' },
+    { sign: 'Libra', symbol: '♎' },
+    { sign: 'Scorpio', symbol: '♏' },
+    { sign: 'Sagittarius', symbol: '♐' },
+    { sign: 'Capricorn', symbol: '♑' },
+    { sign: 'Aquarius', symbol: '♒' },
+    { sign: 'Pisces', symbol: '♓' }
+  ];
+
+  const signIndex = Math.floor(lambda / 30);
+  const sign = signs[signIndex % 12];
+  const degree = Number((lambda % 30).toFixed(1));
+
+  return {
+    sign: sign.sign,
+    symbol: sign.symbol,
+    degree
+  };
+}
+
+/**
+ * Generate full monthly lunar phase calendar data for any given year and month
+ */
+export function calculateMonthlyLunarCalendar(
+  year: number,
+  month: number, // 0 - 11
+  lat = 40.7128,
+  lng = -74.0060,
+  timeZone = 'UTC'
+): MonthlyLunarCalendarData {
+  const monthNames = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+  ];
+  const monthName = monthNames[month] || 'Month';
+
+  const firstDayOfMonth = new Date(year, month, 1);
+  const lastDayOfMonth = new Date(year, month + 1, 0);
+  const totalDaysInMonth = lastDayOfMonth.getDate();
+  const startDayOfWeek = firstDayOfMonth.getDay(); // 0 = Sunday, 1 = Monday...
+
+  const pad = (n: number) => n.toString().padStart(2, '0');
+  const days: LunarDayInfo[] = [];
+
+  // 1. Calculate preceding month trailing days to pad calendar grid
+  const prevMonthLastDate = new Date(year, month, 0).getDate();
+  for (let i = startDayOfWeek - 1; i >= 0; i--) {
+    const prevDay = prevMonthLastDate - i;
+    const prevDate = new Date(year, month - 1, prevDay, 12, 0, 0);
+    const moon = calculateMoonData(prevDate, lat, lng);
+    const zodiac = getMoonZodiacSign(prevDate);
+    const dateStr = `${prevDate.getFullYear()}-${pad(prevDate.getMonth() + 1)}-${pad(prevDay)}`;
+
+    days.push({
+      day: prevDay,
+      date: prevDate,
+      dateStr,
+      isCurrentMonth: false,
+      isToday: false,
+      phaseName: moon.phaseName,
+      phaseFraction: moon.phaseFraction,
+      illuminationPercent: moon.illuminationPercent,
+      moonAgeDays: moon.moonAgeDays,
+      distanceKm: moon.distanceKm,
+      moonrise: moon.moonrise,
+      moonset: moon.moonset,
+      isMajorPhase: false,
+      majorPhaseType: null,
+      isSupermoon: false,
+      isMicroMoon: false,
+      isBlueMoon: false,
+      traditionalMoonName: null,
+      zodiacSign: zodiac.sign,
+      zodiacSymbol: zodiac.symbol
+    });
+  }
+
+  // 2. Current Month Days
+  const today = new Date();
+  const isCurrentYearAndMonth = today.getFullYear() === year && today.getMonth() === month;
+  const currentDayNum = today.getDate();
+
+  let fullMoonCountInMonth = 0;
+
+  for (let d = 1; d <= totalDaysInMonth; d++) {
+    const curDate = new Date(year, month, d, 12, 0, 0);
+    const moon = calculateMoonData(curDate, lat, lng);
+    const zodiac = getMoonZodiacSign(curDate);
+    const dateStr = `${year}-${pad(month + 1)}-${pad(d)}`;
+    const isToday = isCurrentYearAndMonth && currentDayNum === d;
+
+    // Detect Major phase proximities
+    // New Moon: fraction close to 0 or 1
+    // First Quarter: fraction close to 0.25
+    // Full Moon: fraction close to 0.50
+    // Third Quarter: fraction close to 0.75
+    let majorPhaseType: 'NEW_MOON' | 'FIRST_QUARTER' | 'FULL_MOON' | 'THIRD_QUARTER' | null = null;
+    
+    // Check if this day is local minimum/maximum for phases
+    const prevDayDate = new Date(year, month, d - 1, 12, 0, 0);
+    const nextDayDate = new Date(year, month, d + 1, 12, 0, 0);
+    const prevMoon = calculateMoonData(prevDayDate, lat, lng);
+    const nextMoon = calculateMoonData(nextDayDate, lat, lng);
+
+    // Full Moon detection (peak illumination)
+    if (moon.illuminationPercent >= 97 && moon.illuminationPercent >= prevMoon.illuminationPercent && moon.illuminationPercent >= nextMoon.illuminationPercent) {
+      majorPhaseType = 'FULL_MOON';
+      fullMoonCountInMonth++;
+    }
+    // New Moon detection (minimum illumination)
+    else if (moon.illuminationPercent <= 3 && moon.illuminationPercent <= prevMoon.illuminationPercent && moon.illuminationPercent <= nextMoon.illuminationPercent) {
+      majorPhaseType = 'NEW_MOON';
+    }
+    // First Quarter detection (waxing ~50%)
+    else if (moon.moonAgeDays >= 6.5 && moon.moonAgeDays <= 8.5 && Math.abs(moon.illuminationPercent - 50) <= Math.abs(prevMoon.illuminationPercent - 50) && Math.abs(moon.illuminationPercent - 50) <= Math.abs(nextMoon.illuminationPercent - 50)) {
+      majorPhaseType = 'FIRST_QUARTER';
+    }
+    // Third Quarter detection (waning ~50%)
+    else if (moon.moonAgeDays >= 21.0 && moon.moonAgeDays <= 23.0 && Math.abs(moon.illuminationPercent - 50) <= Math.abs(prevMoon.illuminationPercent - 50) && Math.abs(moon.illuminationPercent - 50) <= Math.abs(nextMoon.illuminationPercent - 50)) {
+      majorPhaseType = 'THIRD_QUARTER';
+    }
+
+    const isSupermoon = majorPhaseType === 'FULL_MOON' && moon.distanceKm < 360000;
+    const isMicroMoon = majorPhaseType === 'FULL_MOON' && moon.distanceKm > 405000;
+    const isBlueMoon = majorPhaseType === 'FULL_MOON' && fullMoonCountInMonth > 1;
+
+    const traditionalMoonName = majorPhaseType === 'FULL_MOON'
+      ? (isBlueMoon ? 'Blue Moon' : TRADITIONAL_FULL_MOON_NAMES[month]?.name || 'Full Moon')
+      : null;
+
+    days.push({
+      day: d,
+      date: curDate,
+      dateStr,
+      isCurrentMonth: true,
+      isToday,
+      phaseName: moon.phaseName,
+      phaseFraction: moon.phaseFraction,
+      illuminationPercent: moon.illuminationPercent,
+      moonAgeDays: moon.moonAgeDays,
+      distanceKm: moon.distanceKm,
+      moonrise: moon.moonrise,
+      moonset: moon.moonset,
+      isMajorPhase: Boolean(majorPhaseType),
+      majorPhaseType,
+      isSupermoon,
+      isMicroMoon,
+      isBlueMoon,
+      traditionalMoonName,
+      zodiacSign: zodiac.sign,
+      zodiacSymbol: zodiac.symbol
+    });
+  }
+
+  // 3. Trailing days from next month to fill grid row (multiple of 7)
+  const remainingDaysToPad = (7 - (days.length % 7)) % 7;
+  for (let nextDay = 1; nextDay <= remainingDaysToPad; nextDay++) {
+    const nextDate = new Date(year, month + 1, nextDay, 12, 0, 0);
+    const moon = calculateMoonData(nextDate, lat, lng);
+    const zodiac = getMoonZodiacSign(nextDate);
+    const dateStr = `${nextDate.getFullYear()}-${pad(nextDate.getMonth() + 1)}-${pad(nextDay)}`;
+
+    days.push({
+      day: nextDay,
+      date: nextDate,
+      dateStr,
+      isCurrentMonth: false,
+      isToday: false,
+      phaseName: moon.phaseName,
+      phaseFraction: moon.phaseFraction,
+      illuminationPercent: moon.illuminationPercent,
+      moonAgeDays: moon.moonAgeDays,
+      distanceKm: moon.distanceKm,
+      moonrise: moon.moonrise,
+      moonset: moon.moonset,
+      isMajorPhase: false,
+      majorPhaseType: null,
+      isSupermoon: false,
+      isMicroMoon: false,
+      isBlueMoon: false,
+      traditionalMoonName: null,
+      zodiacSign: zodiac.sign,
+      zodiacSymbol: zodiac.symbol
+    });
+  }
+
+  // Collect Major Phases List with exact times
+  const majorPhases: MajorLunarPhaseEvent[] = [];
+  const currentMonthDaysWithMajor = days.filter((d) => d.isCurrentMonth && d.isMajorPhase);
+
+  for (const item of currentMonthDaysWithMajor) {
+    if (!item.majorPhaseType) continue;
+
+    let phaseName = 'New Moon';
+    if (item.majorPhaseType === 'FIRST_QUARTER') phaseName = 'First Quarter';
+    else if (item.majorPhaseType === 'FULL_MOON') phaseName = 'Full Moon';
+    else if (item.majorPhaseType === 'THIRD_QUARTER') phaseName = 'Third Quarter';
+
+    let exactTimeUtcStr = '12:00 UTC';
+    let exactTimeLocalStr = '12:00 PM';
+
+    try {
+      exactTimeUtcStr = item.date.toLocaleTimeString('en-US', { timeZone: 'UTC', hour: '2-digit', minute: '2-digit', hour12: true }) + ' UTC';
+      exactTimeLocalStr = item.date.toLocaleTimeString('en-US', { timeZone, hour: '2-digit', minute: '2-digit', hour12: true });
+    } catch (e) {
+      // fallback
+    }
+
+    majorPhases.push({
+      phaseType: item.majorPhaseType,
+      phaseName,
+      date: item.date,
+      dateStr: item.dateStr,
+      exactTimeUtcStr,
+      exactTimeLocalStr,
+      illuminationPercent: item.illuminationPercent,
+      distanceKm: item.distanceKm,
+      traditionalName: item.traditionalMoonName || undefined,
+      isSupermoon: item.isSupermoon
+    });
+  }
+
+  const traditionalFullMoonName = TRADITIONAL_FULL_MOON_NAMES[month]?.name || 'Full Moon';
+  const supermoonCount = days.filter((d) => d.isCurrentMonth && d.isSupermoon).length;
+
+  return {
+    year,
+    month,
+    monthName,
+    days,
+    majorPhases,
+    traditionalFullMoonName,
+    totalDaysInMonth,
+    supermoonCount
+  };
+}

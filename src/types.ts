@@ -79,6 +79,25 @@ export interface SunEphemeris {
   solarElevation: number; // degrees
 }
 
+export interface SolarNoonDetails {
+  solarNoonUtc: Date;
+  solarNoonLocalStr: string;
+  solarNoonUtcStr: string;
+  solarDeclinationDeg: number;
+  equationOfTimeMinutes: number;
+  equationOfTimeFormatted: string;
+  longitudeOffsetMinutes: number; // Longitude in time (lng * 4 min)
+  standardMeridianDeg: number; // Central meridian of timezone (e.g. -75° for UTC-5)
+  meridianOffsetMinutes: number; // Difference between city longitude and standard timezone meridian
+  maxSolarElevationDeg: number;
+  zenithAngleDeg: number;
+  shadowRatio: number; // Shadow length multiplier (shadow length = height * shadowRatio)
+  culminationDirection: 'Due South' | 'Due North' | 'Directly Overhead (Zenith)';
+  clockNoonDifferenceMinutes: number; // Difference between 12:00:00 clock noon and true solar noon
+  clockNoonDifferenceFormatted: string;
+  dayOfYear: number;
+}
+
 export interface MoonData {
   phaseName: string; // 'New Moon', 'Waxing Crescent', 'First Quarter', 'Waxing Gibbous', 'Full Moon', 'Waning Gibbous', 'Third Quarter', 'Waning Crescent'
   phaseFraction: number; // 0.0 to 1.0
@@ -87,6 +106,53 @@ export interface MoonData {
   moonrise: Date | null;
   moonset: Date | null;
   distanceKm: number;
+}
+
+export interface LunarDayInfo {
+  day: number;
+  date: Date;
+  dateStr: string;
+  isCurrentMonth: boolean;
+  isToday: boolean;
+  phaseName: string;
+  phaseFraction: number; // 0.0 to 1.0
+  illuminationPercent: number; // 0 to 100
+  moonAgeDays: number;
+  distanceKm: number;
+  moonrise: Date | null;
+  moonset: Date | null;
+  isMajorPhase: boolean;
+  majorPhaseType: 'NEW_MOON' | 'FIRST_QUARTER' | 'FULL_MOON' | 'THIRD_QUARTER' | null;
+  isSupermoon: boolean;
+  isMicroMoon: boolean;
+  isBlueMoon: boolean;
+  traditionalMoonName: string | null;
+  zodiacSign: string;
+  zodiacSymbol: string;
+}
+
+export interface MajorLunarPhaseEvent {
+  phaseType: 'NEW_MOON' | 'FIRST_QUARTER' | 'FULL_MOON' | 'THIRD_QUARTER';
+  phaseName: string;
+  date: Date;
+  dateStr: string;
+  exactTimeUtcStr: string;
+  exactTimeLocalStr: string;
+  illuminationPercent: number;
+  distanceKm: number;
+  traditionalName?: string;
+  isSupermoon?: boolean;
+}
+
+export interface MonthlyLunarCalendarData {
+  year: number;
+  month: number; // 0-11
+  monthName: string;
+  days: LunarDayInfo[];
+  majorPhases: MajorLunarPhaseEvent[];
+  traditionalFullMoonName: string;
+  totalDaysInMonth: number;
+  supermoonCount: number;
 }
 
 export interface CelestialBodyPosition {
