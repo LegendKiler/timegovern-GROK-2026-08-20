@@ -63,6 +63,7 @@ import { generateGoogleCalendarUrl, downloadIcsFile } from '../lib/icsGenerator'
 
 interface WorldClockPillarProps {
   selectedCityFromSearch?: City;
+  onPrimaryCityChange?: (city: City) => void;
 }
 
 // Quick Hub Switcher Cities
@@ -82,7 +83,10 @@ const QUICK_SWITCHER_CITIES = [
   'del'
 ];
 
-export const WorldClockPillar: React.FC<WorldClockPillarProps> = ({ selectedCityFromSearch }) => {
+export const WorldClockPillar: React.FC<WorldClockPillarProps> = ({ 
+  selectedCityFromSearch,
+  onPrimaryCityChange 
+}) => {
   const [subTab, setSubTab] = useState<'clock' | '3d-globe' | 'converter' | 'map' | 'announcer' | 'regions'>('clock');
   const [selectedRegion, setSelectedRegion] = useState<string>('africa');
   const [clockDisplayStyle, setClockDisplayStyle] = useState<'grid' | 'table'>('grid');
@@ -184,12 +188,15 @@ export const WorldClockPillar: React.FC<WorldClockPillarProps> = ({ selectedCity
   useEffect(() => {
     if (selectedCityFromSearch) {
       setFocalCity(selectedCityFromSearch);
+      setSubTab('clock');
+      onPrimaryCityChange?.(selectedCityFromSearch);
       if (!watchList.some((c) => c.id === selectedCityFromSearch.id)) {
         setWatchList((prev) => [selectedCityFromSearch, ...prev]);
       }
       if (!plannerCities.some((c) => c.id === selectedCityFromSearch.id)) {
         setPlannerCities((prev) => [...prev, selectedCityFromSearch]);
       }
+      showToast(`Primary Time Zone set to ${selectedCityFromSearch.name} (${selectedCityFromSearch.timezone})`);
     }
   }, [selectedCityFromSearch]);
 
@@ -362,10 +369,12 @@ export const WorldClockPillar: React.FC<WorldClockPillarProps> = ({ selectedCity
   // Handle focal city switch with micro-interaction
   const handleSelectFocalCity = (city: City) => {
     setFocalCity(city);
+    onPrimaryCityChange?.(city);
     // Ensure city is in watchlist
     if (!watchList.some((c) => c.id === city.id)) {
       setWatchList((prev) => [city, ...prev]);
     }
+    showToast(`Primary Time Zone set to ${city.name} (${city.timezone})`);
   };
 
   // Handle switching to Meeting Planner with a specific city

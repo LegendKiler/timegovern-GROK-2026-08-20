@@ -124,8 +124,32 @@ export const MAJOR_CITIES: City[] = [
   { id: 'fji', name: 'Suva', country: 'Fiji', countryCode: 'FJ', timezone: 'Pacific/Fiji', lat: -18.1248, lng: 178.4501, population: 93970, isCapital: true }
 ];
 
+export type CityRegion = 'all' | 'capitals' | 'north_america' | 'europe' | 'asia_middle_east' | 'latin_america' | 'africa' | 'oceania';
+
+export const REGION_CATEGORIES: { id: CityRegion; label: string; icon: string }[] = [
+  { id: 'all', label: 'All Cities', icon: '🌍' },
+  { id: 'capitals', label: 'Capitals', icon: '🏛️' },
+  { id: 'north_america', label: 'North America', icon: '🗽' },
+  { id: 'europe', label: 'Europe', icon: '🇪🇺' },
+  { id: 'asia_middle_east', label: 'Asia & Middle East', icon: '⛩️' },
+  { id: 'latin_america', label: 'Latin America', icon: '🌎' },
+  { id: 'africa', label: 'Africa', icon: '🌍' },
+  { id: 'oceania', label: 'Oceania', icon: '🦘' }
+];
+
+export function getCityRegion(city: City): CityRegion {
+  const code = city.countryCode.toUpperCase();
+  if (['US', 'CA', 'MX'].includes(code)) return 'north_america';
+  if (['BR', 'AR', 'CO', 'PE', 'CL', 'VE', 'EC', 'UY', 'CU'].includes(code)) return 'latin_america';
+  if (['GB', 'FR', 'DE', 'ES', 'IT', 'NL', 'BE', 'AT', 'CH', 'SE', 'NO', 'DK', 'FI', 'GR', 'TR', 'RU', 'PL', 'IE', 'PT', 'CZ', 'HU', 'UA', 'RO'].includes(code)) return 'europe';
+  if (['JP', 'CN', 'HK', 'SG', 'KR', 'IN', 'PK', 'BD', 'LK', 'NP', 'AE', 'SA', 'QA', 'KW', 'OM', 'TH', 'ID', 'PH', 'TW', 'MY', 'VN', 'IL', 'UZ', 'KZ', 'IQ', 'IR'].includes(code)) return 'asia_middle_east';
+  if (['EG', 'ZA', 'NG', 'KE', 'MA', 'GH', 'ET', 'DZ', 'TN'].includes(code)) return 'africa';
+  if (['AU', 'NZ', 'FJ'].includes(code)) return 'oceania';
+  return 'all';
+}
+
 /**
- * Filter or search cities by query string across name, country, timezone or state
+ * Filter or search cities by query string across name, country, timezone, countryCode or state
  * Fallback to dynamic IANA timezone discovery if specific city is not matched in static list
  */
 export function searchCities(query: string, limit = 25): City[] {
@@ -139,8 +163,10 @@ export function searchCities(query: string, limit = 25): City[] {
     (c) =>
       c.name.toLowerCase().includes(q) ||
       c.country.toLowerCase().includes(q) ||
+      c.countryCode.toLowerCase() === q ||
       (c.state && c.state.toLowerCase().includes(q)) ||
-      c.timezone.toLowerCase().includes(q)
+      c.timezone.toLowerCase().includes(q) ||
+      c.timezone.toLowerCase().replace(/_/g, ' ').includes(q)
   );
 
   if (matchedCities.length >= limit) {
@@ -179,6 +205,41 @@ export function searchCities(query: string, limit = 25): City[] {
   }
 
   return results.slice(0, limit);
+}
+
+/**
+ * Filter cities by both region and search query
+ */
+export function filterCitiesByRegionAndQuery(region: CityRegion, query: string, limit = 50): City[] {
+  let list = MAJOR_CITIES;
+
+  if (region === 'capitals') {
+    list = list.filter((c) => c.isCapital);
+  } else if (region !== 'all') {
+    list = list.filter((c) => getCityRegion(c) === region);
+  }
+
+  if (!query || query.trim() === '') {
+    return list.slice(0, limit);
+  }
+
+  const q = query.toLowerCase().trim();
+  const filtered = list.filter(
+    (c) =>
+      c.name.toLowerCase().includes(q) ||
+      c.country.toLowerCase().includes(q) ||
+      c.countryCode.toLowerCase() === q ||
+      (c.state && c.state.toLowerCase().includes(q)) ||
+      c.timezone.toLowerCase().includes(q) ||
+      c.timezone.toLowerCase().replace(/_/g, ' ').includes(q)
+  );
+
+  if (filtered.length >= limit || region !== 'all') {
+    return filtered.slice(0, limit);
+  }
+
+  // If in 'all' region and results are small, append dynamic IANA search
+  return searchCities(query, limit);
 }
 
 export function getCityById(id: string): City | undefined {

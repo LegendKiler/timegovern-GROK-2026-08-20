@@ -23,6 +23,7 @@ import { Globe, Database, ShieldCheck, Eye, EyeOff, Heart, Mail, Share2, Faceboo
 export default function App() {
   const [activePillar, setActivePillar] = useState<number>(1);
   const [selectedCityFromSearch, setSelectedCityFromSearch] = useState<City | undefined>(undefined);
+  const [primaryCity, setPrimaryCity] = useState<City | undefined>(undefined);
   const [isArchModalOpen, setIsArchModalOpen] = useState<boolean>(false);
   const [isQrModalOpen, setIsQrModalOpen] = useState<boolean>(false);
   const [isAccountModalOpen, setIsAccountModalOpen] = useState<boolean>(false);
@@ -34,6 +35,7 @@ export default function App() {
 
   const handleSelectCity = (city: City) => {
     setSelectedCityFromSearch(city);
+    setPrimaryCity(city);
     setActivePillar(1); // Jump to World Clock view for searched city
   };
 
@@ -62,6 +64,7 @@ export default function App() {
         activePillar={activePillar}
         setActivePillar={setActivePillar}
         onSelectCity={handleSelectCity}
+        primaryCity={primaryCity}
         onOpenArchModal={() => setIsArchModalOpen(true)}
         onOpenQrModal={() => setIsQrModalOpen(true)}
         onOpenAccountModal={() => setIsAccountModalOpen(true)}
@@ -109,7 +112,10 @@ export default function App() {
           {/* Central Main Content across Pillars */}
           <main className="flex-1 w-full min-w-0">
             {activePillar === 1 && (
-              <WorldClockPillar selectedCityFromSearch={selectedCityFromSearch} />
+              <WorldClockPillar 
+                selectedCityFromSearch={selectedCityFromSearch} 
+                onPrimaryCityChange={(city) => setPrimaryCity(city)}
+              />
             )}
             {activePillar === 2 && <CalendarPillar />}
             {activePillar === 3 && <AstronomyPillar />}

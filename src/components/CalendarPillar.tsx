@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   Calendar as CalendarIcon,
   Calculator,
@@ -21,11 +21,50 @@ import {
   CalendarCheck2,
   Zap,
   CheckCircle2,
-  Copy
+  Copy,
+  Download,
+  FileDown,
+  Settings2,
+  CheckSquare,
+  Square,
+  Tag,
+  Bell,
+  BellOff,
+  Volume2,
+  VolumeX,
+  AlertTriangle,
+  Play
 } from 'lucide-react';
 import { getPublicHolidaysForCountry } from '../lib/holidayData';
 import { calculateDaysBetweenDates, addDurationToDate, DateDiffResult } from '../lib/dateCalculators';
 import { PublicHoliday } from '../types';
+import { PdfScheduleModal } from './PdfScheduleModal';
+import { EventAlertBanner } from './EventAlertBanner';
+import { EventNotificationModal } from './EventNotificationModal';
+import { 
+  CustomScheduleEvent, 
+  downloadMonthlyPdfSchedule, 
+  PdfScheduleOptions 
+} from '../lib/pdfScheduleGenerator';
+import {
+  NotificationSettings,
+  DEFAULT_NOTIFICATION_SETTINGS,
+  ActiveAlert,
+  playNotificationChime,
+  dispatchBrowserNotification,
+  parseEventDateTime
+} from '../lib/eventNotifications';
+
+const COUNTRY_NAMES: Record<string, string> = {
+  US: 'United States',
+  GB: 'United Kingdom',
+  CA: 'Canada',
+  AU: 'Australia',
+  JP: 'Japan',
+  DE: 'Germany',
+  FR: 'France',
+  IN: 'India',
+};
 
 export const CalendarPillar: React.FC = () => {
   const [subTab, setSubTab] = useState<'calendar' | 'between' | 'addsub' | 'countdown'>('calendar');
@@ -34,6 +73,221 @@ export const CalendarPillar: React.FC = () => {
   const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
   const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth());
   const [selectedCountryCode, setSelectedCountryCode] = useState<string>('US');
+
+  // PDF Schedule & Custom Events State
+  const [isPdfModalOpen, setIsPdfModalOpen] = useState<boolean>(false);
+  const [pdfDownloaded, setPdfDownloaded] = useState<boolean>(false);
+  const [selectedHolidayDates, setSelectedHolidayDates] = useState<Set<string>>(() => new Set());
+  const [customEvents, setCustomEvents] = useState<CustomScheduleEvent[]>(() => {
+    try {
+      const saved = localStorage.getItem('timegovern_custom_events');
+      if (saved) return JSON.parse(saved);
+    } catch {
+      // ignore
+    }
+    return [
+      {
+        id: 'sample-1',
+        date: `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-15`,
+        title: 'Global Quarterly Review',
+        time: '10:00',
+        category: 'meeting',
+        notes: 'Executive time zone alignment sync'
+      },
+      {
+        id: 'sample-2',
+        date: `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-24`,
+        title: 'Milestone Release v3.0',
+        category: 'milestone',
+        notes: 'Worldwide product rollout'
+      }
+    ];
+  });
+
+  // Save custom events to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem('timegovern_custom_events', JSON.stringify(customEvents));
+    } catch {
+      // ignore
+    }
+  }, [customEvents]);
+
+  // Event Notification State
+  const [notificationSettings, setNotificationSettings] = useState<NotificationSettings>(() => {
+    try {
+      const saved = localStorage.getItem('timegovern_notification_settings');
+      if (saved) return JSON.parse(saved);
+    } catch {
+      // ignore
+    }
+    return DEFAULT_NOTIFICATION_SETTINGS;
+  });
+
+  const [isNotificationModalOpen, setIsNotificationModalOpen] = useState<boolean>(false);
+  const [activeAlerts, setActiveAlerts] = useState<ActiveAlert[]>([]);
+  const [notifiedKeys, setNotifiedKeys] = useState<Set<string>>(() => new Set());
+
+  // Save notification settings to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem('timegovern_notification_settings', JSON.stringify(notificationSettings));
+    } catch {
+      // ignore
+    }
+  }, [notificationSettings]);
+
+  // Periodic alert check for upcoming events
+  useEffect(() => {
+    if (!notificationSettings.enabled) return;
+
+    const checkUpcomingEvents = () => {
+      const now = new Date();
+      const newAlerts: ActiveAlert[] = [];
+      const updatedNotified = new Set(notifiedKeys);
+      let chimePlayed = false;
+
+      // Check custom events
+      customEvents.forEach((evt) => {
+        if (evt.notify === false) return;
+        const evtDate = parseEventDateTime(evt.date, evt.time);
+        const diffMs = evtDate.getTime() - now.getTime();
+        const diffMins = Math.round(diffMs / 60000);
+        const leadMins = evt.remindMinutesBefore ?? notificationSettings.remindMinutes;
+
+        // Trigger if within lead window and not older than 90 mins
+        if (diffMins <= leadMins && diffMins >= -90) {
+          const alertKey = `evt-${evt.id}-${evt.date}`;
+          if (!updatedNotified.has(alertKey)) {
+            updatedNotified.add(alertKey);
+
+            const alertObj: ActiveAlert = {
+              id: alertKey,
+              eventId: evt.id,
+              title: evt.title,
+              date: evt.date,
+              time: evt.time,
+              category: evt.category,
+              notes: evt.notes,
+              minutesRemaining: diffMins,
+              triggeredAt: Date.now(),
+            };
+            newAlerts.push(alertObj);
+
+            if (notificationSettings.browserPush) {
+              const bodyText = evt.time
+                ? `Upcoming at ${evt.time} (${diffMins <= 0 ? 'Starting now' : `in ${diffMins} min`})`
+                : `Calendar event scheduled for today`;
+              dispatchBrowserNotification(`📅 ${evt.title}`, {
+                body: bodyText,
+                tag: alertKey,
+              });
+            }
+
+            if (notificationSettings.soundEnabled && !chimePlayed) {
+              playNotificationChime();
+              chimePlayed = true;
+            }
+          }
+        }
+      });
+
+      // Check today's public holiday observances if enabled
+      if (notificationSettings.notifyHolidays) {
+        const curYearHolidays = getPublicHolidaysForCountry(selectedCountryCode, now.getFullYear());
+        const todayIso = `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')}`;
+        const holidayToday = curYearHolidays.find((h) => h.date === todayIso);
+
+        if (holidayToday) {
+          const holKey = `hol-${holidayToday.countryCode}-${holidayToday.date}`;
+          if (!updatedNotified.has(holKey)) {
+            updatedNotified.add(holKey);
+
+            const holAlert: ActiveAlert = {
+              id: holKey,
+              eventId: holKey,
+              title: holidayToday.name,
+              date: holidayToday.date,
+              category: 'Holiday',
+              notes: `${holidayToday.type} in ${COUNTRY_NAMES[selectedCountryCode] || selectedCountryCode}`,
+              minutesRemaining: 0,
+              triggeredAt: Date.now(),
+              isHoliday: true,
+            };
+            newAlerts.push(holAlert);
+
+            if (notificationSettings.browserPush) {
+              dispatchBrowserNotification(`🎉 ${holidayToday.name}`, {
+                body: `Public Holiday today in ${COUNTRY_NAMES[selectedCountryCode] || selectedCountryCode}`,
+                tag: holKey,
+              });
+            }
+
+            if (notificationSettings.soundEnabled && !chimePlayed) {
+              playNotificationChime();
+              chimePlayed = true;
+            }
+          }
+        }
+      }
+
+      if (newAlerts.length > 0) {
+        setActiveAlerts((prev) => [...newAlerts, ...prev]);
+        setNotifiedKeys(updatedNotified);
+      }
+    };
+
+    checkUpcomingEvents();
+    const interval = setInterval(checkUpcomingEvents, 15000);
+    return () => clearInterval(interval);
+  }, [customEvents, notificationSettings, selectedCountryCode, notifiedKeys]);
+
+  const handleDismissAlert = (id: string) => {
+    setActiveAlerts((prev) => prev.filter((a) => a.id !== id));
+  };
+
+  const handleDismissAllAlerts = () => {
+    setActiveAlerts([]);
+  };
+
+  const handleToggleEventNotify = (eventId: string) => {
+    setCustomEvents((prev) =>
+      prev.map((e) => {
+        if (e.id === eventId) {
+          const current = e.notify !== false;
+          return { ...e, notify: !current };
+        }
+        return e;
+      })
+    );
+  };
+
+  const handleTriggerTestAlert = () => {
+    const testAlert: ActiveAlert = {
+      id: `test-${Date.now()}`,
+      eventId: 'test',
+      title: 'TimeGovern Test Event Alert',
+      date: todayStr,
+      time: '14:30',
+      category: 'meeting',
+      notes: 'Upcoming international alignment session',
+      minutesRemaining: 15,
+      triggeredAt: Date.now(),
+    };
+
+    setActiveAlerts((prev) => [testAlert, ...prev]);
+
+    if (notificationSettings.soundEnabled) {
+      playNotificationChime();
+    }
+
+    if (notificationSettings.browserPush) {
+      dispatchBrowserNotification('🔔 Test Alert: Global Strategy Sync', {
+        body: 'Your upcoming event starts in 15 minutes. Click to view on TimeGovern.',
+        tag: `test-${Date.now()}`,
+      });
+    }
+  };
 
   // Calendar Click-to-Calculate Range State
   const pad = (n: number) => n.toString().padStart(2, '0');
@@ -74,6 +328,77 @@ export const CalendarPillar: React.FC = () => {
   const holidays: PublicHoliday[] = useMemo(() => {
     return getPublicHolidaysForCountry(selectedCountryCode, selectedYear);
   }, [selectedCountryCode, selectedYear]);
+
+  // Sync selected holidays set when holidays change
+  useEffect(() => {
+    setSelectedHolidayDates(new Set(holidays.map((h) => h.date)));
+  }, [holidays]);
+
+  // Holiday Selection Handlers
+  const handleToggleHolidayDate = (dateStr: string) => {
+    setSelectedHolidayDates((prev) => {
+      const next = new Set(prev);
+      if (next.has(dateStr)) {
+        next.delete(dateStr);
+      } else {
+        next.add(dateStr);
+      }
+      return next;
+    });
+  };
+
+  const handleSelectAllHolidays = () => {
+    setSelectedHolidayDates(new Set(holidays.map((h) => h.date)));
+  };
+
+  const handleClearAllHolidays = () => {
+    setSelectedHolidayDates(new Set());
+  };
+
+  // Custom Event Handlers
+  const handleAddCustomEvent = (event: CustomScheduleEvent) => {
+    setCustomEvents((prev) => [...prev, event]);
+  };
+
+  const handleDeleteCustomEvent = (id: string) => {
+    setCustomEvents((prev) => prev.filter((e) => e.id !== id));
+  };
+
+  // Instant 1-Click PDF Download
+  const handleInstantDownloadPdf = () => {
+    try {
+      const monthHolidays = holidays.filter((h) => {
+        const parts = h.date.split('-');
+        return parseInt(parts[0], 10) === selectedYear && parseInt(parts[1], 10) - 1 === selectedMonth;
+      });
+
+      const monthEvents = customEvents.filter((e) => {
+        const parts = e.date.split('-');
+        return parseInt(parts[0], 10) === selectedYear && parseInt(parts[1], 10) - 1 === selectedMonth;
+      });
+
+      const activeHolidays = monthHolidays.filter((h) => selectedHolidayDates.has(h.date));
+
+      const options: PdfScheduleOptions = {
+        year: selectedYear,
+        month: selectedMonth,
+        countryName: COUNTRY_NAMES[selectedCountryCode] || selectedCountryCode,
+        countryCode: selectedCountryCode,
+        selectedHolidays: activeHolidays,
+        customEvents: monthEvents,
+        orientation: 'landscape',
+        includeAgenda: true,
+        includeWeekNumbers: true,
+        startWeekOnMonday: false,
+      };
+
+      downloadMonthlyPdfSchedule(options);
+      setPdfDownloaded(true);
+      setTimeout(() => setPdfDownloaded(false), 3000);
+    } catch (err) {
+      console.error('Failed to download PDF schedule:', err);
+    }
+  };
 
   // Weekend days array based on pattern
   const weekendDays = useMemo(() => {
@@ -474,10 +799,10 @@ export const CalendarPillar: React.FC = () => {
                 </button>
               </div>
 
-              {/* Country Holidays & Print */}
-              <div className="flex items-center gap-3 flex-wrap">
+              {/* Country Holidays, Notifications, PDF Schedule & Print */}
+              <div className="flex items-center gap-2 flex-wrap">
                 <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300">
-                  <Filter className="w-3.5 h-3.5 text-blue-500" /> Country Holidays:
+                  <Filter className="w-3.5 h-3.5 text-blue-500" /> Holidays:
                   <select
                     value={selectedCountryCode}
                     onChange={(e) => setSelectedCountryCode(e.target.value)}
@@ -494,12 +819,66 @@ export const CalendarPillar: React.FC = () => {
                   </select>
                 </div>
 
+                {/* Event Notifications Master Toggle & Settings Button */}
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setNotificationSettings((prev) => ({ ...prev, enabled: !prev.enabled }))
+                    }
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer border ${
+                      notificationSettings.enabled
+                        ? 'bg-amber-500/15 border-amber-500/40 text-amber-700 dark:text-amber-300 hover:bg-amber-500/25 shadow-xs'
+                        : 'bg-slate-100 dark:bg-slate-800/80 border-slate-300 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800'
+                    }`}
+                    title={
+                      notificationSettings.enabled
+                        ? 'Event Reminder Alerts are ACTIVE. Click to mute.'
+                        : 'Event Reminder Alerts are MUTED. Click to enable.'
+                    }
+                  >
+                    {notificationSettings.enabled ? (
+                      <>
+                        <Bell className="w-3.5 h-3.5 text-amber-500 animate-bounce" />
+                        <span>Alerts: On</span>
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                      </>
+                    ) : (
+                      <>
+                        <BellOff className="w-3.5 h-3.5 text-slate-400" />
+                        <span>Alerts: Off</span>
+                      </>
+                    )}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setIsNotificationModalOpen(true)}
+                    className="p-1.5 bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-200 transition-colors cursor-pointer"
+                    title="Configure Notification Timing, Sound Chimes & Browser Push"
+                  >
+                    <Settings2 className="w-4 h-4 text-slate-500 dark:text-slate-400" />
+                  </button>
+                </div>
+
+                {/* Primary Download PDF Schedule Button */}
+                <button
+                  type="button"
+                  onClick={() => setIsPdfModalOpen(true)}
+                  className="px-3.5 py-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-extrabold rounded-lg shadow-sm flex items-center gap-1.5 transition-all cursor-pointer ring-1 ring-blue-400/30"
+                  title="Generate & Download a printable PDF Calendar Month View with selected holidays & custom events"
+                >
+                  <FileDown className="w-3.5 h-3.5" />
+                  <span>Download PDF Schedule</span>
+                </button>
+
                 <button
                   type="button"
                   onClick={() => window.print()}
-                  className="px-3 py-1 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-800 dark:text-slate-100 text-xs font-medium rounded-lg flex items-center gap-1 transition-colors cursor-pointer"
+                  className="px-2.5 py-1.5 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-800 dark:text-slate-100 text-xs font-medium rounded-lg flex items-center gap-1 transition-colors cursor-pointer"
+                  title="Print Current Web Layout"
                 >
-                  <Printer className="w-3.5 h-3.5" /> Print Layout
+                  <Printer className="w-3.5 h-3.5" />
                 </button>
               </div>
             </div>
@@ -562,6 +941,7 @@ export const CalendarPillar: React.FC = () => {
 
                     const isoStr = `${selectedYear}-${pad(selectedMonth + 1)}-${pad(d)}`;
                     const isHoliday = holidays.find((h) => h.date === isoStr);
+                    const dayCustomEvents = customEvents.filter((e) => e.date === isoStr);
                     const isToday =
                       new Date().getFullYear() === selectedYear &&
                       new Date().getMonth() === selectedMonth &&
@@ -616,12 +996,25 @@ export const CalendarPillar: React.FC = () => {
                         {/* Holiday badge */}
                         {isHoliday && (
                           <span className="block text-[8px] truncate max-w-full font-semibold mt-1 px-1 rounded bg-amber-200/50 dark:bg-amber-900/60 text-amber-900 dark:text-amber-200">
-                            {isHoliday.name}
+                            ★ {isHoliday.name}
                           </span>
                         )}
 
+                        {/* Custom Event badges */}
+                        {dayCustomEvents.map((evt) => (
+                          <span
+                            key={evt.id}
+                            className="block text-[8px] truncate max-w-full font-semibold mt-0.5 px-1 rounded bg-blue-100 dark:bg-blue-900/70 text-blue-800 dark:text-blue-200 border border-blue-300 dark:border-blue-700/60 flex items-center justify-between gap-0.5"
+                          >
+                            <span className="truncate">• {evt.title}</span>
+                            {evt.notify !== false && notificationSettings.enabled && (
+                              <Bell className="w-2 h-2 text-amber-500 shrink-0" />
+                            )}
+                          </span>
+                        ))}
+
                         {/* Weekend label */}
-                        {(dayOfWeek === 0 || dayOfWeek === 6) && !isHoliday && (
+                        {(dayOfWeek === 0 || dayOfWeek === 6) && !isHoliday && dayCustomEvents.length === 0 && (
                           <span className="text-[7px] text-slate-400 dark:text-slate-500 uppercase">
                             {dayOfWeek === 0 ? 'SUN' : 'SAT'}
                           </span>
@@ -635,31 +1028,91 @@ export const CalendarPillar: React.FC = () => {
               </div>
             </div>
 
-            {/* Public Holiday List for Selected Country */}
-            <div className="bg-slate-50 dark:bg-slate-800/50 p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-slate-700">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 mb-3 flex items-center gap-1.5">
-                <Filter className="w-3.5 h-3.5 text-blue-500" />
-                <span>{selectedYear} Public Holidays & Observances ({selectedCountryCode})</span>
-              </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5 text-xs">
-                {holidays.map((h, i) => (
-                  <div
-                    key={i}
-                    onClick={() => handleCalendarDayClick(h.date)}
-                    className="bg-white dark:bg-slate-900 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 flex justify-between items-center hover:border-blue-400 transition-colors cursor-pointer"
-                    title="Click to measure to/from this holiday"
+            {/* Public Holiday List for Selected Country & PDF Schedule Checklist */}
+            <div className="bg-slate-50 dark:bg-slate-800/50 p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 dark:border-slate-700 pb-3">
+                <div>
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                    <Filter className="w-3.5 h-3.5 text-blue-500" />
+                    <span>{selectedYear} Public Holidays & Observances ({selectedCountryCode})</span>
+                  </h3>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                    Click checkboxes to include or exclude specific holidays from your downloadable PDF schedule.
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2 flex-wrap">
+                  <button
+                    type="button"
+                    onClick={handleSelectAllHolidays}
+                    className="px-2.5 py-1 text-xs font-semibold bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 rounded-lg border border-slate-300 dark:border-slate-700 hover:bg-blue-50 transition-colors cursor-pointer"
                   >
-                    <div>
-                      <span className="font-semibold block text-slate-900 dark:text-slate-100 truncate max-w-44">
-                        {h.name}
+                    Select All
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleClearAllHolidays}
+                    className="px-2.5 py-1 text-xs font-semibold bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 rounded-lg border border-slate-300 dark:border-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+                  >
+                    Clear All
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setIsPdfModalOpen(true)}
+                    className="px-3 py-1 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-lg shadow-xs flex items-center gap-1.5 cursor-pointer transition-colors"
+                  >
+                    <FileDown className="w-3.5 h-3.5" />
+                    <span>Configure & Download PDF</span>
+                  </button>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5 text-xs">
+                {holidays.map((h, i) => {
+                  const isSelectedForPdf = selectedHolidayDates.has(h.date);
+                  return (
+                    <div
+                      key={i}
+                      className={`p-2.5 rounded-xl border flex justify-between items-center transition-all ${
+                        isSelectedForPdf
+                          ? 'bg-white dark:bg-slate-900 border-blue-300 dark:border-blue-700/80 shadow-xs'
+                          : 'bg-slate-100/60 dark:bg-slate-900/40 border-slate-200 dark:border-slate-800 opacity-60'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2 min-w-0">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleToggleHolidayDate(h.date);
+                          }}
+                          className="text-blue-600 dark:text-blue-400 hover:scale-110 transition-transform cursor-pointer p-0.5"
+                          title={isSelectedForPdf ? 'Remove from PDF Schedule' : 'Include in PDF Schedule'}
+                        >
+                          {isSelectedForPdf ? (
+                            <CheckSquare className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                          ) : (
+                            <Square className="w-4 h-4 text-slate-400" />
+                          )}
+                        </button>
+                        <div 
+                          onClick={() => handleCalendarDayClick(h.date)}
+                          className="cursor-pointer min-w-0"
+                          title="Click to measure to/from this holiday"
+                        >
+                          <span className="font-semibold block text-slate-900 dark:text-slate-100 truncate max-w-36">
+                            {h.name}
+                          </span>
+                          <span className="text-[10px] text-slate-500 font-mono">{h.date}</span>
+                        </div>
+                      </div>
+
+                      <span className="text-[9px] bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 font-bold px-1.5 py-0.5 rounded shrink-0">
+                        {h.type}
                       </span>
-                      <span className="text-[10px] text-slate-500 font-mono">{h.date}</span>
                     </div>
-                    <span className="text-[9px] bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 font-bold px-1.5 py-0.5 rounded">
-                      {h.type}
-                    </span>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           </div>
@@ -1025,6 +1478,54 @@ export const CalendarPillar: React.FC = () => {
             </div>
           </div>
         )}
+
+        {/* PDF Schedule Customizer & Download Modal */}
+        <PdfScheduleModal
+          isOpen={isPdfModalOpen}
+          onClose={() => setIsPdfModalOpen(false)}
+          year={selectedYear}
+          month={selectedMonth}
+          countryName={COUNTRY_NAMES[selectedCountryCode] || selectedCountryCode}
+          countryCode={selectedCountryCode}
+          allHolidays={holidays}
+          selectedHolidayDates={selectedHolidayDates}
+          onToggleHolidayDate={handleToggleHolidayDate}
+          onSelectAllHolidays={handleSelectAllHolidays}
+          onClearAllHolidays={handleClearAllHolidays}
+          customEvents={customEvents}
+          onAddCustomEvent={handleAddCustomEvent}
+          onDeleteCustomEvent={handleDeleteCustomEvent}
+        />
+
+        {/* Floating Active Event Notification Banner */}
+        <EventAlertBanner
+          alerts={activeAlerts}
+          onDismiss={handleDismissAlert}
+          onDismissAll={handleDismissAllAlerts}
+          soundEnabled={notificationSettings.soundEnabled}
+          onToggleSound={() =>
+            setNotificationSettings((s) => ({ ...s, soundEnabled: !s.soundEnabled }))
+          }
+          onJumpToDate={(dateStr) => {
+            const [y, m] = dateStr.split('-').map(Number);
+            if (!isNaN(y) && !isNaN(m)) {
+              setSelectedYear(y);
+              setSelectedMonth(m - 1);
+              setCalRangeStart(dateStr);
+            }
+          }}
+        />
+
+        {/* Event Notification Settings & Test Dialog */}
+        <EventNotificationModal
+          isOpen={isNotificationModalOpen}
+          onClose={() => setIsNotificationModalOpen(false)}
+          settings={notificationSettings}
+          onUpdateSettings={setNotificationSettings}
+          customEvents={customEvents}
+          onToggleEventNotify={handleToggleEventNotify}
+          onTriggerTestAlert={handleTriggerTestAlert}
+        />
       </div>
     </div>
   );
