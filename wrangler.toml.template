@@ -1,0 +1,40 @@
+name = "timegovern-website"
+main = "dist-worker/index.js"
+compatibility_date = "2026-03-01"
+compatibility_flags = ["nodejs_compat"]
+workers_dev = true
+
+# ==============================================================================
+# Security & SSL/TLS Configuration for timegovern.com
+# ==============================================================================
+always_use_https = true
+min_tls_version = "1.3"
+
+# Custom Domain Route Configuration (.com)
+# custom_domain = true automatically manages DNS and provisions Edge SSL certificates in Cloudflare
+routes = [
+  { pattern = "timegovern.com", custom_domain = true },
+  { pattern = "www.timegovern.com", custom_domain = true }
+]
+
+# Static Asset Serving (Vite SPA Build)
+[assets]
+directory = "./dist"
+binding = "ASSETS"
+
+# Cloudflare D1 Relational Database Binding
+[[d1_databases]]
+binding = "DB"
+database_name = "zoneshift-db"
+database_id = "5de2ee4a-6d29-45d5-8fc6-c33fa6a24aa9"
+migrations_dir = "migrations"
+
+# Environment Variables
+[vars]
+ENVIRONMENT = "production"
+ENABLE_EDGE_CACHE = "true"
+HSTS_MAX_AGE = "31536000"
+
+# Production Build Command
+[build]
+command = "npm run build"
