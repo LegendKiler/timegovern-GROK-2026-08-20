@@ -1,27 +1,33 @@
-import React, { useState } from 'react';
+import React, { useState, Suspense, lazy } from 'react';
 import { Header } from './components/Header';
-import { WorldClockPillar } from './components/WorldClockPillar';
-import { CalendarPillar } from './components/CalendarPillar';
-import { AstronomyPillar } from './components/AstronomyPillar';
-import { WeatherPillar } from './components/WeatherPillar';
-import { TimersPillar } from './components/TimersPillar';
-import { WorldometersPillar } from './components/WorldometersPillar';
-import { WidgetsPillar } from './components/WidgetsPillar';
-import { EnterpriseServicesPillar } from './components/EnterpriseServicesPillar';
-import { NewsPillar } from './components/NewsPillar';
-import { CalculatorsPillar } from './components/CalculatorsPillar';
-import { CompanyPillar } from './components/CompanyPillar';
-import { ArchitectureModal } from './components/ArchitectureModal';
-import { QrModal } from './components/QrModal';
-import { UserAccountModal } from './components/UserAccountModal';
-import { SecurityTrustModal } from './components/SecurityTrustModal';
-import { TemplateGalleryModal, TemplateTheme } from './components/TemplateGalleryModal';
 import { AdBanner } from './components/AdBanner';
-import { KeyboardShortcutsModal } from './components/KeyboardShortcutsModal';
 import { ShortcutToast } from './components/ShortcutToast';
+import { PillarLoader } from './components/PillarLoader';
 import { useGlobalShortcuts } from './hooks/useGlobalShortcuts';
 import { City } from './types';
+import type { TemplateTheme } from './components/TemplateGalleryModal';
 import { Globe, Database, ShieldCheck, Eye, EyeOff, Heart, Mail, Share2, Facebook, Twitter, Linkedin, Instagram, Youtube, Keyboard } from 'lucide-react';
+
+// Dynamic Lazy Chunk Imports for Major Component Pillars
+const WorldClockPillar = lazy(() => import('./components/WorldClockPillar').then(m => ({ default: m.WorldClockPillar })));
+const CalendarPillar = lazy(() => import('./components/CalendarPillar').then(m => ({ default: m.CalendarPillar })));
+const AstronomyPillar = lazy(() => import('./components/AstronomyPillar').then(m => ({ default: m.AstronomyPillar })));
+const WeatherPillar = lazy(() => import('./components/WeatherPillar').then(m => ({ default: m.WeatherPillar })));
+const TimersPillar = lazy(() => import('./components/TimersPillar').then(m => ({ default: m.TimersPillar })));
+const WorldometersPillar = lazy(() => import('./components/WorldometersPillar').then(m => ({ default: m.WorldometersPillar })));
+const WidgetsPillar = lazy(() => import('./components/WidgetsPillar').then(m => ({ default: m.WidgetsPillar })));
+const EnterpriseServicesPillar = lazy(() => import('./components/EnterpriseServicesPillar').then(m => ({ default: m.EnterpriseServicesPillar })));
+const NewsPillar = lazy(() => import('./components/NewsPillar').then(m => ({ default: m.NewsPillar })));
+const CalculatorsPillar = lazy(() => import('./components/CalculatorsPillar').then(m => ({ default: m.CalculatorsPillar })));
+const CompanyPillar = lazy(() => import('./components/CompanyPillar').then(m => ({ default: m.CompanyPillar })));
+
+// Dynamic Lazy Chunk Imports for Modals
+const ArchitectureModal = lazy(() => import('./components/ArchitectureModal').then(m => ({ default: m.ArchitectureModal })));
+const QrModal = lazy(() => import('./components/QrModal').then(m => ({ default: m.QrModal })));
+const UserAccountModal = lazy(() => import('./components/UserAccountModal').then(m => ({ default: m.UserAccountModal })));
+const SecurityTrustModal = lazy(() => import('./components/SecurityTrustModal').then(m => ({ default: m.SecurityTrustModal })));
+const TemplateGalleryModal = lazy(() => import('./components/TemplateGalleryModal').then(m => ({ default: m.TemplateGalleryModal })));
+const KeyboardShortcutsModal = lazy(() => import('./components/KeyboardShortcutsModal').then(m => ({ default: m.KeyboardShortcutsModal })));
 
 export default function App() {
   const [activePillar, setActivePillar] = useState<number>(1);
@@ -148,22 +154,24 @@ export default function App() {
 
           {/* Central Main Content across Pillars */}
           <main className="flex-1 w-full min-w-0">
-            {activePillar === 1 && (
-              <WorldClockPillar 
-                selectedCityFromSearch={selectedCityFromSearch} 
-                onPrimaryCityChange={(city) => setPrimaryCity(city)}
-              />
-            )}
-            {activePillar === 2 && <CalendarPillar />}
-            {activePillar === 3 && <AstronomyPillar />}
-            {activePillar === 4 && <WeatherPillar />}
-            {activePillar === 5 && <TimersPillar />}
-            {activePillar === 6 && <WorldometersPillar />}
-            {activePillar === 7 && <WidgetsPillar />}
-            {activePillar === 8 && <EnterpriseServicesPillar />}
-            {activePillar === 9 && <NewsPillar />}
-            {activePillar === 10 && <CalculatorsPillar />}
-            {activePillar === 11 && <CompanyPillar onNavigatePillar={setActivePillar} />}
+            <Suspense fallback={<PillarLoader pillarNumber={activePillar} isDarkMode={isDarkMode} />}>
+              {activePillar === 1 && (
+                <WorldClockPillar 
+                  selectedCityFromSearch={selectedCityFromSearch} 
+                  onPrimaryCityChange={(city) => setPrimaryCity(city)}
+                />
+              )}
+              {activePillar === 2 && <CalendarPillar />}
+              {activePillar === 3 && <AstronomyPillar />}
+              {activePillar === 4 && <WeatherPillar />}
+              {activePillar === 5 && <TimersPillar />}
+              {activePillar === 6 && <WorldometersPillar />}
+              {activePillar === 7 && <WidgetsPillar />}
+              {activePillar === 8 && <EnterpriseServicesPillar />}
+              {activePillar === 9 && <NewsPillar />}
+              {activePillar === 10 && <CalculatorsPillar />}
+              {activePillar === 11 && <CompanyPillar onNavigatePillar={setActivePillar} />}
+            </Suspense>
           </main>
 
           {/* Right Skyscraper Ad Rail */}
@@ -304,70 +312,85 @@ export default function App() {
         </div>
       </footer>
 
-      {/* Architecture Documentation Modal */}
-      <ArchitectureModal
-        isOpen={isArchModalOpen}
-        onClose={() => setIsArchModalOpen(false)}
-      />
+      {/* Dynamic Lazy Loaded Modals */}
+      <Suspense fallback={null}>
+        {/* Architecture Documentation Modal */}
+        {isArchModalOpen && (
+          <ArchitectureModal
+            isOpen={isArchModalOpen}
+            onClose={() => setIsArchModalOpen(false)}
+          />
+        )}
 
-      {/* Mobile QR Code Modal */}
-      <QrModal
-        isOpen={isQrModalOpen}
-        onClose={() => setIsQrModalOpen(false)}
-      />
+        {/* Mobile QR Code Modal */}
+        {isQrModalOpen && (
+          <QrModal
+            isOpen={isQrModalOpen}
+            onClose={() => setIsQrModalOpen(false)}
+          />
+        )}
 
-      {/* User Account & Cloud Sync Modal */}
-      <UserAccountModal
-        isOpen={isAccountModalOpen}
-        onClose={() => setIsAccountModalOpen(false)}
-      />
+        {/* User Account & Cloud Sync Modal */}
+        {isAccountModalOpen && (
+          <UserAccountModal
+            isOpen={isAccountModalOpen}
+            onClose={() => setIsAccountModalOpen(false)}
+          />
+        )}
 
-      {/* Security & Trust Center Modal */}
-      <SecurityTrustModal
-        isOpen={isSecurityModalOpen}
-        onClose={() => setIsSecurityModalOpen(false)}
-      />
+        {/* Security & Trust Center Modal */}
+        {isSecurityModalOpen && (
+          <SecurityTrustModal
+            isOpen={isSecurityModalOpen}
+            onClose={() => setIsSecurityModalOpen(false)}
+          />
+        )}
 
-      {/* Template Gallery Showcase Modal */}
-      <TemplateGalleryModal
-        isOpen={isTemplateGalleryOpen}
-        onClose={() => setIsTemplateGalleryOpen(false)}
-        currentTheme={templateTheme}
-        onSelectTheme={(theme) => {
-          setTemplateTheme(theme);
-          setIsTemplateGalleryOpen(false);
-        }}
-      />
+        {/* Template Gallery Showcase Modal */}
+        {isTemplateGalleryOpen && (
+          <TemplateGalleryModal
+            isOpen={isTemplateGalleryOpen}
+            onClose={() => setIsTemplateGalleryOpen(false)}
+            currentTheme={templateTheme}
+            onSelectTheme={(theme) => {
+              setTemplateTheme(theme);
+              setIsTemplateGalleryOpen(false);
+            }}
+          />
+        )}
 
-      {/* Global Keyboard Shortcuts Cheatsheet Modal */}
-      <KeyboardShortcutsModal
-        isOpen={isShortcutsModalOpen}
-        onClose={() => setIsShortcutsModalOpen(false)}
-        onSelectPillar={(pillar) => {
-          setActivePillar(pillar);
-          setIsShortcutsModalOpen(false);
-        }}
-        onFocusSearch={() => {
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-          const input = document.querySelector('input[placeholder*="Search global city"]') as HTMLInputElement;
-          input?.focus();
-        }}
-        onToggleDarkMode={() => setIsDarkMode((prev) => !prev)}
-        onCycleTheme={() => {
-          const themes: TemplateTheme[] = ['swiss-quartz', 'stripe-corporate', 'emerald-precision', 'editorial-classic'];
-          setTemplateTheme((current) => {
-            const nextIdx = (themes.indexOf(current) + 1) % themes.length;
-            return themes[nextIdx];
-          });
-        }}
-        onOpenSecurityModal={() => setIsSecurityModalOpen(true)}
-        onOpenQrModal={() => setIsQrModalOpen(true)}
-        onOpenAccountModal={() => setIsAccountModalOpen(true)}
-        onOpenArchModal={() => setIsArchModalOpen(true)}
-        onToggleAds={() => setShowAds((prev) => !prev)}
-        isMac={isMac}
-        activePillar={activePillar}
-      />
+        {/* Global Keyboard Shortcuts Cheatsheet Modal */}
+        {isShortcutsModalOpen && (
+          <KeyboardShortcutsModal
+            isOpen={isShortcutsModalOpen}
+            onClose={() => setIsShortcutsModalOpen(false)}
+            onSelectPillar={(pillar) => {
+              setActivePillar(pillar);
+              setIsShortcutsModalOpen(false);
+            }}
+            onFocusSearch={() => {
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+              const input = document.querySelector('input[placeholder*="Search global city"]') as HTMLInputElement;
+              input?.focus();
+            }}
+            onToggleDarkMode={() => setIsDarkMode((prev) => !prev)}
+            onCycleTheme={() => {
+              const themes: TemplateTheme[] = ['swiss-quartz', 'stripe-corporate', 'emerald-precision', 'editorial-classic'];
+              setTemplateTheme((current) => {
+                const nextIdx = (themes.indexOf(current) + 1) % themes.length;
+                return themes[nextIdx];
+              });
+            }}
+            onOpenSecurityModal={() => setIsSecurityModalOpen(true)}
+            onOpenQrModal={() => setIsQrModalOpen(true)}
+            onOpenAccountModal={() => setIsAccountModalOpen(true)}
+            onOpenArchModal={() => setIsArchModalOpen(true)}
+            onToggleAds={() => setShowAds((prev) => !prev)}
+            isMac={isMac}
+            activePillar={activePillar}
+          />
+        )}
+      </Suspense>
 
       {/* Tactile Shortcut Toast HUD */}
       <ShortcutToast feedback={shortcutFeedback} />
