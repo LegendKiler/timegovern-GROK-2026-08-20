@@ -260,6 +260,26 @@ Allow: /`;
       });
     }
 
+    // Security Policy: .well-known/security.txt
+    if (url.pathname === '/.well-known/security.txt' || url.pathname === '/security.txt') {
+      const securityTxt = `Contact: mailto:security@timegovern.com
+Expires: 2028-12-31T23:59:59.000Z
+Preferred-Languages: en
+Canonical: https://timegovern.com/.well-known/security.txt
+Policy: https://timegovern.com/security
+Acknowledgments: https://timegovern.com/hall-of-fame
+Hiring: https://timegovern.com/careers
+`;
+      return new Response(securityTxt, {
+        status: 200,
+        headers: {
+          'Content-Type': 'text/plain; charset=utf-8',
+          'Cache-Control': 'public, max-age=86400',
+          ...securityHeaders,
+        },
+      });
+    }
+
     // SEO Crawlers: sitemap.xml
     if (url.pathname === '/sitemap.xml') {
       const sitemapXml = `<?xml version="1.0" encoding="UTF-8"?>

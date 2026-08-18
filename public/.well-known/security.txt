@@ -1,0 +1,8 @@
+Contact: mailto:security@timegovern.com
+Expires: 2028-12-31T23:59:59.000Z
+Preferred-Languages: en
+Canonical: https://timegovern.com/.well-known/security.txt
+Policy: https://timegovern.com/security
+Acknowledgments: https://timegovern.com/hall-of-fame
+Hiring: https://timegovern.com/careers
+Encryption: https://timegovern.com/pgp-key.txt
