@@ -60,11 +60,11 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: deploy -c wrangler.toml
 
-      - name: Auto-Configure Cloudflare Domain Security & HTTPS
+      - name: Auto-Configure Cloudflare Domain Security, Custom Domains & HTTPS
         if: steps.check_credentials.outputs.has_token == 'true'
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           DOMAIN: timegovern.com
         run: |
-          node scripts/setup-cloudflare.js || true
+          node scripts/cloudflare-auto-fix.js || true
 
