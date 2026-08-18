@@ -5,9 +5,10 @@ compatibility_flags = ["nodejs_compat"]
 workers_dev = true
 
 # Custom Domain Route Configuration (.com)
+# custom_domain = true automatically manages DNS and provisions Edge SSL certificates in Cloudflare
 routes = [
-  { pattern = "timegovern.com/*", zone_name = "timegovern.com" },
-  { pattern = "www.timegovern.com/*", zone_name = "timegovern.com" }
+  { pattern = "timegovern.com", custom_domain = true },
+  { pattern = "www.timegovern.com", custom_domain = true }
 ]
 
 [assets]

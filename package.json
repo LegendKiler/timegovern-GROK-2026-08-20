@@ -13,6 +13,7 @@
     "cf:cleanup": "npx wrangler delete timegovern-site2 --force || true",
     "cf:migrate": "npx wrangler d1 migrations apply zoneshift-db --remote -c wrangler.toml --batch",
     "cf:deploy": "npm run build && npm run cf:migrate && npx wrangler deploy -c wrangler.toml",
+    "cf:config": "node scripts/setup-cloudflare.js",
     "setup:all": "npm run build && npm run cf:cleanup && npm run cf:migrate && npm run cf:deploy",
     "deploy": "npm run build && wrangler deploy -c wrangler.toml"
   },
