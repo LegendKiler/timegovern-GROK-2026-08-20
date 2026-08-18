@@ -121,7 +121,7 @@ async function run() {
     // --------------------------------------------------------------------------
     console.log('\n🗄️ [4/6] Synchronizing Cloudflare D1 Database Schema...');
     try {
-      execSync('npx wrangler d1 migrations apply zoneshift-db --remote -c wrangler.toml --batch', {
+      execSync('npx wrangler d1 migrations apply zoneshift-db --remote -c wrangler.toml', {
         stdio: 'inherit',
         env: { ...process.env, CLOUDFLARE_API_TOKEN: API_TOKEN, CLOUDFLARE_ACCOUNT_ID: accountId }
       });
