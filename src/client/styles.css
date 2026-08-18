@@ -1,0 +1,112 @@
+@import "tailwindcss";
+
+/* ==========================================================================
+   timeanddate.com Classic Design System Tokens for TimeGovern
+   ========================================================================== */
+
+:root {
+  --tad-navy-header: #0f2942;
+  --tad-navy-active: #1b436c;
+  --tad-navy-hover: #23527c;
+  --tad-gold-action: #f9a825;
+  --tad-gold-hover: #f57f17;
+  --tad-canvas-bg: #f2f5f8;
+  --tad-card-border: #d9e2ec;
+  --tad-text-navy: #102a43;
+  --tad-text-muted: #627d98;
+  --tad-link-blue: #0056b3;
+  --tad-green-work: #10b981;
+  --tad-amber-warn: #f59e0b;
+}
+
+body {
+  background-color: var(--tad-canvas-bg);
+  color: var(--tad-text-navy);
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5, h6, .font-display {
+  font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
+}
+
+.font-mono, code, pre, .clock-digits {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* timeanddate.com Classic Table Styling */
+.tad-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 12px;
+}
+
+.tad-table th {
+  background-color: #0f2942;
+  color: #ffffff;
+  font-weight: 700;
+  padding: 8px 12px;
+  text-align: left;
+  font-family: 'Outfit', sans-serif;
+}
+
+.tad-table td {
+  padding: 7px 12px;
+  border-bottom: 1px solid #e2e8f0;
+  color: #102a43;
+}
+
+.tad-table tr:nth-child(even) td {
+  background-color: #f8fafc;
+}
+
+.tad-table tr:hover td {
+  background-color: #eff6ff;
+}
+
+/* Gold Action Search Button */
+.tad-btn-search {
+  background-color: #f9a825;
+  color: #0f2942;
+  font-weight: 700;
+  transition: all 0.15s ease;
+}
+
+.tad-btn-search:hover {
+  background-color: #f57f17;
+}
+
+/* Micro Shimmer & Animations */
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes indeterminate {
+  0% {
+    transform: translateX(-100%);
+  }
+  50% {
+    transform: translateX(100%);
+  }
+  100% {
+    transform: translateX(300%);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
