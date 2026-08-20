@@ -1,7 +1,7 @@
 /**
- * Free Live News API – No paid keys required
- * Sources: Google News RSS, BBC, Reuters, The Guardian, NPR
- * Keeps the same GroundedArticle shape so NewsPillar UI works unchanged.
+ * TimeGovern Free Live News v2
+ * Multi-source public RSS – no API keys required
+ * Sources: Google News, BBC, Guardian, NPR, Reuters, AP, Smithsonian, Space.com-style science feeds
  */
 
 export interface GroundedArticle {
@@ -21,6 +21,7 @@ export interface GroundedArticle {
   publisher: string;
   groundingSources?: Array<{ title: string; url: string }>;
   verifiedGrounding?: boolean;
+  pubTimestamp?: number;
 }
 
 export interface NewsResponsePayload {
@@ -40,77 +41,132 @@ interface CacheEntry {
   payload: NewsResponsePayload;
 }
 const newsCache = new Map<string, CacheEntry>();
-const CACHE_TTL_MS = 60 * 1000; // 60 seconds – feels live
+const CACHE_TTL_MS = 45 * 1000; // 45s – fresher live feel
 
-// ---------- Free RSS feeds ----------
 const RSS_FEEDS = [
   {
     name: 'Google News – Time & Astronomy',
-    url: 'https://news.google.com/rss/search?q=time+zone+OR+astronomy+OR+%22leap+second%22+OR+%22daylight+saving%22+OR+UTC+OR+metrology&hl=en-US&gl=US&ceid=US:en',
+    url: 'https://news.google.com/rss/search?q=%22time+zone%22+OR+astronomy+OR+%22leap+second%22+OR+%22daylight+saving%22+OR+UTC+OR+metrology+OR+eclipse&hl=en-US&gl=US&ceid=US:en',
     publisher: 'Google News',
     category: 'timezones' as const,
+    max: 8,
+  },
+  {
+    name: 'Google News – Space',
+    url: 'https://news.google.com/rss/search?q=NASA+OR+space+OR+astronomy+OR+eclipse+OR+meteor&hl=en-US&gl=US&ceid=US:en',
+    publisher: 'Google News Space',
+    category: 'astronomy' as const,
+    max: 6,
   },
   {
     name: 'Google News – World',
     url: 'https://news.google.com/rss?hl=en-US&gl=US&ceid=US:en',
     publisher: 'Google News',
     category: 'world' as const,
+    max: 8,
   },
   {
     name: 'BBC World',
     url: 'https://feeds.bbci.co.uk/news/world/rss.xml',
     publisher: 'BBC News',
     category: 'world' as const,
+    max: 8,
   },
   {
     name: 'BBC Science',
     url: 'https://feeds.bbci.co.uk/news/science_and_environment/rss.xml',
     publisher: 'BBC Science',
     category: 'astronomy' as const,
+    max: 6,
+  },
+  {
+    name: 'BBC Technology',
+    url: 'https://feeds.bbci.co.uk/news/technology/rss.xml',
+    publisher: 'BBC Technology',
+    category: 'technology' as const,
+    max: 5,
   },
   {
     name: 'The Guardian World',
     url: 'https://www.theguardian.com/world/rss',
     publisher: 'The Guardian',
     category: 'world' as const,
+    max: 6,
+  },
+  {
+    name: 'The Guardian Science',
+    url: 'https://www.theguardian.com/science/rss',
+    publisher: 'The Guardian Science',
+    category: 'astronomy' as const,
+    max: 5,
   },
   {
     name: 'NPR News',
     url: 'https://feeds.npr.org/1001/rss.xml',
     publisher: 'NPR',
     category: 'world' as const,
+    max: 6,
+  },
+  {
+    name: 'NPR Science',
+    url: 'https://feeds.npr.org/1007/rss.xml',
+    publisher: 'NPR Science',
+    category: 'astronomy' as const,
+    max: 5,
+  },
+  {
+    name: 'Reuters World',
+    url: 'https://www.reutersagency.com/feed/?taxonomy=best-topics&post_type=best',
+    publisher: 'Reuters',
+    category: 'world' as const,
+    max: 5,
+  },
+  {
+    name: 'NASA Breaking News',
+    url: 'https://www.nasa.gov/rss/dyn/breaking_news.rss',
+    publisher: 'NASA',
+    category: 'astronomy' as const,
+    max: 6,
+  },
+  {
+    name: 'ESA Space News',
+    url: 'https://www.esa.int/rssfeed/topNews',
+    publisher: 'ESA',
+    category: 'astronomy' as const,
+    max: 4,
   },
 ];
 
-// Curated fallback (shown only if all RSS fail)
 const FALLBACK_ARTICLES: GroundedArticle[] = [
   {
     id: 'fallback-1',
-    title: 'Global Timekeeping & Astronomy Update',
-    category: 'timezones',
+    title: 'TimeGovern Live News – Connecting to free public feeds',
+    category: 'world',
     date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
     timeAgo: 'Just now',
-    author: 'TimeGovern Editorial',
+    author: 'TimeGovern',
     publisher: 'TimeGovern',
-    readTime: '2 min read',
+    readTime: '1 min read',
     featured: true,
-    summary: 'Live free news feeds are temporarily unavailable. Showing curated time & astronomy context.',
-    content: 'TimeGovern aggregates free public RSS feeds from Google News, BBC, Reuters-style sources, The Guardian and NPR. When connectivity is restored the live feed returns automatically.',
-    keyTakeaways: ['Free multi-source RSS', 'No paid API keys required', 'Auto-refreshes every minute'],
-    imageUrl: 'https://images.unsplash.com/photo-1508962914676-134849a727f0?auto=format&fit=crop&w=1200&q=80',
+    summary: 'Live RSS feeds are temporarily unreachable. The system will retry automatically.',
+    content: 'TimeGovern aggregates free public RSS from Google News, BBC, Guardian, NPR, NASA, ESA and more. No paid API keys are required.',
+    keyTakeaways: ['Free multi-source RSS', 'Auto-refresh every 45s', 'No paid APIs'],
+    imageUrl: 'https://images.unsplash.com/photo-1504711434719-226ed3222c1d?auto=format&fit=crop&w=1200&q=80',
     sourceUrl: 'https://timegovern.com',
     verifiedGrounding: false,
+    pubTimestamp: Date.now(),
   },
 ];
 
-// ---------- Helpers ----------
 function timeAgo(dateStr: string): string {
   try {
     const d = new Date(dateStr);
     const sec = Math.floor((Date.now() - d.getTime()) / 1000);
+    if (Number.isNaN(sec) || sec < 0) return 'Recently';
     if (sec < 60) return 'Just now';
     if (sec < 3600) return `${Math.floor(sec / 60)} min ago`;
     if (sec < 86400) return `${Math.floor(sec / 3600)} hours ago`;
+    if (sec < 172800) return '1 day ago';
     return `${Math.floor(sec / 86400)} days ago`;
   } catch {
     return 'Recently';
@@ -120,23 +176,37 @@ function timeAgo(dateStr: string): string {
 function stripHtml(html: string): string {
   return html
     .replace(/<[^>]+>/g, ' ')
-    .replace(/&nbsp;/g, ' ')
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&amp;/gi, '&')
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>')
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;/gi, "'")
+    .replace(/&#\d+;/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
 }
 
+function extractImage(block: string, description: string): string | null {
+  // media:content / enclosure
+  const media =
+    block.match(/url=["'](https?:\/\/[^"']+\.(?:jpg|jpeg|png|webp|gif)[^"']*)["']/i) ||
+    block.match(/<media:content[^>]+url=["']([^"']+)["']/i) ||
+    block.match(/<enclosure[^>]+url=["']([^"']+)["']/i) ||
+    description.match(/(https?:\/\/[^\s"'<>]+\.(?:jpg|jpeg|png|webp|gif))/i);
+  if (media) return media[1];
+  const imgTag = description.match(/<img[^>]+src=["']([^"']+)["']/i);
+  if (imgTag) return imgTag[1];
+  return null;
+}
+
 function guessCategory(title: string, defaultCat: GroundedArticle['category']): GroundedArticle['category'] {
   const t = title.toLowerCase();
-  if (t.includes('leap second') || t.includes('atomic clock') || t.includes('metrology')) return 'leap_seconds';
-  if (t.includes('daylight') || t.includes('dst') || t.includes('summer time')) return 'dst';
-  if (t.includes('astronomy') || t.includes('eclipse') || t.includes('meteor') || t.includes('nasa') || t.includes('moon') || t.includes('space')) return 'astronomy';
-  if (t.includes('time zone') || t.includes('timezone') || t.includes('utc') || t.includes('gmt')) return 'timezones';
-  if (t.includes('quantum') || t.includes('clock') || t.includes('nist')) return 'technology';
+  if (/leap\s*second|atomic clock|metrology|bipm|iers|tai-utc/.test(t)) return 'leap_seconds';
+  if (/daylight|\bdst\b|summer time|winter time|clocks? (go|change|spring|fall)/.test(t)) return 'dst';
+  if (/astronomy|eclipse|meteor|nasa|space|moon|mars|satellite|orbit|comet|galaxy|telescope/.test(t)) return 'astronomy';
+  if (/time\s*zone|timezone|\butc\b|\bgmt\b|iana|tzdata/.test(t)) return 'timezones';
+  if (/quantum|nist|optical clock|precision timing|gps clock/.test(t)) return 'technology';
   return defaultCat;
 }
 
@@ -146,43 +216,42 @@ function categoryImage(category: string, index: number): string {
       'https://images.unsplash.com/photo-1508962914676-134849a727f0?auto=format&fit=crop&w=1200&q=80',
       'https://images.unsplash.com/photo-1563861826100-9cb868fdbe1c?auto=format&fit=crop&w=1200&q=80',
     ],
-    dst: [
-      'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1200&q=80',
-    ],
+    dst: ['https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1200&q=80'],
     astronomy: [
-      'https://images.unsplash.com/photo-1506703719100-a0f3a48c0f86?auto=format&fit=crop&w=1200&q=80',
       'https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1506703719100-a0f3a48c0f86?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1462331940025-496dfbfc7564?auto=format&fit=crop&w=1200&q=80',
     ],
-    timezones: [
-      'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=1200&q=80',
-    ],
-    technology: [
-      'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1200&q=80',
-    ],
+    timezones: ['https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=1200&q=80'],
+    technology: ['https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1200&q=80'],
     world: [
       'https://images.unsplash.com/photo-1504711434719-226ed3222c1d?auto=format&fit=crop&w=1200&q=80',
       'https://images.unsplash.com/photo-1495020689067-958852a7765e?auto=format&fit=crop&w=1200&q=80',
       'https://images.unsplash.com/photo-1585829365295-ab7cd400c167?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1504711434719-226ed3222c1d?auto=format&fit=crop&w=1200&q=80',
     ],
-    metrology: [
-      'https://images.unsplash.com/photo-1507668077129-56e32842fceb?auto=format&fit=crop&w=1200&q=80',
-    ],
+    metrology: ['https://images.unsplash.com/photo-1507668077129-56e32842fceb?auto=format&fit=crop&w=1200&q=80'],
   };
   const pool = images[category] || images.world;
   return pool[index % pool.length];
 }
 
-/** Very lightweight RSS item extractor (no external parser dependency) */
-function parseRssItems(xml: string, maxItems = 8): Array<{
-  title: string;
-  link: string;
-  description: string;
-  pubDate: string;
-  source?: string;
-}> {
-  const items: Array<{ title: string; link: string; description: string; pubDate: string; source?: string }> = [];
+function parseRssItems(
+  xml: string,
+  maxItems: number
+): Array<{ title: string; link: string; description: string; pubDate: string; source?: string; image?: string | null }> {
+  const items: Array<{
+    title: string;
+    link: string;
+    description: string;
+    pubDate: string;
+    source?: string;
+    image?: string | null;
+  }> = [];
+
   const itemRegex = /<item[\s\S]*?<\/item>/gi;
-  const blocks = xml.match(itemRegex) || [];
+  const entryRegex = /<entry[\s\S]*?<\/entry>/gi; // Atom
+  const blocks = [...(xml.match(itemRegex) || []), ...(xml.match(entryRegex) || [])];
 
   for (const block of blocks.slice(0, maxItems)) {
     const get = (tag: string) => {
@@ -192,63 +261,83 @@ function parseRssItems(xml: string, maxItems = 8): Array<{
       return normal ? normal[1].trim() : '';
     };
 
-    const title = stripHtml(get('title'));
-    const link = get('link') || get('guid');
-    const description = stripHtml(get('description') || get('content:encoded') || get('summary'));
-    const pubDate = get('pubDate') || get('dc:date') || get('published') || new Date().toUTCString();
-    const source = stripHtml(get('source'));
+    let title = stripHtml(get('title'));
+    let link = get('link');
+    // Atom link href
+    if (!link) {
+      const atomLink = block.match(/<link[^>]+href=["']([^"']+)["']/i);
+      if (atomLink) link = atomLink[1];
+    }
+    if (!link) link = get('guid') || get('id');
+
+    const description = stripHtml(
+      get('description') || get('content:encoded') || get('summary') || get('content') || ''
+    );
+    const pubDate =
+      get('pubDate') || get('dc:date') || get('published') || get('updated') || new Date().toUTCString();
+    const source = stripHtml(get('source') || get('dc:creator') || '');
+    const image = extractImage(block, get('description') || get('content:encoded') || '');
 
     if (title && link) {
-      items.push({ title, link, description: description.slice(0, 500), pubDate, source });
+      items.push({
+        title,
+        link: link.replace(/^<!\[CDATA\[|\]\]>$/g, '').trim(),
+        description: description.slice(0, 600),
+        pubDate,
+        source,
+        image,
+      });
     }
   }
   return items;
 }
 
-async function fetchOneFeed(feed: typeof RSS_FEEDS[0]): Promise<GroundedArticle[]> {
+async function fetchOneFeed(feed: (typeof RSS_FEEDS)[0]): Promise<GroundedArticle[]> {
   try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 8000);
+
     const res = await fetch(feed.url, {
+      signal: controller.signal,
       headers: {
-        'User-Agent': 'TimeGovern/1.0 (free-news-aggregator; +https://timegovern.com)',
-        Accept: 'application/rss+xml, application/xml, text/xml, */*',
+        'User-Agent': 'TimeGovern/2.0 (+https://timegovern.com; free-news-aggregator)',
+        Accept: 'application/rss+xml, application/atom+xml, application/xml, text/xml, */*',
       },
     });
+    clearTimeout(timer);
+
     if (!res.ok) return [];
     const xml = await res.text();
-    const rawItems = parseRssItems(xml, 6);
+    const rawItems = parseRssItems(xml, feed.max);
 
     return rawItems.map((item, idx) => {
       const category = guessCategory(item.title, feed.category);
       const summary = item.description || item.title;
+      const ts = new Date(item.pubDate).getTime();
       return {
-        id: `rss-${feed.publisher.replace(/\s/g, '')}-${idx}-${Date.now().toString(36)}`,
+        id: `rss-${feed.publisher.replace(/\s/g, '')}-${Buffer.from(item.link).toString('base64').slice(0, 12)}-${idx}`,
         title: item.title,
         category,
-        date: new Date(item.pubDate).toLocaleDateString('en-US', {
-          month: 'short',
-          day: 'numeric',
-          year: 'numeric',
-        }),
+        date: !Number.isNaN(ts)
+          ? new Date(ts).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+          : new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
         timeAgo: timeAgo(item.pubDate),
         author: item.source || feed.publisher,
         publisher: feed.publisher,
         readTime: '3 min read',
-        featured: idx === 0,
+        featured: false,
         summary,
         content: summary,
-        keyTakeaways: [
-          `Source: ${feed.publisher}`,
-          'Free public RSS feed',
-          'Updated automatically',
-        ],
-        imageUrl: categoryImage(category, idx),
+        keyTakeaways: [`Source: ${feed.publisher}`, 'Free public RSS', 'Auto-updated'],
+        imageUrl: item.image || categoryImage(category, idx),
         sourceUrl: item.link,
         verifiedGrounding: true,
         groundingSources: [{ title: feed.publisher, url: item.link }],
+        pubTimestamp: Number.isNaN(ts) ? Date.now() - idx * 60000 : ts,
       } as GroundedArticle;
     });
   } catch (err) {
-    console.warn(`RSS fetch failed for ${feed.name}:`, err);
+    console.warn(`RSS failed: ${feed.name}`, err);
     return [];
   }
 }
@@ -256,7 +345,10 @@ async function fetchOneFeed(feed: typeof RSS_FEEDS[0]): Promise<GroundedArticle[
 function dedupeByTitle(articles: GroundedArticle[]): GroundedArticle[] {
   const seen = new Set<string>();
   return articles.filter((a) => {
-    const key = a.title.toLowerCase().slice(0, 80);
+    const key = a.title
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, '')
+      .slice(0, 60);
     if (seen.has(key)) return false;
     seen.add(key);
     return true;
@@ -278,11 +370,12 @@ export async function fetchFreeLiveNews(options: {
     }
   }
 
-  // Fetch all feeds in parallel
   const results = await Promise.all(RSS_FEEDS.map((f) => fetchOneFeed(f)));
   let articles = dedupeByTitle(results.flat());
 
-  // Optional topic filter (client-side style)
+  // Sort by real publish time (newest first)
+  articles.sort((a, b) => (b.pubTimestamp || 0) - (a.pubTimestamp || 0));
+
   if (topic && topic.trim()) {
     const q = topic.toLowerCase();
     const filtered = articles.filter(
@@ -294,27 +387,20 @@ export async function fetchFreeLiveNews(options: {
     if (filtered.length > 0) articles = filtered;
   }
 
-  // Optional category filter
   if (category && category !== 'all') {
     const filtered = articles.filter((a) => a.category === category);
     if (filtered.length > 0) articles = filtered;
   }
 
-  // Sort newest first (best-effort by timeAgo string + original order)
-  articles = articles.slice(0, 24);
-
-  if (articles.length === 0) {
-    articles = FALLBACK_ARTICLES;
-  }
-
-  // Mark first as featured
+  articles = articles.slice(0, 30);
+  if (articles.length === 0) articles = FALLBACK_ARTICLES;
   if (articles[0]) articles[0].featured = true;
 
   const payload: NewsResponsePayload = {
     success: true,
     grounded: true,
-    source: 'Free Live RSS – Google News, BBC, Guardian, NPR',
-    model: 'rss-multi-source',
+    source: 'Free Live RSS v2 – Google News, BBC, Guardian, NPR, NASA, ESA',
+    model: 'rss-multi-source-v2',
     queryTopic: topic || category || 'General',
     updated_at: new Date().toISOString(),
     search_queries: RSS_FEEDS.map((f) => f.name),
@@ -326,7 +412,6 @@ export async function fetchFreeLiveNews(options: {
   return payload;
 }
 
-/** Cloudflare Worker / API entry point – same signature as before */
 export async function handleNews(request: Request): Promise<Response> {
   const url = new URL(request.url);
   const topic = url.searchParams.get('q') || url.searchParams.get('topic') || undefined;
@@ -341,10 +426,9 @@ export async function handleNews(request: Request): Promise<Response> {
     headers: {
       'Content-Type': 'application/json',
       'Access-Control-Allow-Origin': '*',
-      'Cache-Control': forceRefresh ? 'no-cache' : 'public, max-age=30, s-maxage=60',
+      'Cache-Control': forceRefresh ? 'no-cache' : 'public, max-age=20, s-maxage=45',
     },
   });
 }
 
-// Keep old name exported so any existing imports still work
 export const fetchGoogleSearchGroundedNews = fetchFreeLiveNews;
