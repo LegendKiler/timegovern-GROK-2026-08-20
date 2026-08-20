@@ -1,7 +1,6 @@
 /**
  * TimeGovern Free Live News v2
  * Multi-source public RSS – no API keys required
- * Sources: Google News, BBC, Guardian, NPR, Reuters, AP, Smithsonian, Space.com-style science feeds
  */
 
 export interface GroundedArticle {
@@ -41,7 +40,7 @@ interface CacheEntry {
   payload: NewsResponsePayload;
 }
 const newsCache = new Map<string, CacheEntry>();
-const CACHE_TTL_MS = 45 * 1000; // 45s – fresher live feel
+const CACHE_TTL_MS = 45 * 1000;
 
 const RSS_FEEDS = [
   {
@@ -115,13 +114,6 @@ const RSS_FEEDS = [
     max: 5,
   },
   {
-    name: 'Reuters World',
-    url: 'https://www.reutersagency.com/feed/?taxonomy=best-topics&post_type=best',
-    publisher: 'Reuters',
-    category: 'world' as const,
-    max: 5,
-  },
-  {
     name: 'NASA Breaking News',
     url: 'https://www.nasa.gov/rss/dyn/breaking_news.rss',
     publisher: 'NASA',
@@ -158,6 +150,12 @@ const FALLBACK_ARTICLES: GroundedArticle[] = [
   },
 ];
 
+function simpleHash(s: string): string {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (Math.imul(31, h) + s.charCodeAt(i)) | 0;
+  return Math.abs(h).toString(36);
+}
+
 function timeAgo(dateStr: string): string {
   try {
     const d = new Date(dateStr);
@@ -188,7 +186,6 @@ function stripHtml(html: string): string {
 }
 
 function extractImage(block: string, description: string): string | null {
-  // media:content / enclosure
   const media =
     block.match(/url=["'](https?:\/\/[^"']+\.(?:jpg|jpeg|png|webp|gif)[^"']*)["']/i) ||
     block.match(/<media:content[^>]+url=["']([^"']+)["']/i) ||
@@ -228,7 +225,6 @@ function categoryImage(category: string, index: number): string {
       'https://images.unsplash.com/photo-1504711434719-226ed3222c1d?auto=format&fit=crop&w=1200&q=80',
       'https://images.unsplash.com/photo-1495020689067-958852a7765e?auto=format&fit=crop&w=1200&q=80',
       'https://images.unsplash.com/photo-1585829365295-ab7cd400c167?auto=format&fit=crop&w=1200&q=80',
-      'https://images.unsplash.com/photo-1504711434719-226ed3222c1d?auto=format&fit=crop&w=1200&q=80',
     ],
     metrology: ['https://images.unsplash.com/photo-1507668077129-56e32842fceb?auto=format&fit=crop&w=1200&q=80'],
   };
@@ -250,7 +246,7 @@ function parseRssItems(
   }> = [];
 
   const itemRegex = /<item[\s\S]*?<\/item>/gi;
-  const entryRegex = /<entry[\s\S]*?<\/entry>/gi; // Atom
+  const entryRegex = /<entry[\s\S]*?<\/entry>/gi;
   const blocks = [...(xml.match(itemRegex) || []), ...(xml.match(entryRegex) || [])];
 
   for (const block of blocks.slice(0, maxItems)) {
@@ -261,22 +257,20 @@ function parseRssItems(
       return normal ? normal[1].trim() : '';
     };
 
-    let title = stripHtml(get('title'));
+    const title = stripHtml(get('title'));
     let link = get('link');
-    // Atom link href
     if (!link) {
       const atomLink = block.match(/<link[^>]+href=["']([^"']+)["']/i);
       if (atomLink) link = atomLink[1];
     }
     if (!link) link = get('guid') || get('id');
 
-    const description = stripHtml(
-      get('description') || get('content:encoded') || get('summary') || get('content') || ''
-    );
+    const rawDesc = get('description') || get('content:encoded') || get('summary') || get('content') || '';
+    const description = stripHtml(rawDesc);
     const pubDate =
       get('pubDate') || get('dc:date') || get('published') || get('updated') || new Date().toUTCString();
     const source = stripHtml(get('source') || get('dc:creator') || '');
-    const image = extractImage(block, get('description') || get('content:encoded') || '');
+    const image = extractImage(block, rawDesc);
 
     if (title && link) {
       items.push({
@@ -315,7 +309,7 @@ async function fetchOneFeed(feed: (typeof RSS_FEEDS)[0]): Promise<GroundedArticl
       const summary = item.description || item.title;
       const ts = new Date(item.pubDate).getTime();
       return {
-        id: `rss-${feed.publisher.replace(/\s/g, '')}-${Buffer.from(item.link).toString('base64').slice(0, 12)}-${idx}`,
+        id: `rss-${simpleHash(item.link + feed.publisher)}-${idx}`,
         title: item.title,
         category,
         date: !Number.isNaN(ts)
@@ -373,7 +367,6 @@ export async function fetchFreeLiveNews(options: {
   const results = await Promise.all(RSS_FEEDS.map((f) => fetchOneFeed(f)));
   let articles = dedupeByTitle(results.flat());
 
-  // Sort by real publish time (newest first)
   articles.sort((a, b) => (b.pubTimestamp || 0) - (a.pubTimestamp || 0));
 
   if (topic && topic.trim()) {
