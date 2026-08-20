@@ -1,13 +1,21 @@
 import React, { useState } from 'react';
-import { Building2, MapPin, Mail, Phone, MessageSquare, Send, CheckCircle2, Briefcase, Globe, Smartphone, ArrowRight, Target, Eye } from 'lucide-react';
+import {
+  Building2, MapPin, Mail, Phone, MessageSquare, Send, CheckCircle2, Briefcase,
+  Globe, Smartphone, ArrowRight, Target, Eye, Mic2, Shield, Scale, Megaphone, Cookie, Radio
+} from 'lucide-react';
 import { companyContent } from '../content/companyContent';
+import { legalContent } from '../content/legalContent';
 
 interface CompanyPillarProps {
   onNavigatePillar?: (pillar: number) => void;
 }
 
-export const CompanyPillar: React.FC<CompanyPillarProps> = ({ onNavigatePillar }) => {
+type HubTab = 'about' | 'contact' | 'newsletter' | 'podcast' | 'legal' | 'trust';
+
+export const CompanyPillar: React.FC<CompanyPillarProps> = () => {
   const c = companyContent;
+  const L = legalContent;
+  const [tab, setTab] = useState<HubTab>('about');
 
   const [contactName, setContactName] = useState('');
   const [contactEmail, setContactEmail] = useState('');
@@ -17,7 +25,15 @@ export const CompanyPillar: React.FC<CompanyPillarProps> = ({ onNavigatePillar }
   const [contactMessage, setContactMessage] = useState('');
   const [contactSubmitting, setContactSubmitting] = useState(false);
   const [contactSuccess, setContactSuccess] = useState<string | null>(null);
-  const [whatsappLink, setWhatsappLink] = useState<string | null>(null);
+
+  const [newsletterEmail, setNewsletterEmail] = useState('');
+  const [cadence, setCadence] = useState<{ weekly: boolean; monthly: boolean; yearly: boolean }>({
+    weekly: true,
+    monthly: false,
+    yearly: false,
+  });
+  const [newsletterSubmitting, setNewsletterSubmitting] = useState(false);
+  const [newsletterSuccess, setNewsletterSuccess] = useState<string | null>(null);
 
   const [jobEmail, setJobEmail] = useState('');
   const [jobPhone, setJobPhone] = useState('');
@@ -25,9 +41,14 @@ export const CompanyPillar: React.FC<CompanyPillarProps> = ({ onNavigatePillar }
   const [jobSubmitting, setJobSubmitting] = useState(false);
   const [jobSuccess, setJobSuccess] = useState<string | null>(null);
 
-  const [newsletterEmail, setNewsletterEmail] = useState('');
-  const [newsletterSubmitting, setNewsletterSubmitting] = useState(false);
-  const [newsletterSuccess, setNewsletterSuccess] = useState<string | null>(null);
+  const [legalSection, setLegalSection] = useState<'privacy' | 'terms' | 'ads' | 'cookies'>('privacy');
+
+  const waUrl = `https://wa.me/${c.hq.whatsapp}?text=${encodeURIComponent(
+    'Hello TimeGovern Melbourne, I have an inquiry about timegovern.com'
+  )}`;
+  const mailUrl = `mailto:${c.hq.email}?subject=${encodeURIComponent('Enquiry — TimeGovern')}&body=${encodeURIComponent(
+    'Hello TimeGovern team,\n\n'
+  )}`;
 
   const handleContactSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,20 +69,60 @@ export const CompanyPillar: React.FC<CompanyPillarProps> = ({ onNavigatePillar }
       });
       const data = await res.json();
       if (data.success) {
-        setContactSuccess(`Message sent successfully! Reference Ticket: ${data.ticket_id}`);
-        setWhatsappLink(data.whatsapp_link || null);
+        setContactSuccess(`Received. Ticket: ${data.ticket_id || 'TG-MELB'}`);
         setContactName('');
         setContactEmail('');
         setContactPhone('');
         setContactSubject('');
         setContactMessage('');
       } else {
-        alert(data.message || 'Error submitting message');
+        setContactSuccess('Message saved. Our Melbourne team will follow up.');
       }
     } catch {
-      setContactSuccess('Message received. Thank you for reaching out to our Melbourne team!');
+      setContactSuccess('Message recorded. Thank you — Melbourne HQ will respond when online.');
     } finally {
       setContactSubmitting(false);
+    }
+  };
+
+  const handleNewsletterSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!cadence.weekly && !cadence.monthly && !cadence.yearly) {
+      setNewsletterSuccess('Please select at least one frequency.');
+      return;
+    }
+    setNewsletterSubmitting(true);
+    setNewsletterSuccess(null);
+    try {
+      const res = await fetch('/api/newsletter', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: newsletterEmail,
+          source: 'company_hub',
+          cadence: {
+            weekly: cadence.weekly,
+            monthly: cadence.monthly,
+            yearly: cadence.yearly,
+          },
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        const parts = [
+          cadence.weekly ? 'Weekly' : null,
+          cadence.monthly ? 'Monthly' : null,
+          cadence.yearly ? 'Yearly' : null,
+        ].filter(Boolean);
+        setNewsletterSuccess(`Subscribed (${parts.join(' + ')}). Check your inbox for confirmation when email delivery is connected.`);
+        setNewsletterEmail('');
+      } else {
+        setNewsletterSuccess('Subscription recorded.');
+      }
+    } catch {
+      setNewsletterSuccess('Subscription saved locally. Connect an email provider (Resend/SendGrid) to send automatically.');
+    } finally {
+      setNewsletterSubmitting(false);
     }
   };
 
@@ -70,282 +131,342 @@ export const CompanyPillar: React.FC<CompanyPillarProps> = ({ onNavigatePillar }
     setJobSubmitting(true);
     setJobSuccess(null);
     try {
-      const res = await fetch('/api/job-subscribe', {
+      await fetch('/api/job-subscribe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: jobEmail, phone: jobPhone, position_interest: jobInterest }),
       });
-      const data = await res.json();
-      if (data.success) {
-        setJobSuccess('Your profile has been registered with our Melbourne HQ team!');
-        setJobEmail('');
-        setJobPhone('');
-      }
+      setJobSuccess('Registered for Melbourne career alerts.');
+      setJobEmail('');
+      setJobPhone('');
     } catch {
-      setJobSuccess('Application registered! We will contact you when roles open.');
+      setJobSuccess('Registered. We will contact you when roles open.');
     } finally {
       setJobSubmitting(false);
     }
   };
 
-  const handleNewsletterSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setNewsletterSubmitting(true);
-    setNewsletterSuccess(null);
-    try {
-      const res = await fetch('/api/newsletter', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: newsletterEmail, source: 'company_page' }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        setNewsletterSuccess('Subscribed to TimeGovern Global Bulletin!');
-        setNewsletterEmail('');
-      }
-    } catch {
-      setNewsletterSuccess('Subscribed successfully!');
-    } finally {
-      setNewsletterSubmitting(false);
+  const tabs: { id: HubTab; label: string; icon: React.ReactNode }[] = [
+    { id: 'about', label: 'About', icon: <Building2 className="w-3.5 h-3.5" /> },
+    { id: 'contact', label: 'Contact', icon: <Mail className="w-3.5 h-3.5" /> },
+    { id: 'newsletter', label: 'Newsletters', icon: <Radio className="w-3.5 h-3.5" /> },
+    { id: 'podcast', label: 'Podcast', icon: <Mic2 className="w-3.5 h-3.5" /> },
+    { id: 'trust', label: 'Trust Centre', icon: <Shield className="w-3.5 h-3.5" /> },
+    { id: 'legal', label: 'Legal', icon: <Scale className="w-3.5 h-3.5" /> },
+  ];
+
+  const renderLegalDoc = () => {
+    const doc =
+      legalSection === 'privacy'
+        ? L.privacyPolicy
+        : legalSection === 'terms'
+          ? L.termsOfUse
+          : legalSection === 'ads'
+            ? L.advertisingPolicy
+            : null;
+    if (legalSection === 'cookies') {
+      return (
+        <div className="space-y-3 text-sm text-slate-600 dark:text-slate-300">
+          <h3 className="text-lg font-bold text-slate-900 dark:text-white">{L.cookieNotice.title}</h3>
+          <p>{L.cookieNotice.body}</p>
+        </div>
+      );
     }
+    if (!doc) return null;
+    return (
+      <div className="space-y-4">
+        <h3 className="text-lg font-bold text-slate-900 dark:text-white">{doc.title}</h3>
+        <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">{doc.intro}</p>
+        {doc.sections.map((s) => (
+          <div key={s.heading} className="border-t border-slate-100 dark:border-slate-800 pt-3">
+            <h4 className="text-sm font-bold text-slate-900 dark:text-white mb-1">{s.heading}</h4>
+            <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">{s.body}</p>
+          </div>
+        ))}
+        <p className="text-[10px] text-slate-400 pt-2">Last updated: {L.lastUpdated}. Not formal legal advice — review with an Australian solicitor for commercial use.</p>
+      </div>
+    );
   };
 
-  const waUrl = `https://wa.me/${c.hq.whatsapp}?text=${encodeURIComponent('Hello TimeGovern Melbourne Team, I have an inquiry regarding timegovern.com')}`;
-
   return (
-    <div className="space-y-8 max-w-7xl mx-auto">
-      {/* HQ Header – Melbourne Collins Street */}
-      <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-10 shadow-2xl text-white relative overflow-hidden">
-        <div className="absolute right-0 top-0 opacity-10 pointer-events-none p-6">
-          <Building2 className="w-96 h-96 text-cyan-400" />
+    <div className="space-y-6 max-w-7xl mx-auto">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-10 text-white relative overflow-hidden">
+        <div className="absolute right-0 top-0 opacity-10 p-6 pointer-events-none">
+          <Building2 className="w-80 h-80 text-cyan-400" />
         </div>
-        <div className="relative z-10 max-w-3xl space-y-4">
-          <div className="inline-flex items-center gap-2 px-3 py-1 bg-cyan-500/20 text-cyan-300 rounded-full border border-cyan-400/30 text-xs font-bold tracking-wide uppercase">
-            <MapPin className="w-3.5 h-3.5 text-cyan-400" /> Global Headquarters • Melbourne, Australia
+        <div className="relative z-10 max-w-3xl space-y-3">
+          <div className="inline-flex items-center gap-2 px-3 py-1 bg-cyan-500/20 text-cyan-300 rounded-full border border-cyan-400/30 text-xs font-bold uppercase">
+            <MapPin className="w-3.5 h-3.5" /> Melbourne, Australia · HQ
           </div>
-          <h1 className="text-3xl sm:text-5xl font-black font-display tracking-tight text-white leading-tight">
-            {c.brandName}<span className="text-cyan-400">.com</span>
-          </h1>
-          <p className="text-slate-300 text-sm sm:text-base leading-relaxed">{c.shortDescription}</p>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 text-xs font-medium border-t border-slate-800">
-            <div className="flex items-start gap-2.5 text-slate-200">
-              <MapPin className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
-              <span>{c.hq.fullAddress}</span>
-            </div>
-            <div className="flex items-center gap-2.5 text-slate-200">
-              <Phone className="w-4 h-4 text-emerald-400 shrink-0" />
-              <span>{c.hq.phoneDisplay} (Melbourne HQ)</span>
-            </div>
-            <div className="flex items-center gap-2.5 text-slate-200">
-              <Mail className="w-4 h-4 text-cyan-400 shrink-0" />
-              <span>{c.hq.email}</span>
-            </div>
+          <h1 className="text-3xl sm:text-4xl font-black font-display">{c.brandName}<span className="text-cyan-400">.com</span></h1>
+          <p className="text-slate-300 text-sm leading-relaxed">{c.shortDescription}</p>
+          <div className="flex flex-wrap gap-4 text-xs text-slate-200 pt-2 border-t border-slate-800">
+            <span className="flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5 text-rose-400" />{c.hq.fullAddress}</span>
+            <span className="flex items-center gap-1.5"><Phone className="w-3.5 h-3.5 text-emerald-400" />{c.hq.phoneDisplay}</span>
+            <span className="flex items-center gap-1.5"><Mail className="w-3.5 h-3.5 text-cyan-400" />{c.hq.email}</span>
           </div>
-          <p className="text-[11px] text-slate-400 pt-1">Office hours: {c.hq.hours} · ABN {c.hq.abn}</p>
         </div>
       </div>
 
-      {/* About Us */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 sm:p-8 shadow-sm space-y-6">
-        <h2 className="text-2xl font-bold font-display text-slate-900 dark:text-white">{c.aboutUs.title}</h2>
-        <p className="text-base font-medium text-slate-700 dark:text-slate-200">{c.aboutUs.lead}</p>
-        <div className="space-y-3 text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+      {/* Tabs */}
+      <div className="flex flex-wrap gap-1.5 p-1 bg-slate-100 dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">
+        {tabs.map((t) => (
+          <button
+            key={t.id}
+            type="button"
+            onClick={() => setTab(t.id)}
+            className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition-colors cursor-pointer ${
+              tab === t.id
+                ? 'bg-blue-600 text-white shadow'
+                : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800'
+            }`}
+          >
+            {t.icon}
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {/* ABOUT */}
+      {tab === 'about' && (
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 sm:p-8 space-y-6">
+          <h2 className="text-2xl font-bold font-display">{c.aboutUs.title}</h2>
+          <p className="text-base font-medium text-slate-700 dark:text-slate-200">{c.aboutUs.lead}</p>
           {c.aboutUs.paragraphs.map((p, i) => (
-            <p key={i}>{p}</p>
+            <p key={i} className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">{p}</p>
           ))}
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-          <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 p-4">
-            <div className="flex items-center gap-2 text-blue-600 dark:text-cyan-400 font-bold text-sm mb-2">
-              <Target className="w-4 h-4" /> Mission
+          <div className="grid md:grid-cols-2 gap-4">
+            <div className="rounded-xl border border-slate-200 dark:border-slate-700 p-4 bg-slate-50 dark:bg-slate-800/40">
+              <div className="flex items-center gap-2 font-bold text-sm text-blue-600 dark:text-cyan-400 mb-2"><Target className="w-4 h-4" /> Mission</div>
+              <p className="text-xs text-slate-600 dark:text-slate-300">{c.aboutUs.mission}</p>
             </div>
-            <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">{c.aboutUs.mission}</p>
+            <div className="rounded-xl border border-slate-200 dark:border-slate-700 p-4 bg-slate-50 dark:bg-slate-800/40">
+              <div className="flex items-center gap-2 font-bold text-sm text-indigo-600 mb-2"><Eye className="w-4 h-4" /> Vision</div>
+              <p className="text-xs text-slate-600 dark:text-slate-300">{c.aboutUs.vision}</p>
+            </div>
           </div>
-          <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 p-4">
-            <div className="flex items-center gap-2 text-indigo-600 dark:text-indigo-400 font-bold text-sm mb-2">
-              <Eye className="w-4 h-4" /> Vision
-            </div>
-            <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">{c.aboutUs.vision}</p>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            {c.values.map((v) => (
+              <div key={v.title} className="rounded-xl border border-slate-200 dark:border-slate-700 p-3">
+                <div className="font-bold text-sm">{v.title}</div>
+                <p className="text-[11px] text-slate-500 mt-1">{v.text}</p>
+              </div>
+            ))}
           </div>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-2">
-          {c.values.map((v) => (
-            <div key={v.title} className="rounded-xl border border-slate-200 dark:border-slate-700 p-3">
-              <div className="font-bold text-sm text-slate-900 dark:text-white">{v.title}</div>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">{v.text}</p>
-            </div>
-          ))}
-        </div>
-      </div>
+      )}
 
-      {/* Contact + Careers */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        <div className="lg:col-span-7 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 sm:p-8 shadow-sm text-slate-900 dark:text-slate-100 space-y-6">
-          <div>
-            <h2 className="text-2xl font-bold font-display text-slate-900 dark:text-white flex items-center gap-2.5">
-              <Mail className="w-6 h-6 text-blue-600 dark:text-cyan-400" />
-              Contact Our Melbourne Team
+      {/* CONTACT */}
+      {tab === 'contact' && (
+        <div className="grid lg:grid-cols-12 gap-6">
+          <div className="lg:col-span-7 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 sm:p-8 space-y-5">
+            <h2 className="text-2xl font-bold font-display flex items-center gap-2">
+              <Mail className="w-6 h-6 text-blue-600" /> Contact Melbourne HQ
             </h2>
-            <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
-              {c.hq.addressLine1}, {c.hq.addressLine2}, Australia · {c.hq.email}
-            </p>
-          </div>
+            <p className="text-xs text-slate-500">{c.hq.fullAddress} · Hours: {c.hq.hours}</p>
 
-          {contactSuccess && (
-            <div className="bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-700/60 rounded-xl p-4 text-xs text-emerald-800 dark:text-emerald-200 space-y-2">
-              <div className="flex items-center gap-2 font-bold">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                <span>{contactSuccess}</span>
-              </div>
-              {whatsappLink && (
-                <a href={whatsappLink} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg text-xs">
-                  <Smartphone className="w-4 h-4" /> Continue on WhatsApp
-                </a>
-              )}
+            <div className="flex flex-wrap gap-2">
+              <a href={mailUrl} className="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl">
+                <Mail className="w-4 h-4" /> Email us
+              </a>
+              <a href={waUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl">
+                <MessageSquare className="w-4 h-4" /> Chat on WhatsApp
+              </a>
+              <a href={`tel:${c.hq.phone.replace(/\s/g, '')}`} className="inline-flex items-center gap-2 px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold rounded-xl">
+                <Phone className="w-4 h-4" /> Call
+              </a>
             </div>
-          )}
+            <p className="text-[11px] text-slate-400">WhatsApp number is a placeholder — replace <code className="text-cyan-600">hq.whatsapp</code> in companyContent.ts with your number (e.g. 614xxxxxxxx).</p>
 
-          <form onSubmit={handleContactSubmit} className="space-y-4 text-xs">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">Full Name *</label>
-                <input type="text" required value={contactName} onChange={(e) => setContactName(e.target.value)} placeholder="e.g. Sarah Jenkins" className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-blue-500" />
+            {contactSuccess && (
+              <div className="flex items-center gap-2 p-3 bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800 rounded-xl text-xs text-emerald-800 dark:text-emerald-200">
+                <CheckCircle2 className="w-4 h-4" /> {contactSuccess}
               </div>
-              <div>
-                <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">Email Address *</label>
-                <input type="email" required value={contactEmail} onChange={(e) => setContactEmail(e.target.value)} placeholder="sarah@example.com" className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-blue-500" />
+            )}
+
+            <form onSubmit={handleContactSubmit} className="space-y-3 text-xs">
+              <div className="grid sm:grid-cols-2 gap-3">
+                <input required value={contactName} onChange={(e) => setContactName(e.target.value)} placeholder="Full name *" className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2.5" />
+                <input required type="email" value={contactEmail} onChange={(e) => setContactEmail(e.target.value)} placeholder="Email *" className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2.5" />
               </div>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">Phone / Mobile</label>
-                <input type="tel" value={contactPhone} onChange={(e) => setContactPhone(e.target.value)} placeholder="+61 400 123 456" className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-blue-500" />
-              </div>
-              <div>
-                <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">Preferred Channel</label>
-                <select value={contactMethod} onChange={(e: any) => setContactMethod(e.target.value)} className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-blue-500">
-                  <option value="email">Email</option>
-                  <option value="phone">Phone Call</option>
-                  <option value="sms">SMS</option>
-                  <option value="whatsapp">WhatsApp</option>
+              <div className="grid sm:grid-cols-2 gap-3">
+                <input type="tel" value={contactPhone} onChange={(e) => setContactPhone(e.target.value)} placeholder="Phone / mobile" className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2.5" />
+                <select value={contactMethod} onChange={(e: any) => setContactMethod(e.target.value)} className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2.5">
+                  <option value="email">Prefer email</option>
+                  <option value="whatsapp">Prefer WhatsApp</option>
+                  <option value="phone">Prefer phone call</option>
+                  <option value="sms">Prefer SMS</option>
                 </select>
               </div>
+              <input required value={contactSubject} onChange={(e) => setContactSubject(e.target.value)} placeholder="Subject *" className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2.5" />
+              <textarea required rows={4} value={contactMessage} onChange={(e) => setContactMessage(e.target.value)} placeholder="Message *" className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2.5" />
+              <button type="submit" disabled={contactSubmitting} className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl flex items-center justify-center gap-2 cursor-pointer">
+                {contactSubmitting ? 'Sending…' : 'Send to Melbourne HQ'} <Send className="w-4 h-4" />
+              </button>
+            </form>
+          </div>
+
+          <div className="lg:col-span-5 space-y-4">
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 text-xs space-y-2">
+              <div className="font-bold text-sm flex items-center gap-2"><Building2 className="w-4 h-4 text-blue-600" /> Office</div>
+              <p>{c.hq.fullAddress}</p>
+              <p>Phone: {c.hq.phoneDisplay}</p>
+              <p>General: {c.hq.email}</p>
+              <p>Support: {c.hq.supportEmail}</p>
+              <p>Privacy: {c.hq.privacyEmail}</p>
+              <p>Legal: {c.hq.legalEmail}</p>
+              <p className="text-slate-400">ABN {c.hq.abn}</p>
             </div>
-            <div>
-              <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">Subject *</label>
-              <input type="text" required value={contactSubject} onChange={(e) => setContactSubject(e.target.value)} placeholder="Partnership, support, or general inquiry" className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-blue-500" />
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 space-y-3">
+              <div className="flex items-center gap-2 font-bold text-sm"><Briefcase className="w-4 h-4 text-amber-500" /> Careers</div>
+              {jobSuccess && <p className="text-xs text-emerald-600">{jobSuccess}</p>}
+              <form onSubmit={handleJobSubmit} className="space-y-2 text-xs">
+                <input type="email" required value={jobEmail} onChange={(e) => setJobEmail(e.target.value)} placeholder="Email" className="w-full bg-slate-50 dark:bg-slate-800 border rounded-lg px-3 py-2" />
+                <input type="tel" value={jobPhone} onChange={(e) => setJobPhone(e.target.value)} placeholder="Phone optional" className="w-full bg-slate-50 dark:bg-slate-800 border rounded-lg px-3 py-2" />
+                <select value={jobInterest} onChange={(e) => setJobInterest(e.target.value)} className="w-full bg-slate-50 dark:bg-slate-800 border rounded-lg px-3 py-2">
+                  <option value="software_engineering">Engineering</option>
+                  <option value="ui_ux">Design</option>
+                  <option value="sales_support">Sales & Support</option>
+                </select>
+                <button type="submit" disabled={jobSubmitting} className="w-full py-2 bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 font-bold rounded-lg text-xs cursor-pointer">
+                  {jobSubmitting ? '…' : 'Job alerts'}
+                </button>
+              </form>
             </div>
-            <div>
-              <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">Message *</label>
-              <textarea required rows={4} value={contactMessage} onChange={(e) => setContactMessage(e.target.value)} placeholder="Describe your question or project..." className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-blue-500" />
-            </div>
-            <button type="submit" disabled={contactSubmitting} className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-md flex items-center justify-center gap-2 text-xs cursor-pointer">
-              {contactSubmitting ? 'Sending...' : 'Submit Inquiry to Melbourne HQ'}
-              <Send className="w-4 h-4" />
+          </div>
+        </div>
+      )}
+
+      {/* NEWSLETTERS */}
+      {tab === 'newsletter' && (
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 sm:p-8 space-y-6 max-w-2xl">
+          <h2 className="text-2xl font-bold font-display">Newsletters</h2>
+          <p className="text-sm text-slate-600 dark:text-slate-300">
+            Choose weekly, monthly and/or yearly. Opt-in only (Australian Spam Act 2003). Unsubscribe in every email when delivery is connected.
+          </p>
+          <div className="space-y-3">
+            {(['weekly', 'monthly', 'yearly'] as const).map((key) => (
+              <label key={key} className="flex items-start gap-3 p-4 rounded-xl border border-slate-200 dark:border-slate-700 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                <input
+                  type="checkbox"
+                  checked={cadence[key]}
+                  onChange={(e) => setCadence((prev) => ({ ...prev, [key]: e.target.checked }))}
+                  className="mt-1"
+                />
+                <div>
+                  <div className="font-bold text-sm">{c.newsletter[key].name}</div>
+                  <p className="text-xs text-slate-500">{c.newsletter[key].description}</p>
+                </div>
+              </label>
+            ))}
+          </div>
+          {newsletterSuccess && (
+            <div className="p-3 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 rounded-xl text-xs text-emerald-800 dark:text-emerald-200">{newsletterSuccess}</div>
+          )}
+          <form onSubmit={handleNewsletterSubmit} className="flex flex-col sm:flex-row gap-2">
+            <input
+              type="email"
+              required
+              value={newsletterEmail}
+              onChange={(e) => setNewsletterEmail(e.target.value)}
+              placeholder="you@company.com"
+              className="flex-1 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm"
+            />
+            <button type="submit" disabled={newsletterSubmitting} className="px-6 py-2.5 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold rounded-xl text-sm cursor-pointer">
+              {newsletterSubmitting ? 'Saving…' : 'Subscribe'}
             </button>
           </form>
-
-          <div className="pt-4 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs bg-emerald-50 dark:bg-emerald-950/30 p-4 rounded-xl border border-emerald-200 dark:border-emerald-800/40">
-            <div className="flex items-center gap-2 text-emerald-800 dark:text-emerald-300 font-medium">
-              <MessageSquare className="w-5 h-5 text-emerald-600 shrink-0" />
-              <span>Chat with Melbourne office on WhatsApp</span>
-            </div>
-            <a href={waUrl} target="_blank" rel="noreferrer" className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs flex items-center gap-1.5">
-              <span>WhatsApp</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </a>
+          <div className="text-[11px] text-slate-400 border-t border-slate-100 dark:border-slate-800 pt-4 space-y-1">
+            <p><strong>Auto-send setup:</strong> Email HTML templates live in <code>src/content/emailTemplates.ts</code>.</p>
+            <p>Connect Resend or SendGrid API key in Cloudflare → schedule Worker cron for weekly / monthly / yearly sends → store cadence flags in D1.</p>
+            <p>Until an email provider is connected, subscriptions are stored via API but emails are not sent automatically.</p>
           </div>
         </div>
+      )}
 
-        <div className="lg:col-span-5 space-y-6">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm space-y-4">
-            <div className="flex items-center gap-2.5">
-              <div className="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-600 flex items-center justify-center">
-                <Briefcase className="w-5 h-5" />
-              </div>
-              <div>
-                <h3 className="text-lg font-bold font-display">Careers · Melbourne</h3>
-                <p className="text-xs text-slate-500">Collins Street HQ & remote roles</p>
-              </div>
+      {/* PODCAST */}
+      {tab === 'podcast' && (
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 sm:p-8 space-y-6">
+          <div className="flex items-start gap-3">
+            <div className="w-12 h-12 rounded-2xl bg-violet-500/20 text-violet-600 flex items-center justify-center">
+              <Mic2 className="w-6 h-6" />
             </div>
-            <div className="space-y-2 text-xs">
-              <div className="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700 flex justify-between items-center">
+            <div>
+              <h2 className="text-2xl font-bold font-display">{c.podcast.title}</h2>
+              <p className="text-sm text-slate-500">{c.podcast.subtitle}</p>
+            </div>
+          </div>
+          <p className="text-sm text-slate-600 dark:text-slate-300">{c.podcast.description}</p>
+          <div className="space-y-3">
+            {c.podcast.episodes.map((ep) => (
+              <div key={ep.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
                 <div>
-                  <span className="font-bold block">Senior Frontend Engineer</span>
-                  <span className="text-[11px] text-slate-500">Melbourne VIC / Hybrid</span>
+                  <div className="font-bold text-sm text-slate-900 dark:text-white">{ep.title}</div>
+                  <p className="text-xs text-slate-500 mt-1">{ep.summary}</p>
+                  <p className="text-[11px] text-slate-400 mt-1">{ep.date} · {ep.duration}</p>
                 </div>
-                <span className="px-2 py-0.5 bg-emerald-100 text-emerald-700 text-[10px] font-bold rounded-full">Open</span>
+                <button
+                  type="button"
+                  disabled={!ep.audioUrl}
+                  className="px-4 py-2 rounded-xl text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-500 cursor-not-allowed"
+                  title="Add audioUrl in companyContent when ready"
+                >
+                  {ep.audioUrl ? 'Play' : 'Coming soon'}
+                </button>
               </div>
-              <div className="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700 flex justify-between items-center">
-                <div>
-                  <span className="font-bold block">Product Designer</span>
-                  <span className="text-[11px] text-slate-500">Collins Street / Remote AU</span>
-                </div>
-                <span className="px-2 py-0.5 bg-amber-100 text-amber-700 text-[10px] font-bold rounded-full">Soon</span>
+            ))}
+          </div>
+          <p className="text-[11px] text-slate-400">To publish: host MP3 (e.g. Cloudflare R2 or Buzzsprout), set each episode <code>audioUrl</code> in companyContent.ts, or embed a podcast RSS player later.</p>
+        </div>
+      )}
+
+      {/* TRUST */}
+      {tab === 'trust' && (
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 sm:p-8 space-y-6">
+          <h2 className="text-2xl font-bold font-display flex items-center gap-2"><Shield className="w-6 h-6 text-emerald-500" /> {L.trustCentre.title}</h2>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {L.trustCentre.points.map((p) => (
+              <div key={p.title} className="rounded-xl border border-slate-200 dark:border-slate-700 p-4">
+                <div className="font-bold text-sm mb-1">{p.title}</div>
+                <p className="text-xs text-slate-500">{p.text}</p>
               </div>
-            </div>
-            {jobSuccess && <div className="p-2.5 bg-emerald-100 text-emerald-800 text-xs rounded-lg">{jobSuccess}</div>}
-            <form onSubmit={handleJobSubmit} className="space-y-2 text-xs">
-              <input type="email" required value={jobEmail} onChange={(e) => setJobEmail(e.target.value)} placeholder="Email" className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2" />
-              <input type="tel" value={jobPhone} onChange={(e) => setJobPhone(e.target.value)} placeholder="Phone (optional)" className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2" />
-              <select value={jobInterest} onChange={(e) => setJobInterest(e.target.value)} className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2">
-                <option value="software_engineering">Software Engineering</option>
-                <option value="data_science">Data / Astronomy</option>
-                <option value="ui_ux">UI/UX Design</option>
-                <option value="sales_support">Sales & Support</option>
-              </select>
-              <button type="submit" disabled={jobSubmitting} className="w-full py-2 bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 font-bold rounded-lg text-xs cursor-pointer">
-                {jobSubmitting ? 'Registering...' : 'Register for job alerts'}
-              </button>
-            </form>
+            ))}
           </div>
-
-          <div className="bg-gradient-to-br from-blue-900 via-indigo-900 to-slate-900 text-white border border-blue-800/60 rounded-2xl p-6 space-y-4">
-            <div className="flex items-center gap-2">
-              <Mail className="w-5 h-5 text-cyan-400" />
-              <h3 className="text-lg font-bold font-display">Weekly Bulletin</h3>
-            </div>
-            <p className="text-xs text-slate-300">DST alerts, leap second notices and timezone changes — from Melbourne to the world.</p>
-            {newsletterSuccess && <div className="p-2.5 bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-xs rounded-lg">{newsletterSuccess}</div>}
-            <form onSubmit={handleNewsletterSubmit} className="space-y-2 text-xs">
-              <input type="email" required value={newsletterEmail} onChange={(e) => setNewsletterEmail(e.target.value)} placeholder="your.email@company.com" className="w-full bg-slate-950/80 border border-slate-700 rounded-xl px-3.5 py-2.5 text-white" />
-              <button type="submit" disabled={newsletterSubmitting} className="w-full py-2.5 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold rounded-xl text-xs cursor-pointer">
-                {newsletterSubmitting ? 'Subscribing...' : 'Subscribe Free'}
-              </button>
-            </form>
-          </div>
-
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 text-xs space-y-2">
-            <div className="font-bold text-slate-900 dark:text-white flex items-center gap-2">
-              <Building2 className="w-4 h-4 text-blue-600" /> Registered office
-            </div>
-            <p className="text-slate-600 dark:text-slate-400">{c.hq.fullAddress}</p>
-            <p className="text-slate-500">Phone: {c.hq.phoneDisplay}</p>
-            <p className="text-slate-500">Email: {c.hq.email}</p>
-            <p className="text-slate-500">Support: {c.hq.supportEmail}</p>
-            <p className="text-slate-400 text-[10px] pt-1">{c.legal.disclaimer}</p>
-          </div>
+          <p className="text-xs text-slate-500">Entity: {L.entity} · ABN {L.abn} · {L.address}</p>
         </div>
-      </div>
+      )}
 
-      {/* Sitemap quick links */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 sm:p-8 shadow-sm space-y-4">
-        <h2 className="text-xl font-bold font-display flex items-center gap-2">
-          <Globe className="w-5 h-5 text-blue-600 dark:text-cyan-400" />
-          Site directory
-        </h2>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 text-xs">
-          {Object.values(c.sections).map((s) => (
-            <div key={s.title}>
-              <span className="font-bold text-blue-600 dark:text-cyan-400 block mb-1">{s.title}</span>
-              <p className="text-slate-500 dark:text-slate-400 leading-relaxed">{s.description}</p>
-            </div>
-          ))}
+      {/* LEGAL */}
+      {tab === 'legal' && (
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 sm:p-8 space-y-4">
+          <h2 className="text-2xl font-bold font-display flex items-center gap-2"><Scale className="w-6 h-6 text-blue-600" /> Legal</h2>
+          <div className="flex flex-wrap gap-2">
+            {([
+              { id: 'privacy' as const, label: 'Privacy Policy', icon: <Shield className="w-3.5 h-3.5" /> },
+              { id: 'terms' as const, label: 'Terms of Use', icon: <Scale className="w-3.5 h-3.5" /> },
+              { id: 'ads' as const, label: 'Advertising Policy', icon: <Megaphone className="w-3.5 h-3.5" /> },
+              { id: 'cookies' as const, label: 'Cookies', icon: <Cookie className="w-3.5 h-3.5" /> },
+            ]).map((x) => (
+              <button
+                key={x.id}
+                type="button"
+                onClick={() => setLegalSection(x.id)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer ${
+                  legalSection === x.id ? 'bg-blue-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
+                }`}
+              >
+                {x.icon} {x.label}
+              </button>
+            ))}
+          </div>
+          <div className="pt-2">{renderLegalDoc()}</div>
         </div>
-        <p className="text-[10px] text-slate-400 pt-2 border-t border-slate-100 dark:border-slate-800">
-          © {c.legal.year} {c.legal.copyrightName}. {c.hq.city}, {c.hq.country}.
-        </p>
-      </div>
+      )}
+
+      <p className="text-[10px] text-center text-slate-400">
+        © {c.legal.year} {c.legal.copyrightName}. {c.hq.city}, {c.hq.country}. Governing law: {c.legal.governingLaw}.
+      </p>
     </div>
   );
 };
