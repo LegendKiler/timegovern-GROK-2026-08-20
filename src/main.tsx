@@ -1,10 +1,27 @@
-import {StrictMode} from 'react';
-import {createRoot} from 'react-dom/client';
-import App from './App.tsx';
+import { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
 import './index.css';
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
-);
+const params = new URLSearchParams(window.location.search);
+const isEmbed = Boolean(params.get('embed'));
+
+async function boot() {
+  const root = createRoot(document.getElementById('root')!);
+  if (isEmbed) {
+    const { EmbedApp } = await import('./components/EmbedApp');
+    root.render(
+      <StrictMode>
+        <EmbedApp />
+      </StrictMode>
+    );
+    return;
+  }
+  const { default: App } = await import('./App.tsx');
+  root.render(
+    <StrictMode>
+      <App />
+    </StrictMode>
+  );
+}
+
+boot();
