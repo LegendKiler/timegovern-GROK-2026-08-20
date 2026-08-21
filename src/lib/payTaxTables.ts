@@ -1,7 +1,7 @@
 /**
- * LAB pay / tax tables — estimates only, not official advice.
- * Australia = default (resident 2025–26 style brackets from public ATO-aligned sites).
- * Other countries use simplified published structures for comparison.
+ * LAB pay / tax tables — estimates only, not official tax advice.
+ * AU default with LITO, MLS, resident types, salary sacrifice.
+ * US: federal + FICA + all 50 states + DC (simplified flat or effective rates).
  */
 
 export type PayCountry =
@@ -35,6 +35,8 @@ export const PAY_COUNTRIES: {
 ];
 
 export type PayFrequency = 'annual' | 'monthly' | 'fortnightly' | 'weekly' | 'hourly';
+
+export type AuResidentType = 'resident' | 'foreign' | 'whm';
 
 export function toAnnual(amount: number, freq: PayFrequency, hoursPerWeek = 38): number {
   switch (freq) {
@@ -86,8 +88,8 @@ function progressiveTax(
   return Math.max(0, tax);
 }
 
-/** AU resident income tax 2025–26 style (Stage 3 aligned public tables) */
-export function auIncomeTax(taxable: number): number {
+/** AU resident income tax 2025–26 style */
+export function auIncomeTaxResident(taxable: number): number {
   if (taxable <= 18200) return 0;
   if (taxable <= 45000) return (taxable - 18200) * 0.16;
   if (taxable <= 135000) return 4288 + (taxable - 45000) * 0.3;
@@ -95,14 +97,54 @@ export function auIncomeTax(taxable: number): number {
   return 51638 + (taxable - 190000) * 0.45;
 }
 
+/** Foreign resident — no tax-free threshold (simplified) */
+export function auIncomeTaxForeign(taxable: number): number {
+  if (taxable <= 135000) return taxable * 0.3;
+  if (taxable <= 190000) return 40500 + (taxable - 135000) * 0.37;
+  return 60850 + (taxable - 190000) * 0.45;
+}
+
+/** Working holiday maker — simplified WHM rates */
+export function auIncomeTaxWhm(taxable: number): number {
+  if (taxable <= 45000) return taxable * 0.15;
+  if (taxable <= 135000) return 6750 + (taxable - 45000) * 0.3;
+  if (taxable <= 190000) return 33750 + (taxable - 135000) * 0.37;
+  return 54100 + (taxable - 190000) * 0.45;
+}
+
+/** Low Income Tax Offset (LITO) — simplified 2025–26 style max $700 */
+export function auLito(taxable: number): number {
+  if (taxable <= 37500) return 700;
+  if (taxable <= 45000) return 700 - (taxable - 37500) * 0.05;
+  if (taxable <= 66667) return 325 - (taxable - 45000) * 0.015;
+  return 0;
+}
+
 export function auMedicare(taxable: number, exempt: boolean): number {
   if (exempt) return 0;
-  // Simplified: full 2% above phase-in; phase-in omitted for lab clarity
+  // Low-income phase-in simplified
   if (taxable <= 26000) return 0;
+  if (taxable <= 32500) return (taxable - 26000) * 0.1; // phase-in approx
   return taxable * 0.02;
 }
 
-/** Simplified HECS/HELP marginal-style estimate (illustrative rates) */
+/** Medicare Levy Surcharge — single, no private hospital (lab tiers) */
+export function auMls(
+  income: number,
+  hasPrivateHospital: boolean,
+  family: boolean
+): number {
+  if (hasPrivateHospital) return 0;
+  // Single thresholds (illustrative 2025–26 style)
+  const t1 = family ? 202000 : 101000;
+  const t2 = family ? 236000 : 118000;
+  const t3 = family ? 315000 : 158000;
+  if (income <= t1) return 0;
+  if (income <= t2) return income * 0.01;
+  if (income <= t3) return income * 0.0125;
+  return income * 0.015;
+}
+
 export function auHecs(repaymentIncome: number, hasDebt: boolean): number {
   if (!hasDebt || repaymentIncome < 56155) return 0;
   const tiers: [number, number][] = [
@@ -131,11 +173,64 @@ export function auHecs(repaymentIncome: number, hasDebt: boolean): number {
   return repaymentIncome * 0.1;
 }
 
-export const AU_SUPER_RATE = 0.12; // SG rate used in lab
+export const AU_SUPER_RATE = 0.12;
 
-/** US simplified: federal single + FICA only (no state — optional flat later) */
+/** US states + DC — simplified effective / flat rates for lab (0 = no broad state income tax) */
+export const US_STATES: { code: string; name: string; rate: number }[] = [
+  { code: 'AL', name: 'Alabama', rate: 0.05 },
+  { code: 'AK', name: 'Alaska', rate: 0 },
+  { code: 'AZ', name: 'Arizona', rate: 0.025 },
+  { code: 'AR', name: 'Arkansas', rate: 0.039 },
+  { code: 'CA', name: 'California', rate: 0.093 },
+  { code: 'CO', name: 'Colorado', rate: 0.044 },
+  { code: 'CT', name: 'Connecticut', rate: 0.05 },
+  { code: 'DE', name: 'Delaware', rate: 0.066 },
+  { code: 'DC', name: 'District of Columbia', rate: 0.085 },
+  { code: 'FL', name: 'Florida', rate: 0 },
+  { code: 'GA', name: 'Georgia', rate: 0.0539 },
+  { code: 'HI', name: 'Hawaii', rate: 0.08 },
+  { code: 'ID', name: 'Idaho', rate: 0.058 },
+  { code: 'IL', name: 'Illinois', rate: 0.0495 },
+  { code: 'IN', name: 'Indiana', rate: 0.0305 },
+  { code: 'IA', name: 'Iowa', rate: 0.057 },
+  { code: 'KS', name: 'Kansas', rate: 0.057 },
+  { code: 'KY', name: 'Kentucky', rate: 0.04 },
+  { code: 'LA', name: 'Louisiana', rate: 0.0425 },
+  { code: 'ME', name: 'Maine', rate: 0.0715 },
+  { code: 'MD', name: 'Maryland', rate: 0.0575 },
+  { code: 'MA', name: 'Massachusetts', rate: 0.05 },
+  { code: 'MI', name: 'Michigan', rate: 0.0425 },
+  { code: 'MN', name: 'Minnesota', rate: 0.0785 },
+  { code: 'MS', name: 'Mississippi', rate: 0.05 },
+  { code: 'MO', name: 'Missouri', rate: 0.048 },
+  { code: 'MT', name: 'Montana', rate: 0.059 },
+  { code: 'NE', name: 'Nebraska', rate: 0.0584 },
+  { code: 'NV', name: 'Nevada', rate: 0 },
+  { code: 'NH', name: 'New Hampshire', rate: 0 },
+  { code: 'NJ', name: 'New Jersey', rate: 0.0637 },
+  { code: 'NM', name: 'New Mexico', rate: 0.059 },
+  { code: 'NY', name: 'New York', rate: 0.0685 },
+  { code: 'NC', name: 'North Carolina', rate: 0.045 },
+  { code: 'ND', name: 'North Dakota', rate: 0.025 },
+  { code: 'OH', name: 'Ohio', rate: 0.035 },
+  { code: 'OK', name: 'Oklahoma', rate: 0.0475 },
+  { code: 'OR', name: 'Oregon', rate: 0.099 },
+  { code: 'PA', name: 'Pennsylvania', rate: 0.0307 },
+  { code: 'RI', name: 'Rhode Island', rate: 0.0599 },
+  { code: 'SC', name: 'South Carolina', rate: 0.064 },
+  { code: 'SD', name: 'South Dakota', rate: 0 },
+  { code: 'TN', name: 'Tennessee', rate: 0 },
+  { code: 'TX', name: 'Texas', rate: 0 },
+  { code: 'UT', name: 'Utah', rate: 0.0465 },
+  { code: 'VT', name: 'Vermont', rate: 0.0875 },
+  { code: 'VA', name: 'Virginia', rate: 0.0575 },
+  { code: 'WA', name: 'Washington', rate: 0 },
+  { code: 'WV', name: 'West Virginia', rate: 0.065 },
+  { code: 'WI', name: 'Wisconsin', rate: 0.0765 },
+  { code: 'WY', name: 'Wyoming', rate: 0 },
+];
+
 export function usFederalTax(taxable: number): number {
-  // Rough 2026 single brackets after std deduction applied outside
   const brackets = [
     { upTo: 11925, rate: 0.1, base: 0 },
     { upTo: 48475, rate: 0.12, base: 1192.5 },
@@ -156,7 +251,6 @@ export function usFica(gross: number): { ss: number; medicare: number } {
   return { ss, medicare };
 }
 
-/** UK simplified England PAYE + employee NI (illustrative) */
 export function ukIncomeTax(taxable: number): number {
   const pa = 12570;
   const inc = Math.max(0, taxable - pa);
@@ -177,20 +271,39 @@ export function nzTax(gross: number): number {
   if (gross <= 15600) return gross * 0.105;
   if (gross <= 53500) return 15600 * 0.105 + (gross - 15600) * 0.175;
   if (gross <= 78100) return 15600 * 0.105 + (53500 - 15600) * 0.175 + (gross - 53500) * 0.3;
-  if (gross <= 180000) return 15600 * 0.105 + (53500 - 15600) * 0.175 + (78100 - 53500) * 0.3 + (gross - 78100) * 0.33;
-  return 15600 * 0.105 + (53500 - 15600) * 0.175 + (78100 - 53500) * 0.3 + (180000 - 78100) * 0.33 + (gross - 180000) * 0.39;
+  if (gross <= 180000)
+    return 15600 * 0.105 + (53500 - 15600) * 0.175 + (78100 - 53500) * 0.3 + (gross - 78100) * 0.33;
+  return (
+    15600 * 0.105 +
+    (53500 - 15600) * 0.175 +
+    (78100 - 53500) * 0.3 +
+    (180000 - 78100) * 0.33 +
+    (gross - 180000) * 0.39
+  );
 }
 
 export function caFederalTax(taxable: number): number {
   if (taxable <= 57375) return taxable * 0.15;
   if (taxable <= 114750) return 57375 * 0.15 + (taxable - 57375) * 0.205;
-  if (taxable <= 177882) return 57375 * 0.15 + (114750 - 57375) * 0.205 + (taxable - 114750) * 0.26;
-  if (taxable <= 253414) return 57375 * 0.15 + (114750 - 57375) * 0.205 + (177882 - 114750) * 0.26 + (taxable - 177882) * 0.29;
-  return 57375 * 0.15 + (114750 - 57375) * 0.205 + (177882 - 114750) * 0.26 + (253414 - 177882) * 0.29 + (taxable - 253414) * 0.33;
+  if (taxable <= 177882)
+    return 57375 * 0.15 + (114750 - 57375) * 0.205 + (taxable - 114750) * 0.26;
+  if (taxable <= 253414)
+    return (
+      57375 * 0.15 +
+      (114750 - 57375) * 0.205 +
+      (177882 - 114750) * 0.26 +
+      (taxable - 177882) * 0.29
+    );
+  return (
+    57375 * 0.15 +
+    (114750 - 57375) * 0.205 +
+    (177882 - 114750) * 0.26 +
+    (253414 - 177882) * 0.29 +
+    (taxable - 253414) * 0.33
+  );
 }
 
 export function sgTax(chargeable: number): number {
-  // Simplified resident progressive sketch
   if (chargeable <= 20000) return 0;
   if (chargeable <= 30000) return (chargeable - 20000) * 0.02;
   if (chargeable <= 40000) return 200 + (chargeable - 30000) * 0.035;
@@ -204,7 +317,6 @@ export function sgTax(chargeable: number): number {
   return 44550 + (chargeable - 320000) * 0.22;
 }
 
-/** Flat effective estimates for remaining countries (lab) */
 export function simpleEffectiveTax(country: PayCountry, gross: number): number {
   const rates: Partial<Record<PayCountry, number>> = {
     DE: 0.35,
@@ -220,12 +332,18 @@ export interface PayBreakdown {
   currency: string;
   symbol: string;
   grossAnnual: number;
+  taxableIncome: number;
   incomeTax: number;
+  lito: number;
+  incomeTaxAfterOffset: number;
   socialOrLevy: number;
+  mls: number;
   studentLoan: number;
   other: number;
+  salarySacrifice: number;
   netAnnual: number;
   employerPensionOrSuper: number;
+  employeeExtraSuper: number;
   effectiveRate: number;
   notes: string[];
 }
@@ -238,83 +356,132 @@ export function calculatePay(opts: {
   hasHecs?: boolean;
   medicareExempt?: boolean;
   includeSuperOnTop?: boolean;
-  usStateFlatRate?: number; // 0 for TX/FL etc.
+  usStateCode?: string;
+  auResident?: AuResidentType;
+  hasPrivateHospital?: boolean;
+  familyMls?: boolean;
+  /** Pre-tax salary sacrifice / packaging amount (annual) */
+  salarySacrificeAnnual?: number;
+  /** Extra employee concessional super (annual, from package) */
+  extraSuperAnnual?: number;
 }): PayBreakdown {
   const meta = PAY_COUNTRIES.find((c) => c.code === opts.country)!;
   const gross = toAnnual(opts.grossInput, opts.frequency, opts.hoursPerWeek ?? 38);
+  const sacrifice = Math.max(0, Math.min(opts.salarySacrificeAnnual || 0, gross));
+  const extraSuper = Math.max(0, opts.extraSuperAnnual || 0);
   const notes: string[] = [];
   let incomeTax = 0;
+  let lito = 0;
   let socialOrLevy = 0;
+  let mls = 0;
   let studentLoan = 0;
   let other = 0;
   let employerPensionOrSuper = 0;
+  let taxableIncome = gross;
 
   switch (opts.country) {
     case 'AU': {
-      incomeTax = auIncomeTax(gross);
-      socialOrLevy = auMedicare(gross, !!opts.medicareExempt);
-      studentLoan = auHecs(gross, !!opts.hasHecs);
-      employerPensionOrSuper = opts.includeSuperOnTop !== false ? gross * AU_SUPER_RATE : 0;
-      notes.push('AU resident rates (lab estimate, 2025–26 style).');
-      notes.push(`Super Guarantee ${AU_SUPER_RATE * 100}% shown on top of salary (not deducted from take-home).`);
-      if (opts.hasHecs) notes.push('HELP/HECS estimate using public threshold table.');
+      const resident = opts.auResident || 'resident';
+      // Salary sacrifice reduces taxable; extra super often via sacrifice
+      taxableIncome = Math.max(0, gross - sacrifice - extraSuper);
+      if (resident === 'foreign') {
+        incomeTax = auIncomeTaxForeign(taxableIncome);
+        notes.push('Foreign resident rates (no tax-free threshold).');
+      } else if (resident === 'whm') {
+        incomeTax = auIncomeTaxWhm(taxableIncome);
+        notes.push('Working holiday maker rates (simplified).');
+      } else {
+        incomeTax = auIncomeTaxResident(taxableIncome);
+        lito = auLito(taxableIncome);
+        notes.push('Australian resident + LITO applied where eligible.');
+      }
+      socialOrLevy = auMedicare(taxableIncome, !!opts.medicareExempt || resident !== 'resident');
+      mls =
+        resident === 'resident'
+          ? auMls(taxableIncome, !!opts.hasPrivateHospital, !!opts.familyMls)
+          : 0;
+      studentLoan = auHecs(taxableIncome, !!opts.hasHecs);
+      employerPensionOrSuper =
+        opts.includeSuperOnTop !== false ? gross * AU_SUPER_RATE : 0;
+      notes.push(`Super Guarantee ${AU_SUPER_RATE * 100}% on OTE (shown on top).`);
+      if (sacrifice > 0 || extraSuper > 0) {
+        notes.push('Pre-tax salary sacrifice / packaging reduces taxable income (lab model).');
+      }
+      if (mls > 0) notes.push('Medicare Levy Surcharge estimated (no private hospital).');
       break;
     }
     case 'US': {
       const stdDed = 16100;
-      const taxable = Math.max(0, gross - stdDed);
-      incomeTax = usFederalTax(taxable);
-      const fica = usFica(gross);
+      taxableIncome = Math.max(0, gross - sacrifice - stdDed);
+      incomeTax = usFederalTax(taxableIncome);
+      const fica = usFica(Math.max(0, gross - sacrifice));
       socialOrLevy = fica.ss + fica.medicare;
-      const stateRate = opts.usStateFlatRate ?? 0.05;
-      other = gross * stateRate;
-      notes.push('US: federal (simplified single) + FICA + optional flat state (default 5%; set 0 for no-tax states).');
+      const st = US_STATES.find((s) => s.code === (opts.usStateCode || 'CA'));
+      other = Math.max(0, gross - sacrifice) * (st?.rate ?? 0.05);
+      notes.push(`US federal (single) + FICA + ${st?.name || 'state'} (~${((st?.rate || 0) * 100).toFixed(2)}% effective lab rate).`);
+      if (sacrifice > 0) notes.push('Pre-tax 401(k)/HSA-style reduction applied to wages (simplified).');
       break;
     }
     case 'UK': {
-      incomeTax = ukIncomeTax(gross);
-      socialOrLevy = ukNI(gross);
-      notes.push('UK England-style PAYE + employee NI (simplified lab model).');
+      taxableIncome = Math.max(0, gross - sacrifice);
+      incomeTax = ukIncomeTax(taxableIncome);
+      socialOrLevy = ukNI(taxableIncome);
+      notes.push('UK England-style PAYE + NI; sacrifice modelled as lower gross.');
       break;
     }
     case 'NZ': {
-      incomeTax = nzTax(gross);
-      notes.push('NZ PAYE progressive bands (simplified).');
+      taxableIncome = Math.max(0, gross - sacrifice);
+      incomeTax = nzTax(taxableIncome);
+      notes.push('NZ PAYE (simplified).');
       break;
     }
     case 'CA': {
-      incomeTax = caFederalTax(gross);
-      socialOrLevy = Math.min(gross, 68500) * 0.0595; // rough CPP employee
-      notes.push('Canada federal tax + rough CPP; provincial tax not fully modelled.');
+      taxableIncome = Math.max(0, gross - sacrifice);
+      incomeTax = caFederalTax(taxableIncome);
+      socialOrLevy = Math.min(taxableIncome, 68500) * 0.0595;
+      notes.push('Canada federal + rough CPP; provincial not fully modelled.');
       break;
     }
     case 'SG': {
-      incomeTax = sgTax(gross);
-      notes.push('Singapore resident progressive sketch (simplified).');
+      taxableIncome = Math.max(0, gross - sacrifice);
+      incomeTax = sgTax(taxableIncome);
+      notes.push('Singapore resident progressive sketch.');
       break;
     }
     default: {
-      incomeTax = simpleEffectiveTax(opts.country, gross);
-      notes.push('Simplified effective-rate model for this country (lab).');
+      taxableIncome = Math.max(0, gross - sacrifice);
+      incomeTax = simpleEffectiveTax(opts.country, taxableIncome);
+      notes.push('Simplified effective-rate model.');
     }
   }
 
-  const totalDed = incomeTax + socialOrLevy + studentLoan + other;
-  const netAnnual = Math.max(0, gross - totalDed);
-  const effectiveRate = gross > 0 ? (totalDed / gross) * 100 : 0;
+  const incomeTaxAfterOffset = Math.max(0, incomeTax - lito);
+  const totalDed = incomeTaxAfterOffset + socialOrLevy + mls + studentLoan + other;
+  // Net from remaining cash after tax; sacrifice already removed from take-home path
+  const netAnnual = Math.max(0, gross - sacrifice - extraSuper - totalDed);
+  const effectiveRate = gross > 0 ? ((gross - netAnnual - (opts.includeSuperOnTop !== false ? 0 : 0)) / gross) * 100 : 0;
+  // Effective on cash: tax+levy+sacrifice not in bank
+  const cashOut = totalDed + sacrifice + extraSuper;
+  const effectiveCash = gross > 0 ? (cashOut / gross) * 100 : 0;
 
   return {
     country: opts.country,
     currency: meta.currency,
     symbol: meta.symbol,
     grossAnnual: gross,
+    taxableIncome,
     incomeTax,
+    lito,
+    incomeTaxAfterOffset,
     socialOrLevy,
+    mls,
     studentLoan,
     other,
+    salarySacrifice: sacrifice + extraSuper,
     netAnnual,
     employerPensionOrSuper,
-    effectiveRate,
+    employeeExtraSuper: extraSuper,
+    effectiveRate: effectiveCash,
     notes,
   };
 }

@@ -4,6 +4,8 @@ import {
   PAY_COUNTRIES,
   PayCountry,
   PayFrequency,
+  AuResidentType,
+  US_STATES,
   calculatePay,
   fromAnnual,
 } from '../../lib/payTaxTables';
@@ -19,7 +21,12 @@ export function PayCalculator() {
   const [hours, setHours] = useState(38);
   const [hasHecs, setHasHecs] = useState(false);
   const [medicareExempt, setMedicareExempt] = useState(false);
-  const [usStateRate, setUsStateRate] = useState(5);
+  const [auResident, setAuResident] = useState<AuResidentType>('resident');
+  const [hasPrivateHospital, setHasPrivateHospital] = useState(true);
+  const [familyMls, setFamilyMls] = useState(false);
+  const [usState, setUsState] = useState('CA');
+  const [sacrifice, setSacrifice] = useState(0);
+  const [extraSuper, setExtraSuper] = useState(0);
 
   const result = useMemo(
     () =>
@@ -31,15 +38,32 @@ export function PayCalculator() {
         hasHecs,
         medicareExempt,
         includeSuperOnTop: true,
-        usStateFlatRate: usStateRate / 100,
+        usStateCode: usState,
+        auResident,
+        hasPrivateHospital,
+        familyMls,
+        salarySacrificeAnnual: sacrifice,
+        extraSuperAnnual: extraSuper,
       }),
-    [country, gross, freq, hours, hasHecs, medicareExempt, usStateRate]
+    [
+      country,
+      gross,
+      freq,
+      hours,
+      hasHecs,
+      medicareExempt,
+      usState,
+      auResident,
+      hasPrivateHospital,
+      familyMls,
+      sacrifice,
+      extraSuper,
+    ]
   );
 
   const [copied, setCopied] = useState(false);
   const periodNet = fromAnnual(result.netAnnual, freq, hours);
   const periodGross = fromAnnual(result.grossAnnual, freq, hours);
-
   const meta = PAY_COUNTRIES.find((c) => c.code === country)!;
 
   return (
@@ -47,20 +71,20 @@ export function PayCalculator() {
       <div className="rounded-xl border border-emerald-800/40 bg-emerald-950/20 px-3 py-2 text-[11px] text-emerald-200 flex gap-2">
         <Info className="w-4 h-4 shrink-0 mt-0.5" />
         <div>
-          <strong>Pay & meetings salary tools (lab).</strong> Default country: <strong>Australia</strong>.
-          Estimates only — not ATO/IRS/HMRC advice. Modelled after public AU pay calculators (tax, Medicare, super, HELP)
-          plus simplified US / UK / other majors.
+          <strong>Pay calculator (lab).</strong> Default <strong>Australia</strong> with LITO, Medicare, MLS,
+          resident types, HELP, super, and salary sacrifice. US includes all 50 states + DC. Estimates only — not
+          official advice.
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-slate-50 dark:bg-slate-800/60 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-3">
           <h2 className="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
-            <DollarSign className="w-4 h-4 text-emerald-500" /> Take-home pay calculator
+            <DollarSign className="w-4 h-4 text-emerald-500" /> Take-home pay
           </h2>
 
           <div>
-            <label className="block font-medium text-slate-600 dark:text-slate-400 mb-1">Country (default Australia)</label>
+            <label className="block font-medium text-slate-600 dark:text-slate-400 mb-1">Country</label>
             <select
               value={country}
               onChange={(e) => setCountry(e.target.value as PayCountry)}
@@ -113,7 +137,17 @@ export function PayCalculator() {
           )}
 
           {country === 'AU' && (
-            <div className="space-y-2 pt-1">
+            <div className="space-y-2 pt-1 border-t border-slate-200 dark:border-slate-700 pt-3">
+              <label className="block font-medium text-slate-600 dark:text-slate-400 mb-1">Resident type</label>
+              <select
+                value={auResident}
+                onChange={(e) => setAuResident(e.target.value as AuResidentType)}
+                className="w-full bg-white dark:bg-slate-900 border rounded-lg px-3 py-2"
+              >
+                <option value="resident">Australian resident</option>
+                <option value="foreign">Foreign resident</option>
+                <option value="whm">Working holiday maker</option>
+              </select>
               <label className="flex items-center gap-2 cursor-pointer">
                 <input type="checkbox" checked={hasHecs} onChange={(e) => setHasHecs(e.target.checked)} />
                 HELP / HECS debt
@@ -126,22 +160,70 @@ export function PayCalculator() {
                 />
                 Medicare levy exempt
               </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={hasPrivateHospital}
+                  onChange={(e) => setHasPrivateHospital(e.target.checked)}
+                />
+                Private hospital cover (avoids MLS)
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" checked={familyMls} onChange={(e) => setFamilyMls(e.target.checked)} />
+                Family MLS thresholds
+              </label>
             </div>
           )}
 
           {country === 'US' && (
             <div>
-              <label className="block font-medium text-slate-600 dark:text-slate-400 mb-1">
-                State tax flat % (0 = no state income tax)
-              </label>
-              <input
-                type="number"
-                value={usStateRate}
-                onChange={(e) => setUsStateRate(Number(e.target.value))}
+              <label className="block font-medium text-slate-600 dark:text-slate-400 mb-1">US state</label>
+              <select
+                value={usState}
+                onChange={(e) => setUsState(e.target.value)}
                 className="w-full bg-white dark:bg-slate-900 border rounded-lg px-3 py-2"
-              />
+              >
+                {US_STATES.map((s) => (
+                  <option key={s.code} value={s.code}>
+                    {s.name} ({s.code}){s.rate === 0 ? ' — no state income tax' : ''}
+                  </option>
+                ))}
+              </select>
             </div>
           )}
+
+          <div className="border-t border-slate-200 dark:border-slate-700 pt-3 space-y-2">
+            <p className="font-bold text-slate-700 dark:text-slate-200">Salary sacrifice / packaging (annual)</p>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block font-medium text-slate-600 dark:text-slate-400 mb-1">
+                  Pre-tax package / 401k-style
+                </label>
+                <input
+                  type="number"
+                  value={sacrifice}
+                  onChange={(e) => setSacrifice(Number(e.target.value))}
+                  className="w-full bg-white dark:bg-slate-900 border rounded-lg px-3 py-2 font-mono"
+                />
+              </div>
+              <div>
+                <label className="block font-medium text-slate-600 dark:text-slate-400 mb-1">
+                  Extra concessional super (AU)
+                </label>
+                <input
+                  type="number"
+                  value={extraSuper}
+                  onChange={(e) => setExtraSuper(Number(e.target.value))}
+                  className="w-full bg-white dark:bg-slate-900 border rounded-lg px-3 py-2 font-mono"
+                  disabled={country !== 'AU'}
+                />
+              </div>
+            </div>
+            <p className="text-[10px] opacity-60">
+              Reduces taxable income. AU: car/novated-style package amount + voluntary concessional super. US: models
+              pre-tax deduction. Not a full FBT engine.
+            </p>
+          </div>
         </div>
 
         <div className="bg-emerald-50 dark:bg-emerald-950/30 p-5 rounded-2xl border border-emerald-200 dark:border-emerald-800/50 space-y-3">
@@ -178,20 +260,31 @@ export function PayCalculator() {
 
           <div className="space-y-1.5 font-mono text-[11px]">
             <Row label="Gross (annual)" value={money(result.symbol, result.grossAnnual)} />
-            <Row label="Income tax" value={`−${money(result.symbol, result.incomeTax)}`} />
+            <Row label="Taxable income" value={money(result.symbol, result.taxableIncome)} />
+            {result.salarySacrifice > 0 && (
+              <Row label="Sacrifice / packaging" value={`−${money(result.symbol, result.salarySacrifice)}`} />
+            )}
+            <Row label="Income tax (gross)" value={`−${money(result.symbol, result.incomeTax)}`} />
+            {result.lito > 0 && <Row label="LITO offset" value={`+${money(result.symbol, result.lito)}`} />}
+            <Row label="Income tax after offset" value={`−${money(result.symbol, result.incomeTaxAfterOffset)}`} />
             <Row
-              label={country === 'AU' ? 'Medicare levy' : country === 'US' ? 'FICA' : country === 'UK' ? 'NI' : 'Social / levy'}
+              label={
+                country === 'AU' ? 'Medicare levy' : country === 'US' ? 'FICA' : country === 'UK' ? 'NI' : 'Social / levy'
+              }
               value={`−${money(result.symbol, result.socialOrLevy)}`}
             />
-            {result.studentLoan > 0 && <Row label="HELP/HECS" value={`−${money(result.symbol, result.studentLoan)}`} />}
-            {result.other > 0 && <Row label="State / other" value={`−${money(result.symbol, result.other)}`} />}
+            {result.mls > 0 && <Row label="MLS" value={`−${money(result.symbol, result.mls)}`} />}
+            {result.studentLoan > 0 && (
+              <Row label="HELP/HECS" value={`−${money(result.symbol, result.studentLoan)}`} />
+            )}
+            {result.other > 0 && <Row label="State tax" value={`−${money(result.symbol, result.other)}`} />}
             <Row label="Net (annual)" value={money(result.symbol, result.netAnnual)} bold />
-            <Row label="Effective tax rate" value={`${result.effectiveRate.toFixed(1)}%`} />
+            <Row label="Effective rate (cash)" value={`${result.effectiveRate.toFixed(1)}%`} />
             {result.employerPensionOrSuper > 0 && (
-              <Row
-                label="Employer super (on top)"
-                value={money(result.symbol, result.employerPensionOrSuper)}
-              />
+              <Row label="Employer super (on top)" value={money(result.symbol, result.employerPensionOrSuper)} />
+            )}
+            {result.employeeExtraSuper > 0 && (
+              <Row label="Extra super (yours)" value={money(result.symbol, result.employeeExtraSuper)} />
             )}
           </div>
 
