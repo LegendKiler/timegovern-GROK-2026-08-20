@@ -17,7 +17,6 @@ export function FbtNovatedCalculator() {
   const [country, setCountry] = useState<FbtCountry>('AU');
   const [tab, setTab] = useState<'fbt' | 'novated'>('fbt');
 
-  // AU FBT car
   const [baseValue, setBaseValue] = useState(45000);
   const [km, setKm] = useState(15000);
   const [method, setMethod] = useState<AuCarMethod>('statutory_flat');
@@ -25,7 +24,6 @@ export function FbtNovatedCalculator() {
   const [opex, setOpex] = useState(8000);
   const [gstCredits, setGstCredits] = useState(true);
 
-  // Novated
   const [price, setPrice] = useState(45000);
   const [residualPct, setResidualPct] = useState(40);
   const [term, setTerm] = useState(3);
@@ -35,7 +33,6 @@ export function FbtNovatedCalculator() {
   const [marginal, setMarginal] = useState(32);
   const [includeFbt, setIncludeFbt] = useState(true);
 
-  // International
   const [listPrice, setListPrice] = useState(40000);
   const [co2, setCo2] = useState(120);
   const [privUse, setPrivUse] = useState(100);
@@ -136,18 +133,9 @@ export function FbtNovatedCalculator() {
               <Car className="w-4 h-4 text-amber-500" /> AU car fringe benefit
             </h3>
             <label className="block font-medium text-slate-600 dark:text-slate-400">Base value (AUD)</label>
-            <input
-              type="number"
-              value={baseValue}
-              onChange={(e) => setBaseValue(Number(e.target.value))}
-              className="w-full border rounded-lg px-3 py-2 bg-white dark:bg-slate-900 font-mono"
-            />
+            <input type="number" value={baseValue} onChange={(e) => setBaseValue(Number(e.target.value))} className="w-full border rounded-lg px-3 py-2 bg-white dark:bg-slate-900 font-mono" />
             <label className="block font-medium text-slate-600 dark:text-slate-400">Method</label>
-            <select
-              value={method}
-              onChange={(e) => setMethod(e.target.value as AuCarMethod)}
-              className="w-full border rounded-lg px-3 py-2 bg-white dark:bg-slate-900"
-            >
+            <select value={method} onChange={(e) => setMethod(e.target.value as AuCarMethod)} className="w-full border rounded-lg px-3 py-2 bg-white dark:bg-slate-900">
               <option value="statutory_flat">Statutory 20% flat</option>
               <option value="statutory_km">Statutory by km band</option>
               <option value="operating_cost">Operating cost</option>
@@ -155,30 +143,15 @@ export function FbtNovatedCalculator() {
             {method === 'statutory_km' && (
               <>
                 <label className="block font-medium">Annual km</label>
-                <input
-                  type="number"
-                  value={km}
-                  onChange={(e) => setKm(Number(e.target.value))}
-                  className="w-full border rounded-lg px-3 py-2 bg-white dark:bg-slate-900"
-                />
+                <input type="number" value={km} onChange={(e) => setKm(Number(e.target.value))} className="w-full border rounded-lg px-3 py-2 bg-white dark:bg-slate-900" />
               </>
             )}
             {method === 'operating_cost' && (
               <>
                 <label className="block font-medium">Business use %</label>
-                <input
-                  type="number"
-                  value={bizUse}
-                  onChange={(e) => setBizUse(Number(e.target.value))}
-                  className="w-full border rounded-lg px-3 py-2 bg-white dark:bg-slate-900"
-                />
+                <input type="number" value={bizUse} onChange={(e) => setBizUse(Number(e.target.value))} className="w-full border rounded-lg px-3 py-2 bg-white dark:bg-slate-900" />
                 <label className="block font-medium">Annual operating costs</label>
-                <input
-                  type="number"
-                  value={opex}
-                  onChange={(e) => setOpex(Number(e.target.value))}
-                  className="w-full border rounded-lg px-3 py-2 bg-white dark:bg-slate-900"
-                />
+                <input type="number" value={opex} onChange={(e) => setOpex(Number(e.target.value))} className="w-full border rounded-lg px-3 py-2 bg-white dark:bg-slate-900" />
               </>
             )}
             <label className="flex items-center gap-2 cursor-pointer">
@@ -254,7 +227,7 @@ export function FbtNovatedCalculator() {
               onClick={async () => {
                 try {
                   await navigator.clipboard.writeText(
-                    `Novated: ${money('$', novated.monthlyPostTaxCost ?? novated.estimatedMonthlyPostTaxCost)}/mo post-tax est.`
+                    `Novated lease est. ${money('$', novated.estimatedMonthlyPostTaxCost)}/mo post-tax`
                   );
                   setCopied(true);
                   setTimeout(() => setCopied(false), 1500);
@@ -282,30 +255,15 @@ export function FbtNovatedCalculator() {
               <Car className="w-4 h-4 text-amber-500" /> {meta.name} company car / BIK
             </h3>
             <label className="block font-medium">List / cost price</label>
-            <input
-              type="number"
-              value={listPrice}
-              onChange={(e) => setListPrice(Number(e.target.value))}
-              className="w-full border rounded-lg px-3 py-2 bg-white dark:bg-slate-900 font-mono"
-            />
+            <input type="number" value={listPrice} onChange={(e) => setListPrice(Number(e.target.value))} className="w-full border rounded-lg px-3 py-2 bg-white dark:bg-slate-900 font-mono" />
             {country === 'UK' && (
               <>
                 <label className="block font-medium">CO₂ g/km (approx band)</label>
-                <input
-                  type="number"
-                  value={co2}
-                  onChange={(e) => setCo2(Number(e.target.value))}
-                  className="w-full border rounded-lg px-3 py-2 bg-white dark:bg-slate-900"
-                />
+                <input type="number" value={co2} onChange={(e) => setCo2(Number(e.target.value))} className="w-full border rounded-lg px-3 py-2 bg-white dark:bg-slate-900" />
               </>
             )}
             <label className="block font-medium">Private use %</label>
-            <input
-              type="number"
-              value={privUse}
-              onChange={(e) => setPrivUse(Number(e.target.value))}
-              className="w-full border rounded-lg px-3 py-2 bg-white dark:bg-slate-900"
-            />
+            <input type="number" value={privUse} onChange={(e) => setPrivUse(Number(e.target.value))} className="w-full border rounded-lg px-3 py-2 bg-white dark:bg-slate-900" />
           </div>
           <div className="bg-amber-50 dark:bg-amber-950/30 p-5 rounded-2xl border space-y-2 font-mono text-[11px]">
             <Row label="Est. taxable benefit / year" value={money(meta.symbol, intl.taxableBenefit)} bold />

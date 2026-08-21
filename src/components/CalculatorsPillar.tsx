@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import {
-  Calculator, Clock, Cpu, DollarSign, Wifi, Thermometer, Gauge, Users,
+  Calculator, Cpu, Wifi, Thermometer, Gauge, Users,
 } from 'lucide-react';
 import { LeapSecondUtility } from './LeapSecondUtility';
 import { Phase1Calculators } from './calculators/Phase1Calculators';
 import { PayCalculator } from './calculators/PayCalculator';
+import { FbtNovatedCalculator } from './calculators/FbtNovatedCalculator';
 
 export const CalculatorsPillar: React.FC = () => {
   const [calcCategory, setCalcCategory] = useState<'date' | 'leap' | 'it' | 'financial' | 'weather'>('date');
@@ -91,7 +92,7 @@ export const CalculatorsPillar: React.FC = () => {
               Calculators
             </h1>
             <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
-              Phase 1 date tools · leap seconds · ICT · AU-default pay · weather units
+              Date tools · pay (AU+) · FBT / novated · ICT · weather units
             </p>
           </div>
           <div className="flex flex-wrap gap-1.5 bg-slate-100 dark:bg-slate-800 p-1.5 rounded-xl border border-slate-200 dark:border-slate-700">
@@ -117,15 +118,11 @@ export const CalculatorsPillar: React.FC = () => {
 
         {calcCategory === 'it' && (
           <div className="pt-6 grid grid-cols-1 md:grid-cols-2 gap-6 text-xs">
-            <div className="bg-slate-50 dark:bg-slate-800/60 p-5 rounded-2xl border border-slate-200 dark:border-slate-700/80 space-y-4">
+            <div className="bg-slate-50 dark:bg-slate-800/60 p-5 rounded-2xl border space-y-4">
               <h2 className="font-bold text-sm flex items-center gap-2">
                 <Cpu className="w-4 h-4 text-cyan-500" /> IP Subnet CIDR
               </h2>
-              <select
-                value={cidrPrefix}
-                onChange={(e) => setCidrPrefix(Number(e.target.value))}
-                className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2"
-              >
+              <select value={cidrPrefix} onChange={(e) => setCidrPrefix(Number(e.target.value))} className="w-full bg-white dark:bg-slate-900 border rounded-lg px-3 py-2">
                 <option value={8}>/8</option>
                 <option value={16}>/16</option>
                 <option value={24}>/24</option>
@@ -137,7 +134,7 @@ export const CalculatorsPillar: React.FC = () => {
                 <div className="flex justify-between"><span>Usable hosts</span><span>{subnetInfo.usableHosts.toLocaleString()}</span></div>
               </div>
             </div>
-            <div className="bg-slate-50 dark:bg-slate-800/60 p-5 rounded-2xl border border-slate-200 dark:border-slate-700/80 space-y-4">
+            <div className="bg-slate-50 dark:bg-slate-800/60 p-5 rounded-2xl border space-y-4">
               <h2 className="font-bold text-sm flex items-center gap-2">
                 <Wifi className="w-4 h-4 text-purple-500" /> Transfer time
               </h2>
@@ -165,8 +162,12 @@ export const CalculatorsPillar: React.FC = () => {
         )}
 
         {calcCategory === 'financial' && (
-          <div className="pt-6 space-y-6">
+          <div className="pt-6 space-y-10">
             <PayCalculator />
+            <div className="border-t border-slate-200 dark:border-slate-800 pt-8">
+              <h2 className="text-lg font-bold mb-4 text-slate-900 dark:text-white">FBT & novated lease</h2>
+              <FbtNovatedCalculator />
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs border-t border-slate-200 dark:border-slate-800 pt-6">
               <div className="bg-slate-50 dark:bg-slate-800/60 p-5 rounded-2xl border space-y-3">
                 <h2 className="font-bold text-sm flex items-center gap-2">
@@ -174,9 +175,9 @@ export const CalculatorsPillar: React.FC = () => {
                 </h2>
                 <p className="text-[11px] opacity-70">Attendees × hours × average hourly rate</p>
                 <div className="grid grid-cols-3 gap-2">
-                  <input type="number" value={meetingAttendees} onChange={(e) => setMeetingAttendees(Number(e.target.value))} className="border rounded-lg px-2 py-1.5 bg-white dark:bg-slate-900" placeholder="People" />
-                  <input type="number" value={meetingDurationMins} onChange={(e) => setMeetingDurationMins(Number(e.target.value))} className="border rounded-lg px-2 py-1.5 bg-white dark:bg-slate-900" placeholder="Mins" />
-                  <input type="number" value={avgHourlySalary} onChange={(e) => setAvgHourlySalary(Number(e.target.value))} className="border rounded-lg px-2 py-1.5 bg-white dark:bg-slate-900" placeholder="$/hr" />
+                  <input type="number" value={meetingAttendees} onChange={(e) => setMeetingAttendees(Number(e.target.value))} className="border rounded-lg px-2 py-1.5 bg-white dark:bg-slate-900" />
+                  <input type="number" value={meetingDurationMins} onChange={(e) => setMeetingDurationMins(Number(e.target.value))} className="border rounded-lg px-2 py-1.5 bg-white dark:bg-slate-900" />
+                  <input type="number" value={avgHourlySalary} onChange={(e) => setAvgHourlySalary(Number(e.target.value))} className="border rounded-lg px-2 py-1.5 bg-white dark:bg-slate-900" />
                 </div>
                 <p className="font-mono text-lg text-blue-600 dark:text-cyan-400">${meetingCost}</p>
               </div>
