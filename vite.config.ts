@@ -4,6 +4,7 @@ import path from 'path';
 import { defineConfig, Plugin } from 'vite';
 import { fetchGoogleSearchGroundedNews } from './src/api/news';
 import { handleLeapSeconds } from './src/api/leapSeconds';
+import { handleV1TimeNode } from './src/api/v1Time';
 
 function apiDevServerPlugin(): Plugin {
   return {
@@ -13,6 +14,19 @@ function apiDevServerPlugin(): Plugin {
         if (!req.url) return next();
 
         const url = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
+
+        // TimeGovern public API v1 (lab)
+        try {
+          const v1 = await handleV1TimeNode(url.pathname, url.search, req.method || 'GET');
+          if (v1) {
+            res.setHeader('Content-Type', 'application/json');
+            res.setHeader('Access-Control-Allow-Origin', '*');
+            res.statusCode = v1.status;
+            return res.end(v1.body);
+          }
+        } catch {
+          /* fall through */
+        }
 
         if (url.pathname === '/api/admin/seed-db' || url.pathname === '/api/admin/seed-db/') {
           res.setHeader('Content-Type', 'application/json');
@@ -172,27 +186,21 @@ export default defineConfig(() => {
         output: {
           manualChunks(id) {
             if (id.includes('node_modules')) {
-              // Separate Three.js and 3D rendering pipeline
               if (id.includes('three') || id.includes('@react-three')) {
                 return 'vendor-three';
               }
-              // Separate PDF generation tools
               if (id.includes('jspdf') || id.includes('html2canvas') || id.includes('purify')) {
                 return 'vendor-pdf';
               }
-              // Separate Recharts & data visualization tools
               if (id.includes('recharts') || id.includes('d3')) {
                 return 'vendor-charts';
               }
-              // Separate Lucide icons & animation engines
               if (id.includes('lucide-react') || id.includes('motion') || id.includes('gsap')) {
                 return 'vendor-ui-motion';
               }
-              // Separate React Core runtime
               if (id.includes('react') || id.includes('react-dom')) {
                 return 'vendor-react-core';
               }
-              // Other node_modules dependencies
               return 'vendor-core';
             }
           },
