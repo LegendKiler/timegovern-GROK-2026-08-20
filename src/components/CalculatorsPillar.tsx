@@ -4,11 +4,11 @@ import {
 } from 'lucide-react';
 import { LeapSecondUtility } from './LeapSecondUtility';
 import { Phase1Calculators } from './calculators/Phase1Calculators';
+import { PayCalculator } from './calculators/PayCalculator';
 
 export const CalculatorsPillar: React.FC = () => {
   const [calcCategory, setCalcCategory] = useState<'date' | 'leap' | 'it' | 'financial' | 'weather'>('date');
 
-  // ICT
   const [cidrPrefix, setCidrPrefix] = useState(24);
   const [dataSize, setDataSize] = useState(25);
   const [dataSizeUnit, setDataSizeUnit] = useState<'GB' | 'TB' | 'MB'>('GB');
@@ -46,18 +46,11 @@ export const CalculatorsPillar: React.FC = () => {
   };
   const transferTime = calculateTransferTime();
 
-  // Financial
-  const [hourlyWage, setHourlyWage] = useState(45);
-  const [hoursPerWeek, setHoursPerWeek] = useState(40);
-  const [vacationWeeks, setVacationWeeks] = useState(2);
   const [meetingAttendees, setMeetingAttendees] = useState(6);
   const [meetingDurationMins, setMeetingDurationMins] = useState(60);
   const [avgHourlySalary, setAvgHourlySalary] = useState(65);
-  const annualSalary = hourlyWage * hoursPerWeek * (52 - vacationWeeks);
-  const monthlySalary = annualSalary / 12;
   const meetingCost = (meetingAttendees * avgHourlySalary * (meetingDurationMins / 60)).toFixed(2);
 
-  // Weather units
   const [tempInput, setTempInput] = useState(25);
   const [tempUnit, setTempUnit] = useState<'C' | 'F' | 'K'>('C');
   const [pressureInput, setPressureInput] = useState(1013.25);
@@ -98,7 +91,7 @@ export const CalculatorsPillar: React.FC = () => {
               Calculators
             </h1>
             <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
-              Phase 1 date tools (A1–A4) · leap seconds · ICT · salary · weather units
+              Phase 1 date tools · leap seconds · ICT · AU-default pay · weather units
             </p>
           </div>
           <div className="flex flex-wrap gap-1.5 bg-slate-100 dark:bg-slate-800 p-1.5 rounded-xl border border-slate-200 dark:border-slate-700">
@@ -172,28 +165,21 @@ export const CalculatorsPillar: React.FC = () => {
         )}
 
         {calcCategory === 'financial' && (
-          <div className="pt-6 grid grid-cols-1 md:grid-cols-2 gap-6 text-xs">
-            <div className="bg-slate-50 dark:bg-slate-800/60 p-5 rounded-2xl border space-y-3">
-              <h2 className="font-bold text-sm flex items-center gap-2">
-                <DollarSign className="w-4 h-4 text-emerald-500" /> Hourly → annual
-              </h2>
-              <div className="grid grid-cols-3 gap-2">
-                <input type="number" value={hourlyWage} onChange={(e) => setHourlyWage(Number(e.target.value))} className="border rounded-lg px-2 py-1.5 bg-white dark:bg-slate-900" />
-                <input type="number" value={hoursPerWeek} onChange={(e) => setHoursPerWeek(Number(e.target.value))} className="border rounded-lg px-2 py-1.5 bg-white dark:bg-slate-900" />
-                <input type="number" value={vacationWeeks} onChange={(e) => setVacationWeeks(Number(e.target.value))} className="border rounded-lg px-2 py-1.5 bg-white dark:bg-slate-900" />
+          <div className="pt-6 space-y-6">
+            <PayCalculator />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs border-t border-slate-200 dark:border-slate-800 pt-6">
+              <div className="bg-slate-50 dark:bg-slate-800/60 p-5 rounded-2xl border space-y-3">
+                <h2 className="font-bold text-sm flex items-center gap-2">
+                  <Users className="w-4 h-4 text-blue-500" /> Meeting cost (simple)
+                </h2>
+                <p className="text-[11px] opacity-70">Attendees × hours × average hourly rate</p>
+                <div className="grid grid-cols-3 gap-2">
+                  <input type="number" value={meetingAttendees} onChange={(e) => setMeetingAttendees(Number(e.target.value))} className="border rounded-lg px-2 py-1.5 bg-white dark:bg-slate-900" placeholder="People" />
+                  <input type="number" value={meetingDurationMins} onChange={(e) => setMeetingDurationMins(Number(e.target.value))} className="border rounded-lg px-2 py-1.5 bg-white dark:bg-slate-900" placeholder="Mins" />
+                  <input type="number" value={avgHourlySalary} onChange={(e) => setAvgHourlySalary(Number(e.target.value))} className="border rounded-lg px-2 py-1.5 bg-white dark:bg-slate-900" placeholder="$/hr" />
+                </div>
+                <p className="font-mono text-lg text-blue-600 dark:text-cyan-400">${meetingCost}</p>
               </div>
-              <p className="font-mono text-emerald-600 dark:text-emerald-400 text-lg">${annualSalary.toLocaleString()} / yr · ${Math.round(monthlySalary).toLocaleString()} / mo</p>
-            </div>
-            <div className="bg-slate-50 dark:bg-slate-800/60 p-5 rounded-2xl border space-y-3">
-              <h2 className="font-bold text-sm flex items-center gap-2">
-                <Users className="w-4 h-4 text-blue-500" /> Meeting cost
-              </h2>
-              <div className="grid grid-cols-3 gap-2">
-                <input type="number" value={meetingAttendees} onChange={(e) => setMeetingAttendees(Number(e.target.value))} className="border rounded-lg px-2 py-1.5 bg-white dark:bg-slate-900" />
-                <input type="number" value={meetingDurationMins} onChange={(e) => setMeetingDurationMins(Number(e.target.value))} className="border rounded-lg px-2 py-1.5 bg-white dark:bg-slate-900" />
-                <input type="number" value={avgHourlySalary} onChange={(e) => setAvgHourlySalary(Number(e.target.value))} className="border rounded-lg px-2 py-1.5 bg-white dark:bg-slate-900" />
-              </div>
-              <p className="font-mono text-lg text-blue-600 dark:text-cyan-400">${meetingCost}</p>
             </div>
           </div>
         )}
