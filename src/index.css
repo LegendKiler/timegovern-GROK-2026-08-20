@@ -1,9 +1,12 @@
 @import "tailwindcss";
 
-/* Professional font stack */
+/*
+  LAB font stack — aligned with clean utility sites (timeanddate-style):
+  one strong sans for UI + mono for times. Avoid mixed display fonts that clash.
+*/
 :root {
-  --font-sans: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-display: "Plus Jakarta Sans", "Inter", system-ui, sans-serif;
+  --font-sans: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-display: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 
@@ -13,6 +16,7 @@ html {
 }
 
 body {
+  font-family: var(--font-sans) !important;
   font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -20,29 +24,36 @@ body {
   line-height: 1.5;
 }
 
-/* Headings use display font without colliding with body */
-h1, h2, h3, h4, .font-display {
-  font-family: var(--font-display);
+/* Headings: same family, weight hierarchy only (no second font fighting body) */
+h1, h2, h3, h4, h5, h6, .font-display {
+  font-family: var(--font-display) !important;
   line-height: 1.25;
   letter-spacing: -0.02em;
 }
 
-.font-mono,
-.tabular-nums {
-  font-family: var(--font-mono);
+button, input, select, textarea {
+  font-family: inherit;
 }
 
-/* Icons never shrink / never sit under text */
+.font-mono,
+.tabular-nums,
+.font-mono * {
+  font-family: var(--font-mono) !important;
+}
+
+/* Kill accidental serif from template themes */
+.font-serif {
+  font-family: var(--font-sans) !important;
+}
+
 svg {
   flex-shrink: 0;
 }
 
-/* Prevent flex children from crushing each other */
 .min-w-0 {
   min-width: 0;
 }
 
-/* Horizontal scroll areas without page-wide overflow */
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
@@ -51,17 +62,14 @@ svg {
   display: none;
 }
 
-/* Sticky header stacking – search dropdown above content */
 header {
   isolation: isolate;
 }
 
-/* Links / buttons don’t inherit weird overlaps */
 a, button {
   position: relative;
 }
 
-/* Safer text truncation helpers */
 .truncate-safe {
   overflow: hidden;
   text-overflow: ellipsis;
