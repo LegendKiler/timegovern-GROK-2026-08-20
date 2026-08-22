@@ -42,7 +42,6 @@ export default function App() {
   const [showAds, setShowAds] = useState(true);
   const [isDarkMode, setIsDarkMode] = useState(false);
 
-  // Tailwind v4 class-based dark: must set .dark on <html> for dark:* utilities
   useEffect(() => {
     const root = document.documentElement;
     if (isDarkMode) {
@@ -92,18 +91,18 @@ export default function App() {
 
   const getThemeWrapperClass = () => {
     if (isDarkMode) {
-      return 'dark bg-[#070b14] text-slate-100 font-sans selection:bg-blue-600 selection:text-white';
+      return 'dark bg-transparent text-slate-100 font-sans selection:bg-blue-600 selection:text-white';
     }
     switch (templateTheme) {
       case 'stripe-corporate':
-        return 'bg-[#eef2ff] text-indigo-950 font-sans selection:bg-indigo-600 selection:text-white';
+        return 'bg-gradient-to-b from-indigo-100/80 via-indigo-50/40 to-transparent text-indigo-950 font-sans selection:bg-indigo-600 selection:text-white';
       case 'emerald-precision':
-        return 'bg-[#ecfdf5] text-emerald-950 font-sans selection:bg-emerald-600 selection:text-white';
+        return 'bg-gradient-to-b from-emerald-100/80 via-emerald-50/40 to-transparent text-emerald-950 font-sans selection:bg-emerald-600 selection:text-white';
       case 'editorial-classic':
-        return 'bg-[#fffbeb] text-slate-900 font-sans selection:bg-amber-300 selection:text-amber-950';
+        return 'bg-gradient-to-b from-amber-100/80 via-amber-50/30 to-transparent text-slate-900 font-sans selection:bg-amber-300 selection:text-amber-950';
       case 'swiss-quartz':
       default:
-        return 'bg-[#e8eef5] text-slate-900 font-sans selection:bg-blue-600 selection:text-white';
+        return 'bg-gradient-to-b from-sky-200/70 via-blue-50/50 to-transparent text-slate-900 font-sans selection:bg-blue-600 selection:text-white';
     }
   };
 
@@ -127,10 +126,10 @@ export default function App() {
         setTemplateTheme={setTemplateTheme}
       />
 
-      <div className={`${isDarkMode ? 'bg-[#0b101f]/95 border-slate-800/80 text-slate-200' : 'bg-white/95 border-slate-200 text-slate-700 shadow-sm'} border-b text-xs py-2 px-4`}>
+      <div className={`${isDarkMode ? 'bg-[#0b101f]/95 border-slate-800/80 text-slate-200' : 'bg-sky-50/90 border-sky-200/80 text-slate-700 shadow-sm'} border-b text-xs py-2 px-4`}>
         <div className="max-w-[1920px] mx-auto flex items-center justify-between text-[11px]">
-          <span className="font-semibold">Commercial AdSlots · House placeholders · AdSense env-gated</span>
-          <button type="button" onClick={() => setShowAds(!showAds)} className={`flex items-center gap-1.5 px-3 py-1 rounded-lg border cursor-pointer ${isDarkMode ? 'border-slate-600 bg-slate-800' : 'border-slate-300 bg-slate-50'}`}>
+          <span className="font-semibold text-slate-600 dark:text-slate-300">Commercial AdSlots · House placeholders · AdSense env-gated</span>
+          <button type="button" onClick={() => setShowAds(!showAds)} className={`flex items-center gap-1.5 px-3 py-1 rounded-lg border cursor-pointer ${isDarkMode ? 'border-slate-600 bg-slate-800' : 'border-sky-300 bg-white'}`}>
             {showAds ? <EyeOff className="w-3.5 h-3.5 text-amber-500" /> : <Eye className="w-3.5 h-3.5 text-emerald-600" />}
             {showAds ? 'Hide ads' : 'Show ads'}
           </button>
@@ -175,7 +174,7 @@ export default function App() {
       </div>
 
       <div className="max-w-[1920px] mx-auto w-full px-4 sm:px-6 my-6">
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-6 shadow-sm">
+        <div className="bg-white dark:bg-slate-900 border border-pink-200 dark:border-slate-700 rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-6 shadow-md">
           <div className="flex items-center gap-5">
             <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-pink-500 to-rose-600 flex items-center justify-center text-white shadow-md">
               <Heart className="w-8 h-8 fill-white" />
