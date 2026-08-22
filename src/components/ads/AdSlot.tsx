@@ -1,23 +1,17 @@
 /**
- * Professional IAB-style ad inventory for TimeGovern (lab placeholders).
- * Slot IDs match media kit: tg_header | tg_rail_sticky | tg_infeed | tg_footer | tg_mobile_anchor
- * Real AdSense/GAM fills later via data-ad-slot + env — never hardcode publisher IDs in git.
+ * Professional IAB-style ad inventory for TimeGovern.
+ * Default: house placeholders. Live AdSense only when env enables it.
  */
 import React, { useState } from 'react';
 import { ExternalLink, EyeOff, Megaphone, Building2 } from 'lucide-react';
+import { canRenderLiveAd, AdSlotId as ConfigSlotId } from '../../lib/adsConfig';
+import { AdSenseUnit } from './AdSenseUnit';
 
-export type AdSlotId =
-  | 'tg_header'
-  | 'tg_rail_sticky'
-  | 'tg_infeed'
-  | 'tg_footer'
-  | 'tg_mobile_anchor'
-  | 'tg_rectangle';
+export type AdSlotId = ConfigSlotId;
 
 interface AdSlotProps {
   slotId: AdSlotId;
   className?: string;
-  /** Hide dismiss control (e.g. media kit demos) */
   persistent?: boolean;
 }
 
@@ -31,6 +25,7 @@ const SLOT_META: Record<
     houseSponsor: string;
     houseTitle: string;
     houseCta: string;
+    adFormat: 'auto' | 'rectangle' | 'horizontal' | 'vertical';
   }
 > = {
   tg_header: {
@@ -41,6 +36,7 @@ const SLOT_META: Record<
     houseSponsor: 'TimeGovern Media',
     houseTitle: 'Reach decision-makers who check world time, calendars & pay tools daily.',
     houseCta: 'Advertise here',
+    adFormat: 'horizontal',
   },
   tg_rail_sticky: {
     label: 'Sticky sidebar (premium)',
@@ -50,6 +46,7 @@ const SLOT_META: Record<
     houseSponsor: 'TimeGovern Media',
     houseTitle: 'Highest view-time slot — users stay on clocks & planners for minutes.',
     houseCta: 'Book sticky rail',
+    adFormat: 'vertical',
   },
   tg_infeed: {
     label: 'In-feed native',
@@ -59,6 +56,7 @@ const SLOT_META: Record<
     houseSponsor: 'TimeGovern Media',
     houseTitle: 'Native placement between tools — high engagement, brand-safe context.',
     houseCta: 'Request rates',
+    adFormat: 'rectangle',
   },
   tg_footer: {
     label: 'Footer board',
@@ -68,6 +66,7 @@ const SLOT_META: Record<
     houseSponsor: 'TimeGovern Media',
     houseTitle: 'Always-on footer inventory across all pillars.',
     houseCta: 'Advertise',
+    adFormat: 'horizontal',
   },
   tg_mobile_anchor: {
     label: 'Mobile anchor',
@@ -77,6 +76,7 @@ const SLOT_META: Record<
     houseSponsor: 'TimeGovern Media',
     houseTitle: 'Sticky mobile unit — limited to one for UX quality.',
     houseCta: 'Advertise',
+    adFormat: 'horizontal',
   },
   tg_rectangle: {
     label: 'Medium rectangle',
@@ -86,6 +86,7 @@ const SLOT_META: Record<
     houseSponsor: 'TimeGovern Media',
     houseTitle: 'Classic MREC for calculators, news & company pages.',
     houseCta: 'Advertise',
+    adFormat: 'rectangle',
   },
 };
 
@@ -96,12 +97,42 @@ export const AdSlot: React.FC<AdSlotProps> = ({ slotId, className = '', persiste
   if (dismissed && !persistent) return null;
 
   const goAdvertise = () => {
-    // Soft nav: Company pillar often hosts Advertise; hash for deep link
     window.location.hash = 'advertise';
     window.dispatchEvent(new CustomEvent('tg-open-advertise'));
   };
 
-  // ——— Sticky rail 300×600 ———
+  // ——— Live AdSense path (env-gated) ———
+  if (canRenderLiveAd(slotId)) {
+    if (slotId === 'tg_rail_sticky') {
+      return (
+        <aside className={`hidden xl:flex w-[300px] shrink-0 flex-col ${className}`} aria-label="Advertisement">
+          <div className="sticky top-20 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden bg-slate-50 dark:bg-slate-900" style={{ width: 300, minHeight: 600 }}>
+            <div className="px-2 py-1 text-[9px] font-bold uppercase text-slate-500 border-b border-slate-200 dark:border-slate-800">
+              Advertisement
+            </div>
+            <AdSenseUnit slotId={slotId} format={meta.adFormat} minHeight={580} className="p-1" />
+          </div>
+        </aside>
+      );
+    }
+    if (slotId === 'tg_mobile_anchor') {
+      return (
+        <div className={`fixed bottom-0 inset-x-0 z-40 md:hidden border-t bg-white/95 dark:bg-slate-950/95 backdrop-blur-md ${className}`}>
+          <div className="max-w-lg mx-auto">
+            <AdSenseUnit slotId={slotId} format="horizontal" minHeight={50} />
+          </div>
+        </div>
+      );
+    }
+    return (
+      <div className={`w-full ${className}`} aria-label="Advertisement">
+        <div className="text-[9px] font-bold uppercase text-slate-400 mb-0.5 px-1">Advertisement</div>
+        <AdSenseUnit slotId={slotId} format={meta.adFormat} minHeight={meta.height} />
+      </div>
+    );
+  }
+
+  // ——— House placeholders (default / lab) ———
   if (slotId === 'tg_rail_sticky') {
     return (
       <aside
@@ -121,11 +152,11 @@ export const AdSlot: React.FC<AdSlotProps> = ({ slotId, className = '', persiste
             <div className="w-14 h-14 rounded-2xl bg-blue-600/10 border border-blue-500/30 flex items-center justify-center">
               <Megaphone className="w-7 h-7 text-blue-600 dark:text-cyan-400" />
             </div>
-            <p className="text-[10px] font-bold uppercase tracking-wide text-blue-600 dark:text-cyan-400">
-              {meta.houseSponsor}
-            </p>
+            <p className="text-[10px] font-bold uppercase tracking-wide text-blue-600 dark:text-cyan-400">{meta.houseSponsor}</p>
             <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 leading-snug">{meta.houseTitle}</p>
-            <p className="text-[11px] text-slate-500">Slot ID: <code className="font-mono">{slotId}</code></p>
+            <p className="text-[11px] text-slate-500">
+              Slot ID: <code className="font-mono">{slotId}</code>
+            </p>
             <button
               type="button"
               onClick={goAdvertise}
@@ -135,21 +166,16 @@ export const AdSlot: React.FC<AdSlotProps> = ({ slotId, className = '', persiste
             </button>
           </div>
           <div className="px-3 py-2 border-t border-slate-200 dark:border-slate-800 text-[9px] text-slate-400 text-center">
-            House ad · Programmatic fill later
+            House ad · Set VITE_ADS_ENABLED=true for AdSense
           </div>
         </div>
       </aside>
     );
   }
 
-  // ——— Header / footer leaderboard ———
   if (slotId === 'tg_header' || slotId === 'tg_footer') {
     return (
-      <div
-        className={`w-full max-w-7xl mx-auto ${className}`}
-        data-ad-slot={slotId}
-        aria-label={`Advertisement ${meta.sizeLabel}`}
-      >
+      <div className={`w-full max-w-7xl mx-auto ${className}`} data-ad-slot={slotId} aria-label={`Advertisement ${meta.sizeLabel}`}>
         <div
           className="relative rounded-xl border border-slate-200 dark:border-slate-700 bg-gradient-to-r from-slate-50 via-white to-slate-50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-950 overflow-hidden shadow-sm"
           style={{ minHeight: meta.height }}
@@ -158,15 +184,12 @@ export const AdSlot: React.FC<AdSlotProps> = ({ slotId, className = '', persiste
             <span className="text-[8px] font-bold uppercase tracking-wider bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-1.5 py-0.5 rounded">
               Advertisement
             </span>
-            <span className="text-[8px] font-mono text-slate-400 hidden sm:inline">{meta.sizeLabel} · {slotId}</span>
+            <span className="text-[8px] font-mono text-slate-400 hidden sm:inline">
+              {meta.sizeLabel} · {slotId}
+            </span>
           </div>
           {!persistent && (
-            <button
-              type="button"
-              onClick={() => setDismissed(true)}
-              className="absolute top-1.5 right-2 text-slate-400 hover:text-slate-600 p-1 z-10"
-              title="Hide ad"
-            >
+            <button type="button" onClick={() => setDismissed(true)} className="absolute top-1.5 right-2 text-slate-400 hover:text-slate-600 p-1 z-10" title="Hide ad">
               <EyeOff className="w-3.5 h-3.5" />
             </button>
           )}
@@ -193,7 +216,6 @@ export const AdSlot: React.FC<AdSlotProps> = ({ slotId, className = '', persiste
     );
   }
 
-  // ——— Mobile sticky anchor ———
   if (slotId === 'tg_mobile_anchor') {
     return (
       <div
@@ -207,11 +229,7 @@ export const AdSlot: React.FC<AdSlotProps> = ({ slotId, className = '', persiste
             <p className="text-[11px] font-semibold text-slate-800 dark:text-slate-100 line-clamp-1">{meta.houseTitle}</p>
           </div>
           <div className="flex items-center gap-1 shrink-0">
-            <button
-              type="button"
-              onClick={goAdvertise}
-              className="px-3 py-1.5 rounded-lg bg-blue-600 text-white text-[10px] font-bold"
-            >
+            <button type="button" onClick={goAdvertise} className="px-3 py-1.5 rounded-lg bg-blue-600 text-white text-[10px] font-bold">
               {meta.houseCta}
             </button>
             {!persistent && (
@@ -225,17 +243,9 @@ export const AdSlot: React.FC<AdSlotProps> = ({ slotId, className = '', persiste
     );
   }
 
-  // ——— In-feed + MREC ———
   return (
-    <div
-      className={`my-4 ${className}`}
-      data-ad-slot={slotId}
-      aria-label={`Advertisement ${meta.sizeLabel}`}
-    >
-      <div
-        className="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/80 overflow-hidden shadow-sm"
-        style={{ minHeight: Math.min(meta.height, 200) }}
-      >
+    <div className={`my-4 ${className}`} data-ad-slot={slotId} aria-label={`Advertisement ${meta.sizeLabel}`}>
+      <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/80 overflow-hidden shadow-sm" style={{ minHeight: Math.min(meta.height, 200) }}>
         <div className="flex items-center justify-between px-3 py-1 border-b border-slate-200 dark:border-slate-800">
           <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Advertisement</span>
           <span className="text-[9px] font-mono text-slate-400">{meta.sizeLabel}</span>
@@ -259,7 +269,6 @@ export const AdSlot: React.FC<AdSlotProps> = ({ slotId, className = '', persiste
   );
 };
 
-/** Legacy type bridge so existing <AdBanner type="..." /> keeps working */
 export type LegacyAdType =
   | 'leaderboard'
   | 'skyscraper-left'
