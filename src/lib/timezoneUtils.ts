@@ -1,8 +1,5 @@
 import { TimezoneOffsetInfo } from '../types';
 
-/**
- * Format date in a given IANA timezone safely using Intl
- */
 export function getTimeInTimezone(date: Date, timeZone: string): Date {
   try {
     const isoString = date.toLocaleString('en-US', { timeZone, hour12: false });
@@ -12,23 +9,18 @@ export function getTimeInTimezone(date: Date, timeZone: string): Date {
   }
 }
 
-/**
- * Calculate precise timezone offset, DST status, and upcoming DST transitions for any IANA timezone
- */
 export function getTimezoneOffsetInfo(date: Date, timeZone: string): TimezoneOffsetInfo {
   let offsetMinutes = 0;
   let isDst = false;
   let abbreviation = 'UTC';
 
   try {
-    // Determine offset in minutes
     const nowUtcStr = date.toLocaleString('en-US', { timeZone: 'UTC' });
     const nowTzStr = date.toLocaleString('en-US', { timeZone });
     const dateUtc = new Date(nowUtcStr);
     const dateTz = new Date(nowTzStr);
     offsetMinutes = Math.round((dateTz.getTime() - dateUtc.getTime()) / (60 * 1000));
 
-    // Abbreviation detection
     const parts = new Intl.DateTimeFormat('en-US', {
       timeZone,
       timeZoneName: 'short'
@@ -38,10 +30,9 @@ export function getTimezoneOffsetInfo(date: Date, timeZone: string): TimezoneOff
       abbreviation = tzPart.value;
     }
 
-    // DST Detection by comparing offset in Jan vs July
     const jan = new Date(date.getFullYear(), 0, 1);
     const jul = new Date(date.getFullYear(), 6, 1);
-    
+
     const janUtcStr = jan.toLocaleString('en-US', { timeZone: 'UTC' });
     const janTzStr = jan.toLocaleString('en-US', { timeZone });
     const janOffset = Math.round((new Date(janTzStr).getTime() - new Date(janUtcStr).getTime()) / 60000);
@@ -60,7 +51,6 @@ export function getTimezoneOffsetInfo(date: Date, timeZone: string): TimezoneOff
     offsetMinutes = 0;
   }
 
-  // Format offset string e.g. "UTC+05:30", "UTC-05:00"
   const absMinutes = Math.abs(offsetMinutes);
   const hours = Math.floor(absMinutes / 60);
   const mins = absMinutes % 60;
@@ -68,16 +58,14 @@ export function getTimezoneOffsetInfo(date: Date, timeZone: string): TimezoneOff
   const pad = (n: number) => n.toString().padStart(2, '0');
   const offsetFormatted = `UTC${sign}${pad(hours)}:${pad(mins)}`;
 
-  // Find next DST shift boundary (approximate)
   let nextTransition;
   if (isDst) {
-    // If currently DST, transitions to Standard Time around Nov / April
     const checkYear = date.getFullYear();
     const estNext = new Date(checkYear, date.getMonth() < 6 ? 10 : 3, 1);
     nextTransition = {
       date: estNext,
       type: 'DST_END' as const,
-      newOffsetFormatted: `UTC${offsetMinutes - 60 >= 0 ? '+' : ''}${Math.floor((offsetMinutes - 60)/60)}:00`
+      newOffsetFormatted: `UTC${offsetMinutes - 60 >= 0 ? '+' : ''}${Math.floor((offsetMinutes - 60) / 60)}:00`
     };
   }
 
@@ -93,10 +81,12 @@ export function getTimezoneOffsetInfo(date: Date, timeZone: string): TimezoneOff
   };
 }
 
-/**
- * Format date time string in a city's local time e.g. "Sun, Jul 26, 03:25:00 PM"
- */
-export function formatCityDateTime(date: Date, timeZone: string, includeSeconds = true): {
+export function formatCityDateTime(
+  date: Date,
+  timeZone: string,
+  includeSeconds = true,
+  hour12 = true
+): {
   dateStr: string;
   timeStr: string;
   fullStr: string;
@@ -116,7 +106,7 @@ export function formatCityDateTime(date: Date, timeZone: string, includeSeconds 
       hour: '2-digit',
       minute: '2-digit',
       second: includeSeconds ? '2-digit' : undefined,
-      hour12: true
+      hour12
     }).format(date);
 
     const parts24 = new Intl.DateTimeFormat('en-US', {
@@ -143,12 +133,6 @@ export function formatCityDateTime(date: Date, timeZone: string, includeSeconds 
   }
 }
 
-/**
- * Classify a local hour (0-23) for meeting planning suitability:
- * - 08:00 - 17:59 -> 'WORK_HOURS' (Green)
- * - 07:00 - 07:59, 18:00 - 21:59 -> 'SHOULDER_HOURS' (Yellow)
- * - 22:00 - 06:59 -> 'SLEEP_HOURS' (Red)
- */
 export function getHourSuitability(hour: number): 'WORK_HOURS' | 'SHOULDER_HOURS' | 'SLEEP_HOURS' {
   if (hour >= 8 && hour < 18) {
     return 'WORK_HOURS';
@@ -159,15 +143,14 @@ export function getHourSuitability(hour: number): 'WORK_HOURS' | 'SHOULDER_HOURS
   return 'SLEEP_HOURS';
 }
 
-/**
- * Encode shared event state into a URL hash or param
- */
 export function encodeSharedEvent(title: string, utcTimestamp: number, originCityId: string): string {
   const payload = { t: title, ts: utcTimestamp, c: originCityId };
   return btoa(JSON.stringify(payload));
 }
 
-export function decodeSharedEvent(encoded: string): { title: string; utcTimestamp: number; originCityId: string } | null {
+export function decodeSharedEvent(
+  encoded: string
+): { title: string; utcTimestamp: number; originCityId: string } | null {
   try {
     const decoded = JSON.parse(atob(encoded));
     if (decoded && decoded.ts) {
