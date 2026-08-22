@@ -1,4 +1,4 @@
-import React, { useState, Suspense, lazy } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { Header } from './components/Header';
 import { AdBanner } from './components/AdBanner';
 import { AdSenseLoader } from './components/ads/AdSenseLoader';
@@ -41,6 +41,19 @@ export default function App() {
   const [isShortcutsModalOpen, setIsShortcutsModalOpen] = useState(false);
   const [showAds, setShowAds] = useState(true);
   const [isDarkMode, setIsDarkMode] = useState(false);
+
+  // Tailwind v4 class-based dark: must set .dark on <html> for dark:* utilities
+  useEffect(() => {
+    const root = document.documentElement;
+    if (isDarkMode) {
+      root.classList.add('dark');
+      root.style.colorScheme = 'dark';
+    } else {
+      root.classList.remove('dark');
+      root.style.colorScheme = 'light';
+    }
+  }, [isDarkMode]);
+
   const [templateTheme, setTemplateTheme] = useState<TemplateTheme>('swiss-quartz');
 
   const { lastFeedback: shortcutFeedback, isMac } = useGlobalShortcuts({
@@ -78,12 +91,19 @@ export default function App() {
   };
 
   const getThemeWrapperClass = () => {
-    if (isDarkMode) return 'bg-[#070b14] text-slate-100 font-sans';
+    if (isDarkMode) {
+      return 'dark bg-[#070b14] text-slate-100 font-sans selection:bg-blue-600 selection:text-white';
+    }
     switch (templateTheme) {
-      case 'stripe-corporate': return 'bg-[#f1f5f9] text-indigo-950 font-sans';
-      case 'emerald-precision': return 'bg-[#f0fdf4] text-emerald-950 font-sans';
-      case 'editorial-classic': return 'bg-[#fffbeb] text-slate-900 font-serif';
-      default: return 'bg-[#f0f4f8] text-slate-900 font-sans';
+      case 'stripe-corporate':
+        return 'bg-[#eef2ff] text-indigo-950 font-sans selection:bg-indigo-600 selection:text-white';
+      case 'emerald-precision':
+        return 'bg-[#ecfdf5] text-emerald-950 font-sans selection:bg-emerald-600 selection:text-white';
+      case 'editorial-classic':
+        return 'bg-[#fffbeb] text-slate-900 font-sans selection:bg-amber-300 selection:text-amber-950';
+      case 'swiss-quartz':
+      default:
+        return 'bg-[#e8eef5] text-slate-900 font-sans selection:bg-blue-600 selection:text-white';
     }
   };
 
@@ -107,11 +127,11 @@ export default function App() {
         setTemplateTheme={setTemplateTheme}
       />
 
-      <div className={`${isDarkMode ? 'bg-[#0b101f]/90 border-slate-800/80' : 'bg-white/90 border-slate-200'} border-b text-xs py-2 px-4`}>
+      <div className={`${isDarkMode ? 'bg-[#0b101f]/95 border-slate-800/80 text-slate-200' : 'bg-white/95 border-slate-200 text-slate-700 shadow-sm'} border-b text-xs py-2 px-4`}>
         <div className="max-w-[1920px] mx-auto flex items-center justify-between text-[11px]">
           <span className="font-semibold">Commercial AdSlots · House placeholders · AdSense env-gated</span>
-          <button type="button" onClick={() => setShowAds(!showAds)} className="flex items-center gap-1.5 px-3 py-1 rounded-lg border cursor-pointer">
-            {showAds ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+          <button type="button" onClick={() => setShowAds(!showAds)} className={`flex items-center gap-1.5 px-3 py-1 rounded-lg border cursor-pointer ${isDarkMode ? 'border-slate-600 bg-slate-800' : 'border-slate-300 bg-slate-50'}`}>
+            {showAds ? <EyeOff className="w-3.5 h-3.5 text-amber-500" /> : <Eye className="w-3.5 h-3.5 text-emerald-600" />}
             {showAds ? 'Hide ads' : 'Show ads'}
           </button>
         </div>
@@ -155,23 +175,23 @@ export default function App() {
       </div>
 
       <div className="max-w-[1920px] mx-auto w-full px-4 sm:px-6 my-6">
-        <div className="bg-white dark:bg-slate-900 border rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-6">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-6 shadow-sm">
           <div className="flex items-center gap-5">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-pink-500 to-rose-600 flex items-center justify-center text-white">
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-pink-500 to-rose-600 flex items-center justify-center text-white shadow-md">
               <Heart className="w-8 h-8 fill-white" />
             </div>
             <div>
-              <h3 className="text-lg font-extrabold">Become a Supporter</h3>
-              <p className="text-xs text-slate-500">Ad-free browsing and precision perks.</p>
+              <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">Become a Supporter</h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400">Ad-free browsing and precision perks.</p>
             </div>
           </div>
-          <button type="button" onClick={() => setIsAccountModalOpen(true)} className="px-6 py-3 bg-pink-600 text-white font-bold text-xs rounded-xl">
+          <button type="button" onClick={() => setIsAccountModalOpen(true)} className="px-6 py-3 bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-700 hover:to-rose-700 text-white font-bold text-xs rounded-xl shadow-md">
             Create Supporter Account
           </button>
         </div>
       </div>
 
-      <footer className="bg-slate-900 text-slate-300 border-t text-xs py-10">
+      <footer className="bg-slate-900 text-slate-300 border-t border-slate-800 text-xs py-10">
         <div className="max-w-[1920px] mx-auto px-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
           <div>
             <div className="flex items-center gap-2 text-white font-extrabold text-lg">
@@ -202,7 +222,7 @@ export default function App() {
             <button type="button" onClick={() => setIsShortcutsModalOpen(true)} className="flex items-center gap-2 px-3 py-2 bg-slate-800 rounded-xl text-amber-300 font-bold">
               <Keyboard className="w-4 h-4" /> Shortcuts
             </button>
-            <div className="flex gap-2 mt-3">
+            <div className="flex gap-2 mt-3 text-slate-400">
               <Facebook className="w-4 h-4" /><Twitter className="w-4 h-4" /><Linkedin className="w-4 h-4" />
             </div>
           </div>
