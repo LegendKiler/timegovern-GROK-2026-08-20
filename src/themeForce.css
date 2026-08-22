@@ -1,40 +1,43 @@
 /*
-  Nuclear option: paint the React app shell sky-blue so white cards sit on color.
-  Loaded from main.tsx after index.css.
+  Page stage = sky blue (App inline style).
+  Section cards were pure bg-white and filled most of the viewport → still looked “all white”.
+  Force soft sky tint on every main panel so color is visible in every pillar.
 */
-html,
-body,
-#root {
-  min-height: 100% !important;
-  background-color: #7dd3fc !important; /* sky-300 — obvious blue */
-  background-image: none !important;
+
+/* Section outer cards */
+main .bg-white,
+main [class*="bg-white"] {
+  background-color: #f0f9ff !important; /* sky-50 */
+  border-color: #7dd3fc !important;
+  box-shadow:
+    0 1px 0 rgba(14, 165, 233, 0.2),
+    0 10px 28px rgba(14, 165, 233, 0.12) !important;
 }
 
-html.dark,
-html.dark body,
-html.dark #root {
-  background-color: #0f172a !important;
-}
-
-/* React root app div — overrides Tailwind bg-* utilities */
-#root > div {
-  background-color: #7dd3fc !important;
-  background-image: linear-gradient(
-    180deg,
-    #38bdf8 0%,
-    #7dd3fc 30%,
-    #bae6fd 70%,
-    #e0f2fe 100%
-  ) !important;
-  min-height: 100vh !important;
-}
-
-html.dark #root > div {
-  background-color: #0f172a !important;
-  background-image: linear-gradient(180deg, #020617 0%, #0f172a 60%, #1e293b 100%) !important;
-}
-
-/* Keep white cards readable on blue stage */
-main .bg-white {
+/* Nested pure white inputs stay white for readability */
+main input.bg-white,
+main select.bg-white,
+main textarea.bg-white,
+main .bg-white input,
+main .bg-white select {
   background-color: #ffffff !important;
 }
+
+/* Dark mode panels */
+html.dark main .bg-white,
+html.dark main [class*="dark:bg-"] {
+  /* leave dark utilities; reinforce slate */
+}
+
+html.dark main .dark\:bg-\[\#0b101f\],
+html.dark main [class*="0b101f"] {
+  background-color: #0b101f !important;
+  border-color: #1e3a5f !important;
+}
+
+/* Ad house cards: slight blue edge so they match stage */
+[data-ad-slot] > div {
+  border-color: #bae6fd !important;
+}
+
+/* Focal / highlighted blocks already gradient — leave alone */
