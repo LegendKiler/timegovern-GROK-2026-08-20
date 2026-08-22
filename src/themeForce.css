@@ -1,0 +1,4 @@
+/* Extra force file — imported from main so Vite always picks it up */
+#root > div.min-h-screen {
+  background: transparent !important;
+}
