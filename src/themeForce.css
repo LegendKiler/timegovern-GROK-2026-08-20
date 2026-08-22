@@ -1,4 +1,40 @@
-/* Extra force file — imported from main so Vite always picks it up */
-#root > div.min-h-screen {
-  background: transparent !important;
+/*
+  Nuclear option: paint the React app shell sky-blue so white cards sit on color.
+  Loaded from main.tsx after index.css.
+*/
+html,
+body,
+#root {
+  min-height: 100% !important;
+  background-color: #7dd3fc !important; /* sky-300 — obvious blue */
+  background-image: none !important;
+}
+
+html.dark,
+html.dark body,
+html.dark #root {
+  background-color: #0f172a !important;
+}
+
+/* React root app div — overrides Tailwind bg-* utilities */
+#root > div {
+  background-color: #7dd3fc !important;
+  background-image: linear-gradient(
+    180deg,
+    #38bdf8 0%,
+    #7dd3fc 30%,
+    #bae6fd 70%,
+    #e0f2fe 100%
+  ) !important;
+  min-height: 100vh !important;
+}
+
+html.dark #root > div {
+  background-color: #0f172a !important;
+  background-image: linear-gradient(180deg, #020617 0%, #0f172a 60%, #1e293b 100%) !important;
+}
+
+/* Keep white cards readable on blue stage */
+main .bg-white {
+  background-color: #ffffff !important;
 }
