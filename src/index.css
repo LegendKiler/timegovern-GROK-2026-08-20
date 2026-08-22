@@ -1,33 +1,43 @@
 @import "tailwindcss";
 
 /*
-  Tailwind v4: enable CLASS-based dark mode (dark:*) so App toggle works.
-  Without this, dark:* only follows OS prefers-color-scheme and cards stay washed-out white.
+  Tailwind v4: class-based dark mode for dark:* utilities
 */
 @custom-variant dark (&:where(.dark, .dark *));
 
-/*
-  LAB font stack — clean utility site style (timeanddate-like).
-*/
 :root {
   --font-sans: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --font-display: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  --tg-surface: #e8eef5;
+
+  /* Light — cool blue-gray stage (not pure white) */
+  --tg-page-from: #c7d7f0;
+  --tg-page-mid: #dce6f5;
+  --tg-page-to: #e8eef8;
   --tg-card: #ffffff;
+  --tg-card-border: #bfdbfe;
   --tg-accent: #2563eb;
+  --tg-accent-soft: #dbeafe;
+  --tg-text: #0f172a;
+  --tg-muted: #475569;
+}
+
+html.dark {
+  color-scheme: dark;
+  --tg-page-from: #020617;
+  --tg-page-mid: #070b14;
+  --tg-page-to: #0f172a;
+  --tg-card: #0f172a;
+  --tg-card-border: #1e3a5f;
+  --tg-accent: #38bdf8;
+  --tg-accent-soft: #0c4a6e;
+  --tg-text: #f1f5f9;
+  --tg-muted: #94a3b8;
 }
 
 html {
   font-family: var(--font-sans);
   overflow-x: hidden;
-}
-
-html.dark {
-  color-scheme: dark;
-  --tg-surface: #070b14;
-  --tg-card: #0f172a;
-  --tg-accent: #38bdf8;
 }
 
 body {
@@ -37,7 +47,17 @@ body {
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
   line-height: 1.5;
-  background-color: var(--tg-surface);
+  color: var(--tg-text);
+  /* Soft sky gradient — stops the “all white” flat look */
+  background-color: var(--tg-page-mid);
+  background-image: linear-gradient(
+    165deg,
+    var(--tg-page-from) 0%,
+    var(--tg-page-mid) 45%,
+    var(--tg-page-to) 100%
+  );
+  background-attachment: fixed;
+  min-height: 100vh;
 }
 
 h1, h2, h3, h4, h5, h6, .font-display {
@@ -89,4 +109,41 @@ a, button {
   text-overflow: ellipsis;
   white-space: nowrap;
   min-width: 0;
+}
+
+/*
+  Section panels: lift white cards off the tinted page so they don’t “disappear”
+*/
+main .rounded-2xl.border,
+main .rounded-xl.border {
+  box-shadow:
+    0 1px 2px rgb(37 99 235 / 0.06),
+    0 8px 24px rgb(15 23 42 / 0.06);
+  border-color: color-mix(in srgb, var(--tg-card-border) 70%, transparent);
+}
+
+html.dark main .rounded-2xl.border,
+html.dark main .rounded-xl.border {
+  box-shadow:
+    0 1px 0 rgb(56 189 248 / 0.08),
+    0 12px 32px rgb(0 0 0 / 0.35);
+}
+
+/* Subtle top accent line on primary section cards */
+main > div .rounded-2xl.border.bg-white,
+main > div .rounded-2xl.border.dark\:bg-\[\#0b101f\] {
+  background-image: linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--tg-accent-soft) 55%, white) 0,
+    white 48px
+  );
+  background-repeat: no-repeat;
+}
+
+html.dark main > div .rounded-2xl.border {
+  background-image: linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--tg-accent-soft) 80%, #0f172a) 0,
+    #0b101f 56px
+  );
 }
