@@ -22,10 +22,8 @@ function offsetForTz(date: Date, timeZone: string): string {
       timeZoneName: 'longOffset',
     }).formatToParts(date);
     const name = parts.find((p) => p.type === 'timeZoneName')?.value || 'UTC';
-    // GMT+10:00 or UTC+10:00
     const m = name.match(/([+-]\d{1,2}):?(\d{2})?/);
     if (m) {
-      const h = m[1].replace('+', '+').padStart(3, m[1].startsWith('-') ? '-' : '+');
       const mm = m[2] || '00';
       return `${m[1].includes('-') || m[1].startsWith('+') ? m[1] : '+' + m[1]}:${mm}`.replace(
         /([+-])(\d):/,
@@ -50,7 +48,6 @@ function formatInTz(date: Date, timeZone: string) {
     second: '2-digit',
     hour12: false,
   }).format(date);
-  // en-CA often YYYY-MM-DD, HH:mm:ss
   return local.replace(', ', 'T');
 }
 
@@ -66,7 +63,6 @@ function resolveTz(params: URLSearchParams): { tz: string; source: string } | { 
     }
   }
   if (city) {
-    // Minimal built-in map for demo; client also sends tz when possible
     const map: Record<string, string> = {
       melbourne: 'Australia/Melbourne',
       sydney: 'Australia/Sydney',
@@ -86,7 +82,7 @@ function resolveTz(params: URLSearchParams): { tz: string; source: string } | { 
       mumbai: 'Asia/Kolkata',
       delhi: 'Asia/Kolkata',
       shanghai: 'Asia/Shanghai',
-      hong kong: 'Asia/Hong_Kong',
+      'hong kong': 'Asia/Hong_Kong',
     };
     const key = city.trim().toLowerCase();
     const found = map[key];
@@ -119,62 +115,54 @@ export function handleV1Time(request: Request): Response {
     unix_timestamp: Math.floor(now.getTime() / 1000),
     local_iso_like: formatInTz(now, tz),
     utc_offset: offsetForTz(now, tz),
-    day_of_week: new Intl.DateTimeFormat('en-US', { timeZone: tz, weekday: 'long' }).format(now),
-    documentation: 'https://timegovern.com/docs/api',
   });
 }
 
-/**
- * Convert a wall time from one zone to another.
- * Query: from=IANA&to=IANA&at=ISO8601 (optional, default now)
- * If at has no Z/offset, it is treated as wall time in `from`.
- */
+/** GET convert time between zones */
 export function handleV1Convert(request: Request): Response {
   if (request.method === 'OPTIONS') return new Response(null, { headers: cors });
   if (request.method !== 'GET') return json({ error: 'Method not allowed' }, 405);
 
   const url = new URL(request.url);
-  const from = url.searchParams.get('from') || 'UTC';
-  const to = url.searchParams.get('to') || 'Australia/Melbourne';
-  const at = url.searchParams.get('at') || '';
+  const from = url.searchParams.get('from') || url.searchParams.get('from_tz') || 'UTC';
+  const to = url.searchParams.get('to') || url.searchParams.get('to_tz') || 'UTC';
+  const at = url.searchParams.get('at') || url.searchParams.get('datetime') || '';
 
   try {
     Intl.DateTimeFormat(undefined, { timeZone: from });
     Intl.DateTimeFormat(undefined, { timeZone: to });
   } catch {
-    return json({ status: 400, error: 'Invalid from or to IANA timezone' }, 400);
+    return json({ status: 400, error: 'Invalid from= or to= IANA timezone' }, 400);
   }
 
-  let instant: Date;
-  if (!at) {
-    instant = new Date();
-  } else if (/[zZ]|[+-]\d{2}:?\d{2}$/.test(at)) {
-    instant = new Date(at);
-  } else {
-    // Interpret as wall clock in `from`
+  let instant = new Date();
+  if (at) {
     const normalized = at.includes('T') ? at : at.replace(' ', 'T');
-    const [datePart, timePart = '00:00:00'] = normalized.split('T');
-    const [yy, mm, dd] = datePart.split('-').map(Number);
-    const [hh, mi, ss] = timePart.split(':').map((x) => parseInt(x, 10) || 0);
-    const utcGuess = new Date(Date.UTC(yy, (mm || 1) - 1, dd || 1, hh, mi, ss));
-    // Refine against from zone
-    for (let i = 0; i < 3; i++) {
-      const parts = new Intl.DateTimeFormat('en-US', {
-        timeZone: from,
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-        hour12: false,
-      }).formatToParts(utcGuess);
-      const g = (t: string) => parseInt(parts.find((p) => p.type === t)?.value || '0', 10);
-      const got = Date.UTC(g('year'), g('month') - 1, g('day'), g('hour') % 24, g('minute'), g('second'));
-      const wanted = Date.UTC(yy, (mm || 1) - 1, dd || 1, hh, mi, ss);
-      utcGuess.setTime(utcGuess.getTime() + (wanted - got));
+    if (normalized.endsWith('Z') || /[+-]\d{2}:\d{2}$/.test(normalized)) {
+      instant = new Date(normalized);
+    } else {
+      const [datePart, timePart = '00:00:00'] = normalized.split('T');
+      const [yy, mm, dd] = datePart.split('-').map(Number);
+      const [hh, mi, ss] = timePart.split(':').map((x) => parseInt(x, 10) || 0);
+      const utcGuess = new Date(Date.UTC(yy, (mm || 1) - 1, dd || 1, hh, mi, ss));
+      for (let i = 0; i < 3; i++) {
+        const parts = new Intl.DateTimeFormat('en-US', {
+          timeZone: from,
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          hour12: false,
+        }).formatToParts(utcGuess);
+        const g = (t: string) => parseInt(parts.find((p) => p.type === t)?.value || '0', 10);
+        const got = Date.UTC(g('year'), g('month') - 1, g('day'), g('hour') % 24, g('minute'), g('second'));
+        const wanted = Date.UTC(yy, (mm || 1) - 1, dd || 1, hh, mi, ss);
+        utcGuess.setTime(utcGuess.getTime() + (wanted - got));
+      }
+      instant = utcGuess;
     }
-    instant = utcGuess;
   }
 
   if (isNaN(instant.getTime())) {
