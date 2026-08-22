@@ -47,9 +47,14 @@ export default function App() {
     if (isDarkMode) {
       root.classList.add('dark');
       root.style.colorScheme = 'dark';
+      document.body.style.background = '#0f172a';
+      document.body.style.backgroundImage = 'none';
     } else {
       root.classList.remove('dark');
       root.style.colorScheme = 'light';
+      document.body.style.background = '#38bdf8';
+      document.body.style.backgroundImage =
+        'linear-gradient(180deg, #0ea5e9 0%, #38bdf8 25%, #7dd3fc 55%, #bae6fd 100%)';
     }
   }, [isDarkMode]);
 
@@ -89,25 +94,16 @@ export default function App() {
     setActivePillar(1);
   };
 
-  const getThemeWrapperClass = () => {
-    if (isDarkMode) {
-      return 'dark bg-transparent text-slate-100 font-sans selection:bg-blue-600 selection:text-white';
-    }
-    switch (templateTheme) {
-      case 'stripe-corporate':
-        return 'bg-gradient-to-b from-indigo-100/80 via-indigo-50/40 to-transparent text-indigo-950 font-sans selection:bg-indigo-600 selection:text-white';
-      case 'emerald-precision':
-        return 'bg-gradient-to-b from-emerald-100/80 via-emerald-50/40 to-transparent text-emerald-950 font-sans selection:bg-emerald-600 selection:text-white';
-      case 'editorial-classic':
-        return 'bg-gradient-to-b from-amber-100/80 via-amber-50/30 to-transparent text-slate-900 font-sans selection:bg-amber-300 selection:text-amber-950';
-      case 'swiss-quartz':
-      default:
-        return 'bg-gradient-to-b from-sky-200/70 via-blue-50/50 to-transparent text-slate-900 font-sans selection:bg-blue-600 selection:text-white';
-    }
-  };
-
   return (
-    <div className={`min-h-screen ${getThemeWrapperClass()} flex flex-col transition-colors duration-300`}>
+    <div
+      className={`min-h-screen flex flex-col transition-colors duration-300 ${isDarkMode ? 'dark text-slate-100' : 'text-slate-900'}`}
+      style={{
+        minHeight: '100vh',
+        background: isDarkMode
+          ? 'linear-gradient(180deg, #020617 0%, #0f172a 50%, #1e293b 100%)'
+          : 'linear-gradient(180deg, #0ea5e9 0%, #38bdf8 25%, #7dd3fc 55%, #bae6fd 100%)',
+      }}
+    >
       <AdSenseLoader />
       <Header
         activePillar={activePillar}
@@ -126,10 +122,22 @@ export default function App() {
         setTemplateTheme={setTemplateTheme}
       />
 
-      <div className={`${isDarkMode ? 'bg-[#0b101f]/95 border-slate-800/80 text-slate-200' : 'bg-sky-50/90 border-sky-200/80 text-slate-700 shadow-sm'} border-b text-xs py-2 px-4`}>
+      <div
+        className={`${
+          isDarkMode
+            ? 'bg-[#0b101f]/95 border-slate-800/80 text-slate-200'
+            : 'bg-sky-100/90 border-sky-300 text-slate-700 shadow-sm'
+        } border-b text-xs py-2 px-4`}
+      >
         <div className="max-w-[1920px] mx-auto flex items-center justify-between text-[11px]">
-          <span className="font-semibold text-slate-600 dark:text-slate-300">Commercial AdSlots · House placeholders · AdSense env-gated</span>
-          <button type="button" onClick={() => setShowAds(!showAds)} className={`flex items-center gap-1.5 px-3 py-1 rounded-lg border cursor-pointer ${isDarkMode ? 'border-slate-600 bg-slate-800' : 'border-sky-300 bg-white'}`}>
+          <span className="font-semibold">Commercial AdSlots · House placeholders · AdSense env-gated</span>
+          <button
+            type="button"
+            onClick={() => setShowAds(!showAds)}
+            className={`flex items-center gap-1.5 px-3 py-1 rounded-lg border cursor-pointer ${
+              isDarkMode ? 'border-slate-600 bg-slate-800' : 'border-sky-400 bg-white'
+            }`}
+          >
             {showAds ? <EyeOff className="w-3.5 h-3.5 text-amber-500" /> : <Eye className="w-3.5 h-3.5 text-emerald-600" />}
             {showAds ? 'Hide ads' : 'Show ads'}
           </button>
@@ -184,7 +192,11 @@ export default function App() {
               <p className="text-xs text-slate-500 dark:text-slate-400">Ad-free browsing and precision perks.</p>
             </div>
           </div>
-          <button type="button" onClick={() => setIsAccountModalOpen(true)} className="px-6 py-3 bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-700 hover:to-rose-700 text-white font-bold text-xs rounded-xl shadow-md">
+          <button
+            type="button"
+            onClick={() => setIsAccountModalOpen(true)}
+            className="px-6 py-3 bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-700 hover:to-rose-700 text-white font-bold text-xs rounded-xl shadow-md"
+          >
             Create Supporter Account
           </button>
         </div>
@@ -202,10 +214,19 @@ export default function App() {
             <span className="text-white font-bold uppercase tracking-wider">Company</span>
             <ul className="mt-2 space-y-1 text-[11px]">
               <li>
-                <button type="button" className="hover:text-cyan-400" onClick={() => setActivePillar(11)}>About</button>
+                <button type="button" className="hover:text-cyan-400" onClick={() => setActivePillar(11)}>
+                  About
+                </button>
               </li>
               <li>
-                <button type="button" className="hover:text-cyan-400" onClick={() => { setActivePillar(11); window.location.hash = 'advertise'; }}>
+                <button
+                  type="button"
+                  className="hover:text-cyan-400"
+                  onClick={() => {
+                    setActivePillar(11);
+                    window.location.hash = 'advertise';
+                  }}
+                >
                   Advertise / Media kit
                 </button>
               </li>
@@ -214,15 +235,25 @@ export default function App() {
           <div>
             <span className="text-white font-bold uppercase tracking-wider">Legal</span>
             <ul className="mt-2 space-y-1 text-[11px]">
-              <li><button type="button" className="hover:text-cyan-400" onClick={() => setIsSecurityModalOpen(true)}>Privacy & Trust</button></li>
+              <li>
+                <button type="button" className="hover:text-cyan-400" onClick={() => setIsSecurityModalOpen(true)}>
+                  Privacy & Trust
+                </button>
+              </li>
             </ul>
           </div>
           <div>
-            <button type="button" onClick={() => setIsShortcutsModalOpen(true)} className="flex items-center gap-2 px-3 py-2 bg-slate-800 rounded-xl text-amber-300 font-bold">
+            <button
+              type="button"
+              onClick={() => setIsShortcutsModalOpen(true)}
+              className="flex items-center gap-2 px-3 py-2 bg-slate-800 rounded-xl text-amber-300 font-bold"
+            >
               <Keyboard className="w-4 h-4" /> Shortcuts
             </button>
             <div className="flex gap-2 mt-3 text-slate-400">
-              <Facebook className="w-4 h-4" /><Twitter className="w-4 h-4" /><Linkedin className="w-4 h-4" />
+              <Facebook className="w-4 h-4" />
+              <Twitter className="w-4 h-4" />
+              <Linkedin className="w-4 h-4" />
             </div>
           </div>
         </div>
@@ -238,14 +269,20 @@ export default function App() {
             isOpen={isTemplateGalleryOpen}
             onClose={() => setIsTemplateGalleryOpen(false)}
             currentTheme={templateTheme}
-            onSelectTheme={(t) => { setTemplateTheme(t); setIsTemplateGalleryOpen(false); }}
+            onSelectTheme={(t) => {
+              setTemplateTheme(t);
+              setIsTemplateGalleryOpen(false);
+            }}
           />
         )}
         {isShortcutsModalOpen && (
           <KeyboardShortcutsModal
             isOpen={isShortcutsModalOpen}
             onClose={() => setIsShortcutsModalOpen(false)}
-            onSelectPillar={(p) => { setActivePillar(p); setIsShortcutsModalOpen(false); }}
+            onSelectPillar={(p) => {
+              setActivePillar(p);
+              setIsShortcutsModalOpen(false);
+            }}
             onFocusSearch={() => {}}
             onToggleDarkMode={() => setIsDarkMode((p) => !p)}
             onCycleTheme={() => {}}
