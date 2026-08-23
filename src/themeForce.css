@@ -13,3 +13,20 @@ main {
 main a, main .text-blue-600 {
   color: #60a5fa !important;
 }
+
+/* Widget embed surfaces — do not inherit page colour locks */
+.tg-widget-surface.tg-widget-light,
+main .tg-widget-surface.tg-widget-light,
+main .tg-widget-surface.tg-widget-light * {
+  color: #0f172a !important;
+}
+.tg-widget-surface.tg-widget-light {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+}
+.tg-widget-surface.tg-widget-dark,
+main .tg-widget-surface.tg-widget-dark {
+  background-color: #0f172a !important;
+  color: #f8fafc !important;
+  border-color: #475569 !important;
+}
