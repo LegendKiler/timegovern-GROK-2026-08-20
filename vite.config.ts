@@ -15,7 +15,6 @@ function apiDevServerPlugin(): Plugin {
 
         const url = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
 
-        // TimeGovern public API v1 (lab)
         try {
           const v1 = await handleV1TimeNode(url.pathname, url.search, req.method || 'GET');
           if (v1) {
@@ -114,8 +113,10 @@ function apiDevServerPlugin(): Plugin {
 
           try {
             const payload = await fetchGoogleSearchGroundedNews({
+              q: topic,
               topic,
               category,
+              force: forceRefresh,
               forceRefresh
             });
             res.setHeader('Content-Type', 'application/json');
@@ -148,64 +149,25 @@ function apiDevServerPlugin(): Plugin {
           return res.end(body);
         }
 
-        if (url.pathname === '/api/health' || url.pathname === '/api/health/') {
-          res.setHeader('Content-Type', 'application/json');
-          res.setHeader('Access-Control-Allow-Origin', '*');
-          res.statusCode = 200;
-          return res.end(
-            JSON.stringify({
-              status: 'ok',
-              service: 'TimeGovern Local Vite API Server',
-              timestamp: new Date().toISOString()
-            })
-          );
-        }
-
-        next();
+        return next();
       });
-    },
+    }
   };
 }
 
-export default defineConfig(() => {
-  return {
-    plugins: [react(), tailwindcss(), apiDevServerPlugin()],
-    resolve: {
-      alias: {
-        '@': path.resolve(__dirname, '.'),
-      },
-    },
-    server: {
-      port: 3000,
-      host: '0.0.0.0',
-      hmr: process.env.DISABLE_HMR !== 'true',
-    },
-    build: {
-      chunkSizeWarningLimit: 1200,
-      rollupOptions: {
-        output: {
-          manualChunks(id) {
-            if (id.includes('node_modules')) {
-              if (id.includes('three') || id.includes('@react-three')) {
-                return 'vendor-three';
-              }
-              if (id.includes('jspdf') || id.includes('html2canvas') || id.includes('purify')) {
-                return 'vendor-pdf';
-              }
-              if (id.includes('recharts') || id.includes('d3')) {
-                return 'vendor-charts';
-              }
-              if (id.includes('lucide-react') || id.includes('motion') || id.includes('gsap')) {
-                return 'vendor-ui-motion';
-              }
-              if (id.includes('react') || id.includes('react-dom')) {
-                return 'vendor-react-core';
-              }
-              return 'vendor-core';
-            }
-          },
-        },
-      },
-    },
-  };
+export default defineConfig({
+  plugins: [react(), tailwindcss(), apiDevServerPlugin()],
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src')
+    }
+  },
+  server: {
+    port: 3000,
+    host: true
+  },
+  build: {
+    outDir: 'dist',
+    sourcemap: true
+  }
 });
