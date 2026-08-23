@@ -3,100 +3,88 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 /*
-  Stage 1 — timeanddate.com-inspired global skin
-  Light-first, high contrast, system-like Inter, no neon washes.
+  TimeGovern professional skin — Stripe × time.is
+  Soft slate page, elevated white panels, blue accent, high contrast.
+  Features unchanged; visual system only.
 */
 :root {
-  --font-sans: Inter, "Segoe UI", system-ui, -apple-system, Roboto, "Helvetica Neue", Arial, sans-serif;
-  --font-display: Inter, "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
-  --tg-page: #ffffff;
-  --tg-muted-page: #f4f6f8;
-  --tg-text: #1a1a1a;
-  --tg-muted: #555555;
-  --tg-link: #0066cc;
-  --tg-border: #d0d7de;
-  --tg-header: #0b3d6e;
+  --tg-page: #f0f4f8;
+  --tg-surface: #ffffff;
+  --tg-text: #0f172a;
+  --tg-muted: #64748b;
+  --tg-border: #e2e8f0;
+  --tg-accent: #2563eb;
+  --tg-accent-hover: #1d4ed8;
+  --tg-accent-soft: #eff6ff;
+  --tg-live: #059669;
+  --tg-header-bg: #ffffff;
+  --font-sans: Inter, "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
 }
 
 html.dark {
   color-scheme: dark;
-  --tg-page: #0f1419;
-  --tg-muted-page: #151b23;
-  --tg-text: #e8eaed;
-  --tg-muted: #9aa0a6;
-  --tg-link: #8ab4f8;
-  --tg-border: #3c4043;
-  --tg-header: #0b1120;
+  --tg-page: #0b1120;
+  --tg-surface: #111827;
+  --tg-text: #f1f5f9;
+  --tg-muted: #94a3b8;
+  --tg-border: #1e293b;
+  --tg-accent: #3b82f6;
+  --tg-accent-hover: #60a5fa;
+  --tg-accent-soft: #1e3a5f;
+  --tg-live: #34d399;
+  --tg-header-bg: #0f172a;
 }
 
 html {
   font-family: var(--font-sans);
-  overflow-x: hidden;
   font-size: 15px;
+  overflow-x: hidden;
 }
 
-html,
-body,
-#root {
+html, body, #root {
   min-height: 100%;
-  background-color: var(--tg-muted-page) !important;
+  background-color: var(--tg-page) !important;
   background-image: none !important;
+  color: var(--tg-text) !important;
 }
 
 body {
   font-family: var(--font-sans) !important;
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  overflow-x: hidden;
-  line-height: 1.45;
-  color: var(--tg-text) !important;
+  line-height: 1.5;
   margin: 0;
 }
 
-h1, h2, h3, h4, h5, h6, .font-display {
-  font-family: var(--font-display) !important;
-  line-height: 1.25;
-  letter-spacing: -0.01em;
+h1, h2, h3, h4, .font-display {
+  font-family: var(--font-sans) !important;
+  letter-spacing: -0.02em;
   color: inherit;
 }
 
-button, input, select, textarea {
-  font-family: inherit;
-}
-
-.font-mono,
-.tabular-nums,
-.font-mono * {
+.font-mono, .tabular-nums, .font-mono * {
   font-family: var(--font-mono) !important;
 }
 
-.font-serif {
-  font-family: var(--font-sans) !important;
-}
+button, input, select, textarea { font-family: inherit; }
 
-svg { flex-shrink: 0; }
-.min-w-0 { min-width: 0; }
-
-.no-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 .no-scrollbar::-webkit-scrollbar { display: none; }
 
-header { isolation: isolate; }
-
-a, button { position: relative; }
-
-.truncate-safe {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  min-width: 0;
+main > div > div,
+main .rounded-2xl,
+main .rounded-xl {
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 4px 12px rgba(15, 23, 42, 0.04) !important;
 }
 
-/* Content panels: flat T&D-like */
-main .rounded-2xl {
-  border-radius: 0.5rem !important;
-  box-shadow: none !important;
+html.dark main .rounded-2xl,
+html.dark main .rounded-xl {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35) !important;
+}
+
+.tg-accent { color: var(--tg-accent); }
+.tg-surface {
+  background: var(--tg-surface);
+  border: 1px solid var(--tg-border);
+  color: var(--tg-text);
 }
