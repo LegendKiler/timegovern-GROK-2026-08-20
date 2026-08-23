@@ -2,62 +2,63 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+/*
+  Stage 1 — timeanddate.com-inspired global skin
+  Light-first, high contrast, system-like Inter, no neon washes.
+*/
 :root {
-  --font-sans: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  --font-display: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --font-sans: Inter, "Segoe UI", system-ui, -apple-system, Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-display: Inter, "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --tg-page: #ffffff;
+  --tg-muted-page: #f4f6f8;
+  --tg-text: #1a1a1a;
+  --tg-muted: #555555;
+  --tg-link: #0066cc;
+  --tg-border: #d0d7de;
+  --tg-header: #0b3d6e;
+}
+
+html.dark {
+  color-scheme: dark;
+  --tg-page: #0f1419;
+  --tg-muted-page: #151b23;
+  --tg-text: #e8eaed;
+  --tg-muted: #9aa0a6;
+  --tg-link: #8ab4f8;
+  --tg-border: #3c4043;
+  --tg-header: #0b1120;
 }
 
 html {
   font-family: var(--font-sans);
   overflow-x: hidden;
+  font-size: 15px;
 }
 
-html.dark {
-  color-scheme: dark;
-}
-
-/* FORCE: page is never pure white */
 html,
 body,
 #root {
-  min-height: 100% !important;
-  background-color: #bfdbfe !important; /* sky-300 — clearly blue */
-  background-image: linear-gradient(
-    180deg,
-    #93c5fd 0%,
-    #bfdbfe 35%,
-    #dbeafe 70%,
-    #e0f2fe 100%
-  ) !important;
-  background-attachment: fixed !important;
-}
-
-html.dark,
-html.dark body,
-html.dark #root {
-  background-color: #0f172a !important;
-  background-image: linear-gradient(180deg, #020617 0%, #0f172a 50%, #1e293b 100%) !important;
+  min-height: 100%;
+  background-color: var(--tg-muted-page) !important;
+  background-image: none !important;
 }
 
 body {
   font-family: var(--font-sans) !important;
-  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
-  line-height: 1.5;
-  color: #0f172a;
-}
-
-html.dark body {
-  color: #f1f5f9;
+  line-height: 1.45;
+  color: var(--tg-text) !important;
+  margin: 0;
 }
 
 h1, h2, h3, h4, h5, h6, .font-display {
   font-family: var(--font-display) !important;
   line-height: 1.25;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.01em;
+  color: inherit;
 }
 
 button, input, select, textarea {
@@ -85,13 +86,17 @@ svg { flex-shrink: 0; }
 
 header { isolation: isolate; }
 
-/* Cards sit on blue page — soft blue edge */
-main .rounded-2xl.border {
-  box-shadow: 0 4px 20px rgba(37, 99, 235, 0.12) !important;
-  border-color: #93c5fd !important;
+a, button { position: relative; }
+
+.truncate-safe {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
 }
 
-html.dark main .rounded-2xl.border {
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4) !important;
-  border-color: #334155 !important;
+/* Content panels: flat T&D-like */
+main .rounded-2xl {
+  border-radius: 0.5rem !important;
+  box-shadow: none !important;
 }

@@ -1,25 +1,28 @@
-/* Readable text on light cards — never inherit white/light text onto white panels */
+/* Stage 1: contrast + T&D page — no forced cyan */
+html, body, #root {
+  background-color: #f4f6f8 !important;
+  background-image: none !important;
+  color: #1a1a1a !important;
+}
+html.dark, html.dark body, html.dark #root {
+  background-color: #0f1419 !important;
+  color: #e8eaed !important;
+}
+#root > div {
+  background-image: none !important;
+}
 main {
-  color: #0f172a;
+  color: #1a1a1a !important;
 }
 html.dark main {
-  color: #f1f5f9;
+  color: #e8eaed !important;
 }
 main .bg-white,
 main [class*="bg-white"] {
-  color: #0f172a !important;
-}
-html.dark main .dark\:bg-slate-900,
-html.dark main [class*="0b101f"] {
-  color: #f1f5f9 !important;
-}
-main .font-mono {
-  color: inherit;
+  color: #1a1a1a !important;
+  background-color: #ffffff !important;
+  border-color: #d0d7de !important;
 }
 main .text-blue-600 {
-  color: #2563eb !important;
-}
-html.dark main .text-cyan-400,
-html.dark main .dark\:text-cyan-400 {
-  color: #22d3ee !important;
+  color: #0066cc !important;
 }
