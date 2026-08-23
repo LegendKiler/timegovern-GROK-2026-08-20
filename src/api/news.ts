@@ -171,39 +171,18 @@ function parseRssItems(xml: string): Array<{ title: string; link: string; pubDat
   return items;
 }
 
-/** Assign finer categories from title/summary when feed category is broad */
 function classifyArticle(
   title: string,
   summary: string,
   feedCategory: GroundedArticle['category']
 ): GroundedArticle['category'] {
   const text = `${title} ${summary}`.toLowerCase();
-  if (/leap second|leap.?second|atomic clock|bipm|\btai\b|utc adjustment|iirs/.test(text)) {
-    return 'leap_seconds';
-  }
-  if (
-    /daylight saving|daylight-saving|\bdst\b|summer time|winter time|spring forward|fall back|clocks? (forward|back)/.test(
-      text
-    )
-  ) {
-    return 'dst';
-  }
-  if (
-    /quantum|software|\bchip\b|\bai\b|artificial intelligence|cyber|semiconductor|startup|internet|\b5g\b|cloud computing|technology/.test(
-      text
-    )
-  ) {
-    return 'technology';
-  }
-  if (/metrolog|si unit|kilogram|second definition|\bnist\b/.test(text)) {
-    return 'metrology';
-  }
-  if (/eclipse|nasa|space|astronomy|\bmoon\b|\bmars\b|satellite|\biss\b|astronaut/.test(text)) {
-    return 'astronomy';
-  }
-  if (/time zone|timezone|iana|utc offset|\bzulu\b/.test(text)) {
-    return 'timezones';
-  }
+  if (/leap second|leap.?second|atomic clock|bipm|\btai\b|utc adjustment|iirs/.test(text)) return 'leap_seconds';
+  if (/daylight saving|daylight-saving|\bdst\b|summer time|winter time|spring forward|fall back|clocks? (forward|back)/.test(text)) return 'dst';
+  if (/quantum|software|\bchip\b|\bai\b|artificial intelligence|cyber|semiconductor|startup|internet|\b5g\b|cloud computing|technology/.test(text)) return 'technology';
+  if (/metrolog|si unit|kilogram|second definition|\bnist\b/.test(text)) return 'metrology';
+  if (/eclipse|nasa|space|astronomy|\bmoon\b|\bmars\b|satellite|\biss\b|astronaut/.test(text)) return 'astronomy';
+  if (/time zone|timezone|iana|utc offset|\bzulu\b/.test(text)) return 'timezones';
   return feedCategory;
 }
 
@@ -218,8 +197,7 @@ function fallbackArticles(): GroundedArticle[] {
       author: 'TimeGovern',
       readTime: '1 min',
       summary: 'Live RSS feeds are temporarily unreachable. The system will retry automatically.',
-      content:
-        'TimeGovern aggregates free public RSS from Google News, BBC, Guardian, NPR, NASA and more. No paid API keys are required. DST, leap-second and tech feeds are included.',
+      content: 'TimeGovern aggregates free public RSS from Google News, BBC, Guardian, NPR, NASA. DST, leap-second and tech feeds included.',
       keyTakeaways: ['Free multi-source RSS', 'Auto-refresh every 30s', 'No paid APIs'],
       imageUrl: '',
       sourceUrl: 'https://timegovern.com',
@@ -229,47 +207,69 @@ function fallbackArticles(): GroundedArticle[] {
   ];
 }
 
-async function fetchOneFeed(feed: (typeof RSS_FEEDS)[0]): Promise<GroundedArticle[]> {
+async function fetchWithTimeout(url: string, ms = 12000): Promise<Response> {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), ms);
   try {
-    const res = await fetch(feed.url, {
+    return await fetch(url, {
       headers: { 'User-Agent': 'TimeGovernNewsBot/2.0' },
-      signal: AbortSignal.timeout(12000),
+      signal: ctrl.signal,
     });
-    if (!res.ok) throw new Error(String(res.status));
-    const xml = await res.text();
-    const items = parseRssItems(xml).slice(0, feed.max);
-    return items.map((it, i) => {
-      const ts = it.pubDate ? Date.parse(it.pubDate) || Date.now() : Date.now();
-      return {
-        id: `${feed.publisher}-${i}-${ts}`,
-        title: it.title,
-        category: classifyArticle(it.title, it.description || '', feed.category),
-        date: new Date(ts).toISOString().slice(0, 10),
-        timeAgo: timeAgo(ts),
-        author: feed.publisher,
-        readTime: '2 min',
-        summary: it.description || it.title,
-        content: it.description || it.title,
-        keyTakeaways: [`Source: ${feed.publisher}`, 'Free public RSS', 'Auto-updated'],
-        imageUrl: '',
-        sourceUrl: it.link || feed.url,
-        publisher: feed.publisher,
-        pubTimestamp: ts,
-      };
-    });
-  } catch (err) {
-    console.warn(`RSS failed: ${feed.name}`, err);
-    return [];
+  } finally {
+    clearTimeout(timer);
   }
+}
+
+async function fetchOneFeed(feed: (typeof RSS_FEEDS)[0]): Promise<GroundedArticle[]> {
+  const urls = [
+    feed.url,
+    `https://api.allorigins.win/raw?url=${encodeURIComponent(feed.url)}`,
+  ];
+  for (const url of urls) {
+    try {
+      const res = await fetchWithTimeout(url, 14000);
+      if (!res.ok) continue;
+      const xml = await res.text();
+      if (!xml.includes('<item') && !xml.includes('<entry')) continue;
+      const items = parseRssItems(xml).slice(0, feed.max);
+      if (items.length === 0) continue;
+      return items.map((it, i) => {
+        const ts = it.pubDate ? Date.parse(it.pubDate) || Date.now() : Date.now();
+        return {
+          id: `${feed.publisher}-${i}-${ts}`,
+          title: it.title,
+          category: classifyArticle(it.title, it.description || '', feed.category),
+          date: new Date(ts).toISOString().slice(0, 10),
+          timeAgo: timeAgo(ts),
+          author: feed.publisher,
+          readTime: '2 min',
+          summary: it.description || it.title,
+          content: it.description || it.title,
+          keyTakeaways: [`Source: ${feed.publisher}`, 'Free public RSS', 'Auto-updated'],
+          imageUrl: '',
+          sourceUrl: it.link || feed.url,
+          publisher: feed.publisher,
+          pubTimestamp: ts,
+        };
+      });
+    } catch (err) {
+      console.warn(`RSS try failed: ${feed.name}`, err);
+    }
+  }
+  return [];
 }
 
 export async function fetchGoogleSearchGroundedNews(opts?: {
   category?: string;
   q?: string;
+  topic?: string;
   force?: boolean;
+  forceRefresh?: boolean;
 }): Promise<NewsResponsePayload> {
-  const cacheKey = `${opts?.category || 'all'}|${opts?.q || ''}`;
-  if (!opts?.force) {
+  const q = (opts?.q || opts?.topic || '').trim();
+  const force = !!(opts?.force || opts?.forceRefresh);
+  const cacheKey = `${opts?.category || 'all'}|${q}`;
+  if (!force) {
     const cached = newsCache.get(cacheKey);
     if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
       return cached.payload;
@@ -282,13 +282,13 @@ export async function fetchGoogleSearchGroundedNews(opts?: {
   if (opts?.category && opts.category !== 'all') {
     articles = articles.filter((a) => a.category === opts.category);
   }
-  if (opts?.q && opts.q.trim()) {
-    const q = opts.q.toLowerCase();
+  if (q) {
+    const ql = q.toLowerCase();
     articles = articles.filter(
       (a) =>
-        a.title.toLowerCase().includes(q) ||
-        a.summary.toLowerCase().includes(q) ||
-        a.content.toLowerCase().includes(q)
+        a.title.toLowerCase().includes(ql) ||
+        a.summary.toLowerCase().includes(ql) ||
+        a.content.toLowerCase().includes(ql)
     );
   }
 
@@ -301,7 +301,7 @@ export async function fetchGoogleSearchGroundedNews(opts?: {
     grounded: true,
     source: 'Free Live RSS v2 – Google News, BBC, Guardian, NPR, NASA + DST/Leap/Tech',
     model: 'rss-multi-source',
-    queryTopic: opts?.q || undefined,
+    queryTopic: q || undefined,
     updated_at: new Date().toISOString(),
     search_queries: RSS_FEEDS.map((f) => f.name),
     grounding_sources: RSS_FEEDS.map((f) => ({ title: f.publisher, url: f.url })),
