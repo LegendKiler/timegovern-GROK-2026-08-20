@@ -6,13 +6,6 @@
     <title>TimeGovern — Global Time, World Clock, Astronomy & Timezone Platform</title>
     <meta name="description" content="TimeGovern is the premier global time platform: world clocks, timezone meeting planners, astronomy calculators, calendars, and live free news." />
     <link rel="canonical" href="https://timegovern.com/" />
-
-    <!--
-      Font strategy (lab):
-      timeanddate.com uses clean system sans (Arial/Helvetica-like).
-      We use Inter as primary (better UI metrics) with system fallbacks
-      so text never looks broken if Google Fonts is slow/blocked.
-    -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -20,19 +13,20 @@
       rel="stylesheet"
     />
     <style>
-      /* Critical fonts before JS/CSS bundle — prevents FOIT / mixed fonts */
       html, body {
-        font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        font-family: Inter, "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
         font-synthesis: none;
         text-rendering: optimizeLegibility;
         -webkit-font-smoothing: antialiased;
+        background: #f4f6f8;
+        color: #1a1a1a;
       }
       code, kbd, .font-mono, .tabular-nums {
-        font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-family: "JetBrains Mono", ui-monospace, Consolas, monospace;
       }
     </style>
   </head>
-  <body class="antialiased selection:bg-blue-600 selection:text-white">
+  <body class="antialiased" style="background:#f4f6f8;color:#1a1a1a;margin:0">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
