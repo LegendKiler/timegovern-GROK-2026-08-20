@@ -1,11 +1,15 @@
-/* Graphic skin — contrast locks */
-html, body, #root { color: #0b1220; }
-html.dark, html.dark body, html.dark #root { color: #f1f5f9; }
-main { color: #0b1220 !important; }
-html.dark main { color: #f1f5f9 !important; }
-main .bg-white, main [class*="bg-white"] {
-  color: #0b1220 !important;
-  background-color: #ffffff !important;
+/* TechFlux locks — dark product surface */
+html, body, #root {
+  background-color: #05080f !important;
+  color: #f8fafc !important;
 }
-main .text-blue-600 { color: #2563eb !important; }
-main .text-cyan-600 { color: #0891b2 !important; }
+#root > div {
+  background-image: none !important;
+  background-color: transparent !important;
+}
+main {
+  color: #f1f5f9 !important;
+}
+main a, main .text-blue-600 {
+  color: #60a5fa !important;
+}
