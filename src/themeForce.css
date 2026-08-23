@@ -1,43 +1,25 @@
-/*
-  Page stage = sky blue (App inline style).
-  Section cards were pure bg-white and filled most of the viewport → still looked “all white”.
-  Force soft sky tint on every main panel so color is visible in every pillar.
-*/
-
-/* Section outer cards */
+/* Readable text on light cards — never inherit white/light text onto white panels */
+main {
+  color: #0f172a;
+}
+html.dark main {
+  color: #f1f5f9;
+}
 main .bg-white,
 main [class*="bg-white"] {
-  background-color: #f0f9ff !important; /* sky-50 */
-  border-color: #7dd3fc !important;
-  box-shadow:
-    0 1px 0 rgba(14, 165, 233, 0.2),
-    0 10px 28px rgba(14, 165, 233, 0.12) !important;
+  color: #0f172a !important;
 }
-
-/* Nested pure white inputs stay white for readability */
-main input.bg-white,
-main select.bg-white,
-main textarea.bg-white,
-main .bg-white input,
-main .bg-white select {
-  background-color: #ffffff !important;
-}
-
-/* Dark mode panels */
-html.dark main .bg-white,
-html.dark main [class*="dark:bg-"] {
-  /* leave dark utilities; reinforce slate */
-}
-
-html.dark main .dark\:bg-\[\#0b101f\],
+html.dark main .dark\:bg-slate-900,
 html.dark main [class*="0b101f"] {
-  background-color: #0b101f !important;
-  border-color: #1e3a5f !important;
+  color: #f1f5f9 !important;
 }
-
-/* Ad house cards: slight blue edge so they match stage */
-[data-ad-slot] > div {
-  border-color: #bae6fd !important;
+main .font-mono {
+  color: inherit;
 }
-
-/* Focal / highlighted blocks already gradient — leave alone */
+main .text-blue-600 {
+  color: #2563eb !important;
+}
+html.dark main .text-cyan-400,
+html.dark main .dark\:text-cyan-400 {
+  color: #22d3ee !important;
+}

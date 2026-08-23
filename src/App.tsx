@@ -47,14 +47,13 @@ export default function App() {
     if (isDarkMode) {
       root.classList.add('dark');
       root.style.colorScheme = 'dark';
-      document.body.style.background = '#0f172a';
+      document.body.style.background = '#0b1120';
       document.body.style.backgroundImage = 'none';
     } else {
       root.classList.remove('dark');
       root.style.colorScheme = 'light';
-      document.body.style.background = '#38bdf8';
-      document.body.style.backgroundImage =
-        'linear-gradient(180deg, #0ea5e9 0%, #38bdf8 25%, #7dd3fc 55%, #bae6fd 100%)';
+      document.body.style.background = '#e8eef5';
+      document.body.style.backgroundImage = 'none';
     }
   }, [isDarkMode]);
 
@@ -96,12 +95,10 @@ export default function App() {
 
   return (
     <div
-      className={`min-h-screen flex flex-col transition-colors duration-300 ${isDarkMode ? 'dark text-slate-100' : 'text-slate-900'}`}
+      className={`min-h-screen flex flex-col transition-colors duration-300 ${isDarkMode ? 'dark' : ''}`}
       style={{
         minHeight: '100vh',
-        background: isDarkMode
-          ? 'linear-gradient(180deg, #020617 0%, #0f172a 50%, #1e293b 100%)'
-          : 'linear-gradient(180deg, #0ea5e9 0%, #38bdf8 25%, #7dd3fc 55%, #bae6fd 100%)',
+        background: isDarkMode ? '#0b1120' : '#e8eef5',
       }}
     >
       <AdSenseLoader />
@@ -126,7 +123,7 @@ export default function App() {
         className={`${
           isDarkMode
             ? 'bg-[#0b101f]/95 border-slate-800/80 text-slate-200'
-            : 'bg-sky-100/90 border-sky-300 text-slate-700 shadow-sm'
+            : 'bg-white border-slate-200 text-slate-700 shadow-sm'
         } border-b text-xs py-2 px-4`}
       >
         <div className="max-w-[1920px] mx-auto flex items-center justify-between text-[11px]">
@@ -135,7 +132,7 @@ export default function App() {
             type="button"
             onClick={() => setShowAds(!showAds)}
             className={`flex items-center gap-1.5 px-3 py-1 rounded-lg border cursor-pointer ${
-              isDarkMode ? 'border-slate-600 bg-slate-800' : 'border-sky-400 bg-white'
+              isDarkMode ? 'border-slate-600 bg-slate-800' : 'border-slate-300 bg-white'
             }`}
           >
             {showAds ? <EyeOff className="w-3.5 h-3.5 text-amber-500" /> : <Eye className="w-3.5 h-3.5 text-emerald-600" />}
@@ -153,7 +150,7 @@ export default function App() {
       <div className="flex-1 max-w-[1920px] w-full mx-auto px-2 sm:px-4 md:px-6 py-5">
         <div className="flex items-start gap-4 lg:gap-6 justify-center">
           {showAds && <AdBanner type="skyscraper-left" />}
-          <main className="flex-1 w-full min-w-0">
+          <main className="flex-1 w-full min-w-0 text-slate-900 dark:text-slate-100">
             <Suspense fallback={<PillarLoader pillarNumber={activePillar} isDarkMode={isDarkMode} />}>
               {activePillar === 1 && (
                 <WorldClockPillar
@@ -182,7 +179,7 @@ export default function App() {
       </div>
 
       <div className="max-w-[1920px] mx-auto w-full px-4 sm:px-6 my-6">
-        <div className="bg-white dark:bg-slate-900 border border-pink-200 dark:border-slate-700 rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-6 shadow-md">
+        <div className="bg-white dark:bg-slate-900 border border-pink-200 dark:border-slate-700 rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-6 shadow-md text-slate-900 dark:text-slate-100">
           <div className="flex items-center gap-5">
             <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-pink-500 to-rose-600 flex items-center justify-center text-white shadow-md">
               <Heart className="w-8 h-8 fill-white" />
