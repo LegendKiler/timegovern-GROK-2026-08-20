@@ -1,10 +1,6 @@
 /**
  * TIMEGOVERN – SINGLE SOURCE OF TRUTH for company / HQ / contact copy
- * =============================================================================
  * HOW TO EDIT: see docs/COMPANY_EDIT.md
- * Change values HERE only. Do not hardcode address/phone/emails in components.
- * After edit: save → git commit → push → Cloudflare rebuild (or refresh local npm run dev).
- * =============================================================================
  */
 
 export const companyContent = {
@@ -31,13 +27,11 @@ export const companyContent = {
     privacyEmail: 'privacy@timegovern.com',
     securityEmail: 'security@timegovern.com',
     advertiseEmail: 'advertise@timegovern.com',
-    /** Replace with your real WhatsApp number (country code only, no + or spaces) e.g. 61412345678 */
     whatsapp: '61396504200',
     abn: '12 345 678 901',
     hours: 'Monday–Friday, 9:00 AM – 5:30 PM AEST / AEDT',
   },
 
-  /** Default messages for mailto / WhatsApp deep links */
   contactTemplates: {
     whatsappPrefill: 'Hello TimeGovern Melbourne, I have an inquiry about timegovern.com',
     emailSubject: 'Enquiry — TimeGovern',
@@ -48,7 +42,7 @@ export const companyContent = {
     title: 'About TimeGovern',
     lead: 'Based in Melbourne, we build precise free tools so the world can stay in sync.',
     paragraphs: [
-      'TimeGovern is headquartered on Collins Street in Melbourne\u2019s CBD. From Australia we serve users worldwide with live world clocks, meeting planners, calendars, astronomy tools, calculators and free multi-source news.',
+      'TimeGovern is headquartered on Collins Street in Melbourne CBD. From Australia we serve users worldwide with live world clocks, meeting planners, calendars, astronomy tools, calculators and free multi-source news.',
       'Core tools are free. We aim to match and exceed the usefulness of established global time sites while staying fast and modern.',
       'We use the IANA timezone database, open scientific sources for solar and lunar data, and free public news feeds.',
     ],
@@ -76,11 +70,45 @@ export const companyContent = {
     podcast: { title: 'Weekly Podcast', description: 'Time, calendars, DST and sky events — weekly episodes.' },
   },
 
+  metrics: [
+    { label: 'Global Latency', value: '< 12ms', hint: 'Edge-aware time delivery' },
+    { label: 'Active NTP Nodes', value: '99.998%', hint: 'Uptime target' },
+    { label: 'Sync Standard', value: 'UTC(NIST)', hint: 'Aligned reference' },
+  ],
+
+  engineeringPillars: [
+    {
+      id: 'metrology',
+      title: 'Precision Metrology',
+      text: 'Nanosecond-aware tooling, drift awareness, and clear UTC offsets so teams plan on the same clock.',
+      icon: 'precision',
+    },
+    {
+      id: 'resilience',
+      title: 'Enterprise Resilience',
+      text: 'High-availability patterns for distributed teams: world clocks, meeting planners, and calculators that stay usable under load.',
+      icon: 'resilience',
+    },
+    {
+      id: 'governance',
+      title: 'Open Governance',
+      text: 'Transparent policies, Australian-facing legal copy, and free core tools without locking essential time features behind paywalls.',
+      icon: 'governance',
+    },
+  ],
+
+  ethosQuote: {
+    quote:
+      'Time is not a footnote in modern systems — it is a structural variable. When clocks disagree, everything downstream becomes a negotiation.',
+    attribution: 'TimeGovern Engineering Ethos',
+    role: 'Melbourne · Global temporal infrastructure',
+  },
+
   podcast: {
     title: 'TimeGovern Weekly',
     subtitle: 'A short weekly podcast on time zones, calendars, DST and astronomy',
     description:
-      'Every week we cover daylight saving changes, leap-second context, notable sky events and practical tips for remote teams. Episodes will appear here and in your newsletter when you subscribe.',
+      'Every week we cover daylight saving changes, leap-second context, notable sky events and practical tips for remote teams.',
     episodes: [
       {
         id: 'ep-001',
