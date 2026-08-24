@@ -8,6 +8,7 @@ import { useGlobalShortcuts } from './hooks/useGlobalShortcuts';
 import { City } from './types';
 import type { TemplateTheme } from './components/TemplateGalleryModal';
 import { Globe, Eye, EyeOff, Heart, Facebook, Twitter, Linkedin, Keyboard } from 'lucide-react';
+import { companyContent } from './content/companyContent';
 
 const WorldClockPillar = lazy(() => import('./components/WorldClockPillar').then(m => ({ default: m.WorldClockPillar })));
 const CalendarPillar = lazy(() => import('./components/CalendarPillar').then(m => ({ default: m.CalendarPillar })));
@@ -203,16 +204,33 @@ export default function App() {
         <div className="max-w-[1920px] mx-auto px-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
           <div>
             <div className="flex items-center gap-2 text-white font-extrabold text-lg">
-              <Globe className="w-5 h-5 text-cyan-400" /> timegovern<span className="text-cyan-400">.com</span>
+              <Globe className="w-5 h-5 text-cyan-400" /> {companyContent.brandDomain.replace('.com', '')}<span className="text-cyan-400">.com</span>
             </div>
-            <p className="text-[11px] text-slate-400 mt-2">Global time, calendars, astronomy & calculators.</p>
+            <p className="text-[11px] text-slate-400 mt-2">{companyContent.tagline}</p>
+            <p className="text-[10px] text-slate-500 mt-2">{companyContent.hq.fullAddress}</p>
+            <p className="text-[10px] text-slate-500">{companyContent.hq.email} · {companyContent.hq.phoneDisplay}</p>
           </div>
           <div>
             <span className="text-white font-bold uppercase tracking-wider">Company</span>
             <ul className="mt-2 space-y-1 text-[11px]">
               <li>
                 <button type="button" className="hover:text-cyan-400" onClick={() => setActivePillar(11)}>
-                  About
+                  About &amp; Company
+                </button>
+              </li>
+              <li>
+                <button type="button" className="hover:text-cyan-400" onClick={() => { setActivePillar(11); window.location.hash = 'contact'; }}>
+                  Contact
+                </button>
+              </li>
+              <li>
+                <button type="button" className="hover:text-cyan-400" onClick={() => { setActivePillar(11); window.location.hash = 'newsletter'; }}>
+                  Newsletters
+                </button>
+              </li>
+              <li>
+                <button type="button" className="hover:text-cyan-400" onClick={() => { setActivePillar(11); window.location.hash = 'legal'; }}>
+                  Legal
                 </button>
               </li>
               <li>
@@ -234,7 +252,12 @@ export default function App() {
             <ul className="mt-2 space-y-1 text-[11px]">
               <li>
                 <button type="button" className="hover:text-cyan-400" onClick={() => setIsSecurityModalOpen(true)}>
-                  Privacy & Trust
+                  Privacy &amp; Trust
+                </button>
+              </li>
+              <li>
+                <button type="button" className="hover:text-cyan-400" onClick={() => { setActivePillar(11); window.location.hash = 'trust'; }}>
+                  Trust Centre
                 </button>
               </li>
             </ul>
