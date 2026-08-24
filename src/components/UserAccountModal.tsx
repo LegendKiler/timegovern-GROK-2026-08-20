@@ -1,52 +1,20 @@
 import React, { useEffect, useState } from 'react';
-import { X, User, Mail, Globe, Sparkles, Check, Heart, Shield, LogIn, UserPlus } from 'lucide-react';
+import {
+  X, User, Mail, Globe, Sparkles, Check, Heart, Shield, LogIn, UserPlus, LogOut, Cloud, Lock,
+} from 'lucide-react';
 import { MAJOR_CITIES } from '../lib/citiesData';
 import { companyContent } from '../content/companyContent';
-
-const STORAGE_KEY = 'tg_account_prefs_v1';
-
-export type AccountPrefs = {
-  fullName: string;
-  email: string;
-  homeCity: string;
-  timeFormat: '12h' | '24h';
-  tempUnit: 'C' | 'F';
-  dstAlerts: boolean;
-  astronomyBulletin: boolean;
-  holidayAlerts: boolean;
-  mode: 'guest' | 'local_profile';
-  updatedAt: string;
-};
-
-const defaultPrefs = (): AccountPrefs => {
-  const mel = MAJOR_CITIES.find((c) => /melbourne/i.test(c.name)) || MAJOR_CITIES[0];
-  return {
-    fullName: '',
-    email: '',
-    homeCity: mel?.name || 'Melbourne',
-    timeFormat: '24h',
-    tempUnit: 'C',
-    dstAlerts: true,
-    astronomyBulletin: true,
-    holidayAlerts: false,
-    mode: 'guest',
-    updatedAt: new Date().toISOString(),
-  };
-};
-
-function loadPrefs(): AccountPrefs {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return defaultPrefs();
-    return { ...defaultPrefs(), ...JSON.parse(raw) };
-  } catch {
-    return defaultPrefs();
-  }
-}
-
-function savePrefs(p: AccountPrefs) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...p, updatedAt: new Date().toISOString() }));
-}
+import {
+  getSession,
+  registerAccount,
+  loginAccount,
+  logoutAccount,
+  saveUserPrefs,
+  loadUserPrefs,
+  refreshMe,
+  type AuthUser,
+  type UserPrefs,
+} from '../lib/accountAuth';
 
 interface UserAccountModalProps {
   isOpen: boolean;
@@ -54,43 +22,139 @@ interface UserAccountModalProps {
   initialPanel?: 'account' | 'supporter';
 }
 
-/** Phase 1 — local prefs + Supporter plan info. No auth/payment yet. */
+type AuthMode = 'signin' | 'signup';
+
+const emptyPrefs = (email = ''): UserPrefs => ({
+  fullName: '',
+  email,
+  homeCity: MAJOR_CITIES.find((c) => /melbourne/i.test(c.name))?.name || 'Melbourne',
+  timeFormat: '24h',
+  tempUnit: 'C',
+  dstAlerts: true,
+  astronomyBulletin: true,
+  holidayAlerts: false,
+});
+
+/** Phase 2 — free account sign up/in, session, prefs (D1 cloud or local fallback). */
 export const UserAccountModal: React.FC<UserAccountModalProps> = ({
   isOpen,
   onClose,
   initialPanel = 'account',
 }) => {
   const [panel, setPanel] = useState<'account' | 'supporter'>(initialPanel);
-  const [prefs, setPrefs] = useState<AccountPrefs>(defaultPrefs);
-  const [saved, setSaved] = useState(false);
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [source, setSource] = useState<'cloud' | 'local' | null>(null);
+  const [authMode, setAuthMode] = useState<AuthMode>('signin');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [prefs, setPrefs] = useState<UserPrefs>(emptyPrefs());
+  const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [saved, setSaved] = useState(false);
 
   useEffect(() => {
-    if (isOpen) {
-      setPrefs(loadPrefs());
-      setPanel(initialPanel);
-      setSaved(false);
-      setNotice(null);
+    if (!isOpen) return;
+    setPanel(initialPanel);
+    setError(null);
+    setNotice(null);
+    setPassword('');
+    const s = getSession();
+    if (s) {
+      setUser(s.user);
+      setSource(s.source);
+      const p = loadUserPrefs(s.user.id);
+      setPrefs(p || { ...emptyPrefs(s.user.email), fullName: s.user.fullName, email: s.user.email });
+      refreshMe().then((r) => {
+        if (!r) return;
+        setUser(r.user);
+        setSource(r.source);
+        if (r.prefs) {
+          const pr = r.prefs as Record<string, unknown>;
+          setPrefs((prev) => ({
+            ...prev,
+            fullName: r.user.fullName || prev.fullName,
+            email: r.user.email,
+            homeCity: String(pr.home_city || pr.homeCity || prev.homeCity),
+            timeFormat: (pr.time_format || pr.timeFormat || prev.timeFormat) as '12h' | '24h',
+            tempUnit: (pr.temp_unit || pr.tempUnit || prev.tempUnit) as 'C' | 'F',
+            dstAlerts: pr.dst_alerts !== undefined ? !!pr.dst_alerts : (pr.dstAlerts as boolean) ?? prev.dstAlerts,
+            astronomyBulletin:
+              pr.astronomy_bulletin !== undefined
+                ? !!pr.astronomy_bulletin
+                : (pr.astronomyBulletin as boolean) ?? prev.astronomyBulletin,
+            holidayAlerts:
+              pr.holiday_alerts !== undefined ? !!pr.holiday_alerts : (pr.holidayAlerts as boolean) ?? prev.holidayAlerts,
+          }));
+        }
+      });
+    } else {
+      setUser(null);
+      setSource(null);
+      setPrefs(emptyPrefs());
     }
   }, [isOpen, initialPanel]);
 
   if (!isOpen) return null;
 
-  const handleSave = (e: React.FormEvent) => {
+  const c = companyContent;
+
+  const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!prefs.email.trim()) {
-      setNotice('Add an email to save a local profile (not sent to a server yet).');
-      return;
+    setBusy(true);
+    setError(null);
+    setNotice(null);
+    try {
+      const res =
+        authMode === 'signup'
+          ? await registerAccount({ email, password, fullName: prefs.fullName })
+          : await loginAccount({ email, password });
+      if (!res.success || !res.user) {
+        setError(res.error || 'Authentication failed');
+        return;
+      }
+      setUser(res.user);
+      setSource(res.source || 'local');
+      const p = loadUserPrefs(res.user.id) || {
+        ...emptyPrefs(res.user.email),
+        fullName: res.user.fullName,
+        email: res.user.email,
+      };
+      setPrefs(p);
+      setNotice(
+        res.source === 'cloud'
+          ? 'Signed in · cloud session (D1).'
+          : 'Signed in · saved on this device (API/D1 offline — deploy + migrate for cloud).'
+      );
+      setPassword('');
+    } finally {
+      setBusy(false);
     }
-    const next: AccountPrefs = { ...prefs, mode: 'local_profile' };
-    savePrefs(next);
-    setPrefs(next);
-    setSaved(true);
-    setNotice('Saved in this browser only (localStorage). Cloud sign-in is Phase 2.');
-    setTimeout(() => setSaved(false), 2500);
   };
 
-  const c = companyContent;
+  const handleSavePrefs = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user) return;
+    setBusy(true);
+    setError(null);
+    const result = await saveUserPrefs({ ...prefs, email: user.email });
+    setBusy(false);
+    if (!result.success) {
+      setError(result.error || 'Could not save');
+      return;
+    }
+    setSaved(true);
+    setNotice(result.source === 'cloud' ? 'Preferences saved to cloud.' : 'Preferences saved on this device.');
+    setTimeout(() => setSaved(false), 2000);
+  };
+
+  const handleLogout = async () => {
+    await logoutAccount();
+    setUser(null);
+    setSource(null);
+    setPrefs(emptyPrefs());
+    setNotice('Signed out.');
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-4">
@@ -105,116 +169,154 @@ export const UserAccountModal: React.FC<UserAccountModalProps> = ({
           </div>
           <div className="min-w-0 pr-8">
             <h3 className="font-bold text-lg text-white">Account & Supporter</h3>
-            <p className="text-xs text-slate-400">Free local preferences now · Cloud login Phase 2 · Payments Phase 3</p>
+            <p className="text-xs text-slate-400">
+              Phase 2 free accounts · Phase 3 payments
+              {user && source && (
+                <span className="ml-2 text-cyan-400">· {source === 'cloud' ? 'Cloud session' : 'Device session'}</span>
+              )}
+            </p>
           </div>
         </div>
 
         <div className="flex gap-2 mb-5 p-1 rounded-xl bg-slate-950 border border-slate-800">
           <button type="button" onClick={() => setPanel('account')}
-            className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-bold ${
-              panel === 'account' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white'
-            }`}>
-            <UserPlus className="w-3.5 h-3.5" /> Free profile
+            className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-bold ${panel === 'account' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white'}`}>
+            <UserPlus className="w-3.5 h-3.5" /> Account
           </button>
           <button type="button" onClick={() => setPanel('supporter')}
-            className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-bold ${
-              panel === 'supporter' ? 'bg-rose-600 text-white' : 'text-slate-400 hover:text-white'
-            }`}>
+            className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-bold ${panel === 'supporter' ? 'bg-rose-600 text-white' : 'text-slate-400 hover:text-white'}`}>
             <Heart className="w-3.5 h-3.5" /> Supporter plans
           </button>
         </div>
 
-        {panel === 'account' && (
-          <form onSubmit={handleSave} className="space-y-5">
-            <div className="rounded-xl border border-amber-500/30 bg-amber-950/20 px-3 py-2 text-[11px] text-amber-100/90">
-              Phase 1: preferences save in <strong>this browser only</strong>. No password, no cloud account yet. Core tools stay free without an account.
+        {panel === 'account' && !user && (
+          <form onSubmit={handleAuth} className="space-y-4">
+            <div className="flex gap-2 p-1 rounded-xl bg-slate-950 border border-slate-800">
+              <button type="button" onClick={() => setAuthMode('signin')}
+                className={`flex-1 py-2 rounded-lg text-xs font-bold ${authMode === 'signin' ? 'bg-slate-700 text-white' : 'text-slate-400'}`}>
+                <LogIn className="w-3.5 h-3.5 inline mr-1" /> Sign in
+              </button>
+              <button type="button" onClick={() => setAuthMode('signup')}
+                className={`flex-1 py-2 rounded-lg text-xs font-bold ${authMode === 'signup' ? 'bg-slate-700 text-white' : 'text-slate-400'}`}>
+                <UserPlus className="w-3.5 h-3.5 inline mr-1" /> Create free account
+              </button>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <p className="text-[11px] text-slate-400">
+              Free account: save preferences and (when D1 is live) sync across devices. Passwords are hashed (PBKDF2).
+            </p>
+
+            {authMode === 'signup' && (
               <div>
                 <label className="text-xs font-bold text-slate-300 block mb-1">Full name</label>
                 <input type="text" value={prefs.fullName} onChange={(e) => setPrefs((p) => ({ ...p, fullName: e.target.value }))}
-                  placeholder="Optional" className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white" />
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white" placeholder="Optional" />
+              </div>
+            )}
+            <div>
+              <label className="text-xs font-bold text-slate-300 block mb-1">Email</label>
+              <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
+                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white" placeholder="you@example.com" />
+            </div>
+            <div>
+              <label className="text-xs font-bold text-slate-300 block mb-1">Password (min 8)</label>
+              <input type="password" required minLength={8} value={password} onChange={(e) => setPassword(e.target.value)}
+                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white" placeholder="••••••••" />
+            </div>
+
+            {error && <div className="text-[11px] text-rose-300 border border-rose-500/40 rounded-xl px-3 py-2">{error}</div>}
+            {notice && <div className="text-[11px] text-cyan-200 border border-cyan-500/30 rounded-xl px-3 py-2">{notice}</div>}
+
+            <button type="submit" disabled={busy}
+              className="w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 disabled:opacity-60">
+              <Lock className="w-3.5 h-3.5" />
+              {busy ? 'Please wait…' : authMode === 'signup' ? 'Create free account' : 'Sign in'}
+            </button>
+            <p className="text-[10px] text-slate-500">
+              Spam Act: marketing only with opt-in. Privacy: {c.hq.privacyEmail}. AU operator {c.legalName}.
+            </p>
+          </form>
+        )}
+
+        {panel === 'account' && user && (
+          <form onSubmit={handleSavePrefs} className="space-y-4">
+            <div className="flex items-center justify-between gap-2 rounded-xl border border-emerald-500/30 bg-emerald-950/20 px-3 py-2">
+              <div className="text-xs min-w-0">
+                <div className="font-bold text-emerald-200 truncate">{user.email}</div>
+                <div className="text-[10px] text-slate-400 flex items-center gap-1">
+                  {source === 'cloud' ? <Cloud className="w-3 h-3" /> : <Globe className="w-3 h-3" />}
+                  {source === 'cloud' ? 'Cloud account' : 'Device account (local)'}
+                  {!user.emailVerified && ' · email verify when mail provider connected'}
+                </div>
+              </div>
+              <button type="button" onClick={handleLogout} className="text-[11px] font-bold text-slate-300 hover:text-white flex items-center gap-1 shrink-0">
+                <LogOut className="w-3.5 h-3.5" /> Sign out
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs font-bold text-slate-300 block mb-1">Full name</label>
+                <input type="text" value={prefs.fullName} onChange={(e) => setPrefs((p) => ({ ...p, fullName: e.target.value }))}
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white" />
               </div>
               <div>
-                <label className="text-xs font-bold text-slate-300 block mb-1">Email</label>
-                <input type="email" required value={prefs.email} onChange={(e) => setPrefs((p) => ({ ...p, email: e.target.value }))}
-                  placeholder="you@example.com" className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white" />
+                <label className="text-xs font-bold text-slate-300 block mb-1">Home city</label>
+                <select value={prefs.homeCity} onChange={(e) => setPrefs((p) => ({ ...p, homeCity: e.target.value }))}
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white">
+                  {MAJOR_CITIES.map((city) => (
+                    <option key={city.id} value={city.name}>{city.name} ({city.countryCode})</option>
+                  ))}
+                </select>
               </div>
             </div>
 
-            <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-4">
-              <h4 className="text-xs font-bold text-blue-400 uppercase tracking-wider flex items-center gap-1.5">
-                <Globe className="w-4 h-4" /> Display preferences
-              </h4>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div>
-                  <label className="text-[11px] font-semibold text-slate-400 block mb-1">Home city</label>
-                  <select value={prefs.homeCity} onChange={(e) => setPrefs((p) => ({ ...p, homeCity: e.target.value }))}
-                    className="w-full bg-slate-900 border border-slate-800 text-xs text-slate-200 rounded-lg p-2">
-                    {MAJOR_CITIES.map((city) => (
-                      <option key={city.id} value={city.name}>{city.name} ({city.countryCode})</option>
-                    ))}
-                  </select>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-[11px] font-semibold text-slate-400 block mb-1">Clock</label>
+                <div className="flex bg-slate-950 p-1 rounded-lg border border-slate-800 text-xs">
+                  <button type="button" onClick={() => setPrefs((p) => ({ ...p, timeFormat: '12h' }))}
+                    className={`flex-1 py-1 rounded ${prefs.timeFormat === '12h' ? 'bg-blue-600 text-white font-bold' : 'text-slate-400'}`}>12h</button>
+                  <button type="button" onClick={() => setPrefs((p) => ({ ...p, timeFormat: '24h' }))}
+                    className={`flex-1 py-1 rounded ${prefs.timeFormat === '24h' ? 'bg-blue-600 text-white font-bold' : 'text-slate-400'}`}>24h</button>
                 </div>
-                <div>
-                  <label className="text-[11px] font-semibold text-slate-400 block mb-1">Clock</label>
-                  <div className="flex bg-slate-900 p-1 rounded-lg border border-slate-800 text-xs">
-                    <button type="button" onClick={() => setPrefs((p) => ({ ...p, timeFormat: '12h' }))}
-                      className={`flex-1 py-1 rounded font-mono ${prefs.timeFormat === '12h' ? 'bg-blue-600 text-white font-bold' : 'text-slate-400'}`}>12h</button>
-                    <button type="button" onClick={() => setPrefs((p) => ({ ...p, timeFormat: '24h' }))}
-                      className={`flex-1 py-1 rounded font-mono ${prefs.timeFormat === '24h' ? 'bg-blue-600 text-white font-bold' : 'text-slate-400'}`}>24h</button>
-                  </div>
-                </div>
-                <div>
-                  <label className="text-[11px] font-semibold text-slate-400 block mb-1">Temperature</label>
-                  <div className="flex bg-slate-900 p-1 rounded-lg border border-slate-800 text-xs">
-                    <button type="button" onClick={() => setPrefs((p) => ({ ...p, tempUnit: 'C' }))}
-                      className={`flex-1 py-1 rounded font-mono ${prefs.tempUnit === 'C' ? 'bg-blue-600 text-white font-bold' : 'text-slate-400'}`}>°C</button>
-                    <button type="button" onClick={() => setPrefs((p) => ({ ...p, tempUnit: 'F' }))}
-                      className={`flex-1 py-1 rounded font-mono ${prefs.tempUnit === 'F' ? 'bg-blue-600 text-white font-bold' : 'text-slate-400'}`}>°F</button>
-                  </div>
+              </div>
+              <div>
+                <label className="text-[11px] font-semibold text-slate-400 block mb-1">Temperature</label>
+                <div className="flex bg-slate-950 p-1 rounded-lg border border-slate-800 text-xs">
+                  <button type="button" onClick={() => setPrefs((p) => ({ ...p, tempUnit: 'C' }))}
+                    className={`flex-1 py-1 rounded ${prefs.tempUnit === 'C' ? 'bg-blue-600 text-white font-bold' : 'text-slate-400'}`}>°C</button>
+                  <button type="button" onClick={() => setPrefs((p) => ({ ...p, tempUnit: 'F' }))}
+                    className={`flex-1 py-1 rounded ${prefs.tempUnit === 'F' ? 'bg-blue-600 text-white font-bold' : 'text-slate-400'}`}>°F</button>
                 </div>
               </div>
             </div>
 
-            <div className="space-y-2">
-              <h4 className="text-xs font-bold text-white flex items-center gap-1.5">
-                <Mail className="w-4 h-4 text-indigo-400" /> Alert preferences (when email is connected)
-              </h4>
-              <div className="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-2 text-xs">
-                {([
-                  ['dstAlerts', 'DST shift warnings', 'Notify before clock changes in your regions'],
-                  ['astronomyBulletin', 'Astronomy bulletin', 'Moon phases, eclipses, notable sky events'],
-                  ['holidayAlerts', 'Public holiday digest', 'AU / US / major markets overview'],
-                ] as const).map(([key, title, desc]) => (
-                  <label key={key} className="flex items-center justify-between cursor-pointer gap-3 py-1">
-                    <div>
-                      <span className="font-semibold text-slate-200 block">{title}</span>
-                      <span className="text-[10px] text-slate-400">{desc}</span>
-                    </div>
-                    <input type="checkbox" checked={prefs[key]} onChange={(e) => setPrefs((p) => ({ ...p, [key]: e.target.checked }))} className="w-4 h-4 rounded accent-blue-600" />
-                  </label>
-                ))}
-              </div>
-              <p className="text-[10px] text-slate-500">Marketing email only with consent (Spam Act 2003).</p>
+            <div className="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-2 text-xs">
+              {([
+                ['dstAlerts', 'DST shift warnings'],
+                ['astronomyBulletin', 'Astronomy bulletin'],
+                ['holidayAlerts', 'Public holiday digest'],
+              ] as const).map(([key, label]) => (
+                <label key={key} className="flex items-center justify-between cursor-pointer">
+                  <span className="text-slate-200">{label}</span>
+                  <input type="checkbox" checked={prefs[key]} onChange={(e) => setPrefs((p) => ({ ...p, [key]: e.target.checked }))} className="accent-blue-600" />
+                </label>
+              ))}
             </div>
 
-            {notice && (
-              <div className="text-[11px] text-cyan-200 border border-cyan-500/30 rounded-xl px-3 py-2 bg-cyan-950/30">{notice}</div>
-            )}
+            {error && <div className="text-[11px] text-rose-300">{error}</div>}
+            {notice && <div className="text-[11px] text-cyan-200">{notice}</div>}
 
-            <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
-              <button type="button" onClick={() => setPanel('supporter')} className="text-[11px] font-bold text-rose-300 hover:text-rose-200 flex items-center gap-1">
-                <Heart className="w-3.5 h-3.5" /> View Supporter plans
+            <div className="flex flex-wrap gap-2 justify-between">
+              <button type="button" onClick={() => setPanel('supporter')} className="text-[11px] font-bold text-rose-300 flex items-center gap-1">
+                <Heart className="w-3.5 h-3.5" /> Supporter plans
               </button>
-              <div className="flex gap-2">
-                <button type="button" onClick={onClose} className="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl text-xs font-semibold">Cancel</button>
-                <button type="submit" className="px-5 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5">
-                  {saved ? <Check className="w-4 h-4" /> : <Sparkles className="w-4 h-4" />}
-                  {saved ? 'Saved locally' : 'Save in browser'}
-                </button>
-              </div>
+              <button type="submit" disabled={busy}
+                className="px-5 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold flex items-center gap-1.5">
+                {saved ? <Check className="w-4 h-4" /> : <Sparkles className="w-4 h-4" />}
+                {saved ? 'Saved' : 'Save preferences'}
+              </button>
             </div>
           </form>
         )}
@@ -225,59 +327,39 @@ export const UserAccountModal: React.FC<UserAccountModalProps> = ({
               <h4 className="font-bold text-white flex items-center gap-2 mb-2">
                 <Heart className="w-4 h-4 text-rose-400" /> TimeGovern Supporter
               </h4>
-              <p className="text-xs text-slate-300 leading-relaxed">
-                Support keeps core world clocks free. Paid perks when Phase 3 payments go live:
-              </p>
-              <ul className="mt-3 space-y-1.5 text-xs text-slate-300 list-disc pl-4">
-                <li>Ad-free browsing across timegovern.com</li>
-                <li>Cloud-saved city pins across devices (with Phase 2 login)</li>
-                <li>Precision astronomy extras and export options (as features ship)</li>
+              <ul className="mt-2 space-y-1.5 text-xs text-slate-300 list-disc pl-4">
+                <li>Ad-free browsing</li>
+                <li>Cloud-saved cities (free account + cloud)</li>
+                <li>Precision / export perks as they ship</li>
               </ul>
             </div>
-
             <div className="grid sm:grid-cols-2 gap-3">
               <div className="rounded-xl border border-slate-700 p-4 bg-slate-950">
                 <div className="text-[10px] font-bold uppercase text-slate-500">Quarterly</div>
                 <div className="text-xl font-black text-white mt-1">A$9.99</div>
-                <div className="text-[11px] text-slate-400">≈ US$5.99 / quarter</div>
-                <p className="text-[10px] text-slate-500 mt-2">Indicative only — not charged yet</p>
+                <div className="text-[11px] text-slate-400">≈ US$5.99</div>
               </div>
               <div className="rounded-xl border border-cyan-500/40 p-4 bg-slate-950">
-                <div className="text-[10px] font-bold uppercase text-cyan-400">Yearly · best value</div>
+                <div className="text-[10px] font-bold uppercase text-cyan-400">Yearly</div>
                 <div className="text-xl font-black text-white mt-1">A$29.99</div>
-                <div className="text-[11px] text-slate-400">≈ US$14.99 / year</div>
-                <p className="text-[10px] text-slate-500 mt-2">Indicative only — not charged yet</p>
+                <div className="text-[11px] text-slate-400">≈ US$14.99</div>
               </div>
             </div>
-
             <div className="rounded-xl border border-slate-700 p-3 text-[11px] text-slate-400 space-y-2">
               <p className="flex items-start gap-2">
                 <Shield className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
-                <span>
-                  <strong className="text-slate-200">Not a charitable donation.</strong> Paid product for digital perks — not tax-deductible in Australia or the US.
-                </span>
+                <span><strong className="text-slate-200">Not a charitable donation.</strong> {c.legalName} · ABN {c.hq.abn}.</span>
               </p>
-              <p>
-                Operator: {c.legalName} · {c.hq.fullAddress} · ABN {c.hq.abn}. Victoria law: Victoria, Australia.
-                US visitors: access/deletion via {c.hq.privacyEmail}.
-              </p>
-              <p>
-                Phase 3: Stripe Checkout, clear renewal/cancel, GST-inclusive AUD where applicable. ACL guarantees that cannot be excluded still apply.
-              </p>
-              <p>Full Privacy and Terms: Company hub → Legal tab.</p>
             </div>
-
-            <div className="flex flex-col sm:flex-row gap-2">
-              <button type="button" disabled
-                className="flex-1 py-2.5 rounded-xl text-xs font-bold bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700"
-                title="Phase 3 — Stripe not connected">
-                Checkout coming in Phase 3
+            <button type="button" disabled className="w-full py-2.5 rounded-xl text-xs font-bold bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700">
+              Checkout coming in Phase 3 (Stripe)
+            </button>
+            {!user && (
+              <button type="button" onClick={() => { setPanel('account'); setAuthMode('signup'); }}
+                className="w-full py-2.5 rounded-xl text-xs font-bold bg-blue-600 text-white">
+                Create free account first
               </button>
-              <button type="button" onClick={() => setPanel('account')}
-                className="flex-1 py-2.5 rounded-xl text-xs font-bold bg-blue-600 text-white flex items-center justify-center gap-1.5">
-                <LogIn className="w-3.5 h-3.5" /> Save free profile first
-              </button>
-            </div>
+            )}
           </div>
         )}
       </div>
