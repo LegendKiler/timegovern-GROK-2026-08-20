@@ -1,6 +1,10 @@
 /**
- * TIMEGOVERN – Company content (edit values only, then refresh)
- * Placeholder phone/WhatsApp – replace with your real number later.
+ * TIMEGOVERN – SINGLE SOURCE OF TRUTH for company / HQ / contact copy
+ * =============================================================================
+ * HOW TO EDIT: see docs/COMPANY_EDIT.md
+ * Change values HERE only. Do not hardcode address/phone/emails in components.
+ * After edit: save → git commit → push → Cloudflare rebuild (or refresh local npm run dev).
+ * =============================================================================
  */
 
 export const companyContent = {
@@ -25,17 +29,26 @@ export const companyContent = {
     pressEmail: 'press@timegovern.com',
     legalEmail: 'legal@timegovern.com',
     privacyEmail: 'privacy@timegovern.com',
-    /** Replace with your real WhatsApp number (country code, no + or spaces) */
+    securityEmail: 'security@timegovern.com',
+    advertiseEmail: 'advertise@timegovern.com',
+    /** Replace with your real WhatsApp number (country code only, no + or spaces) e.g. 61412345678 */
     whatsapp: '61396504200',
     abn: '12 345 678 901',
     hours: 'Monday–Friday, 9:00 AM – 5:30 PM AEST / AEDT',
+  },
+
+  /** Default messages for mailto / WhatsApp deep links */
+  contactTemplates: {
+    whatsappPrefill: 'Hello TimeGovern Melbourne, I have an inquiry about timegovern.com',
+    emailSubject: 'Enquiry — TimeGovern',
+    emailBody: 'Hello TimeGovern team,\n\n',
   },
 
   aboutUs: {
     title: 'About TimeGovern',
     lead: 'Based in Melbourne, we build precise free tools so the world can stay in sync.',
     paragraphs: [
-      'TimeGovern is headquartered on Collins Street in Melbourne’s CBD. From Australia we serve users worldwide with live world clocks, meeting planners, calendars, astronomy tools, calculators and free multi-source news.',
+      'TimeGovern is headquartered on Collins Street in Melbourne\u2019s CBD. From Australia we serve users worldwide with live world clocks, meeting planners, calendars, astronomy tools, calculators and free multi-source news.',
       'Core tools are free. We aim to match and exceed the usefulness of established global time sites while staying fast and modern.',
       'We use the IANA timezone database, open scientific sources for solar and lunar data, and free public news feeds.',
     ],
@@ -59,7 +72,7 @@ export const companyContent = {
     astronomy: { title: 'Sun & Moon', description: 'Sunrise, sunset, twilight and moon phases.' },
     calculators: { title: 'Calculators', description: 'Date math, workdays and countdowns.' },
     weather: { title: 'Weather', description: 'Weather context with local time.' },
-    news: { title: 'Live News', description: 'Free RSS headlines refreshed about every 45–60 seconds.' },
+    news: { title: 'Live News', description: 'Free RSS headlines refreshed about every 30–60 seconds.' },
     podcast: { title: 'Weekly Podcast', description: 'Time, calendars, DST and sky events — weekly episodes.' },
   },
 
@@ -68,7 +81,6 @@ export const companyContent = {
     subtitle: 'A short weekly podcast on time zones, calendars, DST and astronomy',
     description:
       'Every week we cover daylight saving changes, leap-second context, notable sky events and practical tips for remote teams. Episodes will appear here and in your newsletter when you subscribe.',
-    /** Replace with real episode list or RSS later */
     episodes: [
       {
         id: 'ep-001',
@@ -115,14 +127,36 @@ export const companyContent = {
     },
   },
 
+  social: {
+    facebook: '',
+    twitter: '',
+    linkedin: '',
+    youtube: '',
+  },
+
   legal: {
     copyrightName: 'TimeGovern Pty Ltd',
     year: new Date().getFullYear(),
     governingLaw: 'Laws of Victoria, Australia',
     disclaimer:
       'Times are calculated using standard timezone data. Always verify critical schedules with official sources.',
-    lastUpdated: '20 August 2026',
+    lastUpdated: '24 August 2026',
   },
 };
 
 export type CompanyContent = typeof companyContent;
+
+export function companyMailto(subject?: string, body?: string) {
+  const s = subject ?? companyContent.contactTemplates.emailSubject;
+  const b = body ?? companyContent.contactTemplates.emailBody;
+  return `mailto:${companyContent.hq.email}?subject=${encodeURIComponent(s)}&body=${encodeURIComponent(b)}`;
+}
+
+export function companyWhatsAppUrl(text?: string) {
+  const t = text ?? companyContent.contactTemplates.whatsappPrefill;
+  return `https://wa.me/${companyContent.hq.whatsapp}?text=${encodeURIComponent(t)}`;
+}
+
+export function companyTelHref() {
+  return `tel:${companyContent.hq.phone.replace(/\s/g, '')}`;
+}
