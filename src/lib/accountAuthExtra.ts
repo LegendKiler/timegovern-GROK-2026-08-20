@@ -1,10 +1,22 @@
-/** Phase 2b helpers — imported by accountAuth and UI */
+/** Phase 2b helpers — magic link, Google, verify, offline sync codes */
 
-import type { AuthUser, UserPrefs } from './accountAuthCore';
+export type AuthUser = {
+  id: string;
+  email: string;
+  fullName: string;
+  emailVerified: boolean;
+};
 
-// Re-export types used by UI when core splits — for now helpers are self-contained with duplicated minimal types
-
-export type { AuthUser, UserPrefs };
+export type UserPrefs = {
+  fullName: string;
+  email: string;
+  homeCity: string;
+  timeFormat: '12h' | '24h';
+  tempUnit: 'C' | 'F';
+  dstAlerts: boolean;
+  astronomyBulletin: boolean;
+  holidayAlerts: boolean;
+};
 
 const SESSION_KEY = 'tg_session_v2';
 
