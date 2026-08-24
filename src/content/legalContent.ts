@@ -1,19 +1,23 @@
+import { companyContent } from './companyContent';
+
 /**
  * Australian-oriented Legal & Trust Centre copy
  * Informed by Privacy Act 1988 (APPs), Australian Consumer Law,
  * Spam Act 2003, and general advertising standards.
  * This is informational website content — not formal legal advice.
  * Have an Australian solicitor review before relying on it commercially.
+ *
+ * Entity / ABN / address / emails: edit companyContent.ts only (synced below).
  */
 
 export const legalContent = {
-  lastUpdated: '20 August 2026',
-  entity: 'TimeGovern Pty Ltd',
-  abn: '12 345 678 901',
-  address: 'Level 12, 120 Collins Street, Melbourne VIC 3000, Australia',
-  privacyEmail: 'privacy@timegovern.com',
-  legalEmail: 'legal@timegovern.com',
-  contactEmail: 'contact@timegovern.com',
+  lastUpdated: companyContent.legal.lastUpdated,
+  entity: companyContent.legalName,
+  abn: companyContent.hq.abn,
+  address: companyContent.hq.fullAddress,
+  privacyEmail: companyContent.hq.privacyEmail,
+  legalEmail: companyContent.hq.legalEmail,
+  contactEmail: companyContent.hq.email,
 
   privacyPolicy: {
     title: 'Privacy Policy',
