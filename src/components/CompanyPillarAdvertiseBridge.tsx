@@ -1,6 +1,5 @@
 /**
  * Optional bridge: mount AdvertiseHub when hash is #advertise without rewriting full CompanyPillar.
- * App can lazy-load this alongside Company pillar.
  */
 import React, { useEffect, useState } from 'react';
 import { AdvertiseHub } from './AdvertiseHub';
@@ -22,16 +21,16 @@ export const CompanyPillarAdvertiseBridge: React.FC<{ children: React.ReactNode 
 
   if (forceAdvertise) {
     return (
-      <div className="space-y-4">
+      <div className="space-y-4" data-testid="advertise-hub">
         <button
           type="button"
-          className="text-xs font-bold text-blue-600"
+          className="text-xs font-bold text-cyan-300 border border-cyan-500/40 px-3 py-2 rounded-lg bg-slate-900"
           onClick={() => {
             setForceAdvertise(false);
             window.location.hash = '';
           }}
         >
-          ← Back to Company hub
+          ← Back to Company hub (tabs)
         </button>
         <AdvertiseHub />
       </div>
