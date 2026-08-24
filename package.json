@@ -9,14 +9,14 @@
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit",
-    "db:migrate": "wrangler d1 migrations apply zoneshift-db --remote -c wrangler.toml",
+    "db:migrate": "npx wrangler d1 migrations apply zoneshift-db --remote -c wrangler.toml",
     "cf:cleanup": "npx wrangler delete timegovern-site2 --force || true",
     "cf:migrate": "npx wrangler d1 migrations apply zoneshift-db --remote -c wrangler.toml",
     "cf:deploy": "npm run build && npm run cf:migrate && npx wrangler deploy -c wrangler.toml",
     "cf:config": "node scripts/setup-cloudflare.js",
     "fix:all": "node scripts/cloudflare-auto-fix.js",
     "setup:all": "npm run build && npm run cf:cleanup && npm run cf:migrate && npm run cf:deploy",
-    "deploy": "npm run build && wrangler deploy -c wrangler.toml"
+    "deploy": "npm run build && npx wrangler deploy -c wrangler.toml"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",
