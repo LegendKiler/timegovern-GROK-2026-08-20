@@ -9,6 +9,7 @@ import { City } from './types';
 import type { TemplateTheme } from './components/TemplateGalleryModal';
 import { Globe, Eye, EyeOff, Heart, Facebook, Twitter, Linkedin, Keyboard } from 'lucide-react';
 import { companyContent } from './content/companyContent';
+import { PillarErrorBoundary } from './components/PillarErrorBoundary';
 
 const WorldClockPillar = lazy(() => import('./components/WorldClockPillar').then(m => ({ default: m.WorldClockPillar })));
 const CalendarPillar = lazy(() => import('./components/CalendarPillar').then(m => ({ default: m.CalendarPillar })));
@@ -169,9 +170,11 @@ export default function App() {
               {activePillar === 9 && <NewsPillar />}
               {activePillar === 10 && <CalculatorsPillar />}
               {activePillar === 11 && (
-                <CompanyPillarAdvertiseBridge>
-                  <CompanyPillar onNavigatePillar={setActivePillar} />
-                </CompanyPillarAdvertiseBridge>
+                <PillarErrorBoundary label="Company">
+                  <CompanyPillarAdvertiseBridge>
+                    <CompanyPillar onNavigatePillar={setActivePillar} />
+                  </CompanyPillarAdvertiseBridge>
+                </PillarErrorBoundary>
               )}
             </Suspense>
           </main>
@@ -215,7 +218,7 @@ export default function App() {
             <ul className="mt-2 space-y-1 text-[11px]">
               <li>
                 <button type="button" className="hover:text-cyan-400" onClick={() => setActivePillar(11)}>
-                  About &amp; Company
+                  About & Company
                 </button>
               </li>
               <li>
@@ -252,7 +255,7 @@ export default function App() {
             <ul className="mt-2 space-y-1 text-[11px]">
               <li>
                 <button type="button" className="hover:text-cyan-400" onClick={() => setIsSecurityModalOpen(true)}>
-                  Privacy &amp; Trust
+                  Privacy & Trust
                 </button>
               </li>
               <li>
