@@ -294,3 +294,15 @@ export async function refreshMe(): Promise<{ user: AuthUser; prefs: Partial<User
   }
   return { user: s.user, prefs: loadUserPrefs(s.user.id), source: s.source };
 }
+
+// Phase 2b: magic link, Google, email verify, offline sync codes
+export {
+  requestMagicLink,
+  consumeMagicLink,
+  loginWithGoogle,
+  sendVerificationEmail,
+  consumeVerifyEmail,
+  exportSyncCode,
+  importSyncCode,
+  getGoogleClientId,
+} from './accountAuthExtra';
