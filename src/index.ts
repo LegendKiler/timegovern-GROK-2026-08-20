@@ -6,6 +6,7 @@ import { handleNews } from './api/news';
 import { handleDriftAlerts } from './api/driftAlerts';
 import { ensureSchema } from './db/init';
 import { handleV1Time, handleV1Convert, isV1TimePath, isV1ConvertPath } from './api/v1Time';
+import { handleAuth } from './api/auth';
 
 export interface Env {
   DB?: D1Database;
@@ -83,7 +84,10 @@ export default {
       );
     }
 
-    // Public Time API v1 (lab)
+    if (url.pathname.startsWith('/api/auth')) {
+      return handleAuth(request, env, url.pathname);
+    }
+
     if (isV1TimePath(url.pathname)) {
       return handleV1Time(request);
     }
