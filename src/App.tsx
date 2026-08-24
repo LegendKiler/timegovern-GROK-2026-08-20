@@ -38,6 +38,7 @@ export default function App() {
   const [isArchModalOpen, setIsArchModalOpen] = useState(false);
   const [isQrModalOpen, setIsQrModalOpen] = useState(false);
   const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
+  const [accountModalPanel, setAccountModalPanel] = useState<'account' | 'supporter'>('account');
   const [isSecurityModalOpen, setIsSecurityModalOpen] = useState(false);
   const [isTemplateGalleryOpen, setIsTemplateGalleryOpen] = useState(false);
   const [isShortcutsModalOpen, setIsShortcutsModalOpen] = useState(false);
@@ -76,7 +77,7 @@ export default function App() {
     onOpenShortcutsModal: () => setIsShortcutsModalOpen(true),
     onOpenSecurityModal: () => setIsSecurityModalOpen(true),
     onOpenQrModal: () => setIsQrModalOpen(true),
-    onOpenAccountModal: () => setIsAccountModalOpen(true),
+    onOpenAccountModal: () => { setAccountModalPanel('account'); setIsAccountModalOpen(true); },
     onOpenArchModal: () => setIsArchModalOpen(true),
     onToggleAds: () => setShowAds((prev) => !prev),
     onCloseModals: () => {
@@ -111,7 +112,7 @@ export default function App() {
         primaryCity={primaryCity}
         onOpenArchModal={() => setIsArchModalOpen(true)}
         onOpenQrModal={() => setIsQrModalOpen(true)}
-        onOpenAccountModal={() => setIsAccountModalOpen(true)}
+        onOpenAccountModal={() => { setAccountModalPanel('account'); setIsAccountModalOpen(true); }}
         onOpenSecurityModal={() => setIsSecurityModalOpen(true)}
         onOpenTemplateGallery={() => setIsTemplateGalleryOpen(true)}
         onOpenShortcutsModal={() => setIsShortcutsModalOpen(true)}
@@ -183,23 +184,44 @@ export default function App() {
       </div>
 
       <div className="max-w-[1920px] mx-auto w-full px-4 sm:px-6 my-6">
-        <div className="bg-white dark:bg-slate-900 border border-pink-200 dark:border-slate-700 rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-6 shadow-md text-slate-900 dark:text-slate-100">
-          <div className="flex items-center gap-5">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-pink-500 to-rose-600 flex items-center justify-center text-white shadow-md">
-              <Heart className="w-8 h-8 fill-white" />
+        <div className="bg-white dark:bg-slate-900 border border-pink-200 dark:border-slate-700 rounded-2xl p-6 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 shadow-md text-slate-900 dark:text-slate-100">
+          <div className="flex items-start gap-4 min-w-0">
+            <div className="w-14 h-14 shrink-0 rounded-2xl bg-gradient-to-tr from-pink-500 to-rose-600 flex items-center justify-center text-white shadow-md">
+              <Heart className="w-7 h-7 fill-white" />
             </div>
-            <div>
-              <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">Become a Supporter</h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400">Ad-free browsing and precision perks.</p>
+            <div className="min-w-0">
+              <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">Become a TimeGovern Supporter</h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                Ad-free browsing · Cloud-saved cities (Phase 2) · Precision perks. Core clocks stay free.
+              </p>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-2">
+                Plans from <strong className="text-slate-700 dark:text-slate-200">A$29.99/year</strong> (indicative).
+                Not a tax-deductible donation. Checkout is Phase 3.
+              </p>
             </div>
           </div>
-          <button
-            type="button"
-            onClick={() => setIsAccountModalOpen(true)}
-            className="px-6 py-3 bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-700 hover:to-rose-700 text-white font-bold text-xs rounded-xl shadow-md"
-          >
-            Create Supporter Account
-          </button>
+          <div className="flex flex-col sm:flex-row gap-2 w-full lg:w-auto shrink-0">
+            <button
+              type="button"
+              onClick={() => {
+                setAccountModalPanel('supporter');
+                setIsAccountModalOpen(true);
+              }}
+              className="px-5 py-3 bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-700 hover:to-rose-700 text-white font-bold text-xs rounded-xl shadow-md"
+            >
+              View plans
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setAccountModalPanel('account');
+                setIsAccountModalOpen(true);
+              }}
+              className="px-5 py-3 border border-slate-300 dark:border-slate-600 font-bold text-xs rounded-xl text-slate-700 dark:text-slate-200"
+            >
+              Free profile
+            </button>
+          </div>
         </div>
       </div>
 
@@ -285,7 +307,13 @@ export default function App() {
       <Suspense fallback={null}>
         {isArchModalOpen && <ArchitectureModal isOpen={isArchModalOpen} onClose={() => setIsArchModalOpen(false)} />}
         {isQrModalOpen && <QrModal isOpen={isQrModalOpen} onClose={() => setIsQrModalOpen(false)} />}
-        {isAccountModalOpen && <UserAccountModal isOpen={isAccountModalOpen} onClose={() => setIsAccountModalOpen(false)} />}
+        {isAccountModalOpen && (
+          <UserAccountModal
+            isOpen={isAccountModalOpen}
+            onClose={() => setIsAccountModalOpen(false)}
+            initialPanel={accountModalPanel}
+          />
+        )}
         {isSecurityModalOpen && <SecurityTrustModal isOpen={isSecurityModalOpen} onClose={() => setIsSecurityModalOpen(false)} />}
         {isTemplateGalleryOpen && (
           <TemplateGalleryModal
@@ -311,7 +339,7 @@ export default function App() {
             onCycleTheme={() => {}}
             onOpenSecurityModal={() => setIsSecurityModalOpen(true)}
             onOpenQrModal={() => setIsQrModalOpen(true)}
-            onOpenAccountModal={() => setIsAccountModalOpen(true)}
+            onOpenAccountModal={() => { setAccountModalPanel('account'); setIsAccountModalOpen(true); }}
             onOpenArchModal={() => setIsArchModalOpen(true)}
             onToggleAds={() => setShowAds((p) => !p)}
             isMac={isMac}
