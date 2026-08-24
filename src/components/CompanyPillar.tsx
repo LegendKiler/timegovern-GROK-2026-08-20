@@ -166,8 +166,8 @@ export const CompanyPillar: React.FC<CompanyPillarProps> = () => {
             : null;
     if (legalSection === 'cookies') {
       return (
-        <div className="space-y-3 text-sm text-slate-600 dark:text-slate-300">
-          <h3 className="text-lg font-bold text-slate-900 dark:text-white">{L.cookieNotice.title}</h3>
+        <div className="space-y-3 text-sm text-slate-300">
+          <h3 className="text-lg font-bold text-white">{L.cookieNotice.title}</h3>
           <p>{L.cookieNotice.body}</p>
         </div>
       );
@@ -175,22 +175,28 @@ export const CompanyPillar: React.FC<CompanyPillarProps> = () => {
     if (!doc) return null;
     return (
       <div className="space-y-4">
-        <h3 className="text-lg font-bold text-slate-900 dark:text-white">{doc.title}</h3>
-        <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">{doc.intro}</p>
+        <h3 className="text-lg font-bold text-white">{doc.title}</h3>
+        <p className="text-sm text-slate-300 leading-relaxed">{doc.intro}</p>
         {doc.sections.map((s) => (
-          <div key={s.heading} className="border-t border-slate-100 dark:border-slate-800 pt-3">
-            <h4 className="text-sm font-bold text-slate-900 dark:text-white mb-1">{s.heading}</h4>
-            <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">{s.body}</p>
+          <div key={s.heading} className="border-t border-slate-700 pt-3">
+            <h4 className="text-sm font-bold text-cyan-300 mb-1">{s.heading}</h4>
+            <p className="text-xs text-slate-400 leading-relaxed">{s.body}</p>
           </div>
         ))}
-        <p className="text-[10px] text-slate-400 pt-2">Last updated: {L.lastUpdated}. Not formal legal advice — review with an Australian solicitor for commercial use.</p>
+        <p className="text-[10px] text-slate-500 pt-2">Last updated: {L.lastUpdated}. Not formal legal advice.</p>
       </div>
     );
   };
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
-      {/* Header */}
+    <div className="space-y-6 max-w-7xl mx-auto" data-testid="company-pillar">
+      <div
+        className="rounded-xl border-2 border-cyan-400 px-4 py-3 text-sm font-bold text-cyan-300"
+        style={{ backgroundColor: '#020617', borderColor: '#22d3ee', color: '#67e8f9' }}
+      >
+        COMPANY HUB ACTIVE — use tabs below: About · Contact · Newsletters · Podcast · Trust · Legal
+      </div>
+
       <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-10 text-white relative overflow-hidden">
         <div className="absolute right-0 top-0 opacity-10 p-6 pointer-events-none">
           <Building2 className="w-80 h-80 text-cyan-400" />
@@ -209,18 +215,25 @@ export const CompanyPillar: React.FC<CompanyPillarProps> = () => {
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="flex flex-wrap gap-1.5 p-1 bg-slate-100 dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">
+      <div
+        role="tablist"
+        aria-label="Company sections"
+        className="flex flex-wrap gap-2 p-2 rounded-2xl border-2"
+        style={{ backgroundColor: '#020617', borderColor: 'rgba(34,211,238,0.5)' }}
+      >
         {tabs.map((t) => (
           <button
             key={t.id}
             type="button"
+            role="tab"
+            aria-selected={tab === t.id}
             onClick={() => setTab(t.id)}
-            className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition-colors cursor-pointer ${
+            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-bold cursor-pointer border"
+            style={
               tab === t.id
-                ? 'bg-blue-600 text-white shadow'
-                : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800'
-            }`}
+                ? { backgroundColor: '#22d3ee', color: '#020617', borderColor: '#67e8f9' }
+                : { backgroundColor: '#1e293b', color: '#f8fafc', borderColor: '#475569' }
+            }
           >
             {t.icon}
             {t.label}
@@ -228,28 +241,27 @@ export const CompanyPillar: React.FC<CompanyPillarProps> = () => {
         ))}
       </div>
 
-      {/* ABOUT */}
       {tab === 'about' && (
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 sm:p-8 space-y-6">
-          <h2 className="text-2xl font-bold font-display">{c.aboutUs.title}</h2>
-          <p className="text-base font-medium text-slate-700 dark:text-slate-200">{c.aboutUs.lead}</p>
+        <div className="rounded-2xl border border-slate-700 p-6 sm:p-8 space-y-6" style={{ backgroundColor: '#0f172a', color: '#e2e8f0' }}>
+          <h2 className="text-2xl font-bold text-white">{c.aboutUs.title}</h2>
+          <p className="text-base font-medium text-cyan-100">{c.aboutUs.lead}</p>
           {c.aboutUs.paragraphs.map((p, i) => (
-            <p key={i} className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">{p}</p>
+            <p key={i} className="text-sm text-slate-400 leading-relaxed">{p}</p>
           ))}
           <div className="grid md:grid-cols-2 gap-4">
-            <div className="rounded-xl border border-slate-200 dark:border-slate-700 p-4 bg-slate-50 dark:bg-slate-800/40">
-              <div className="flex items-center gap-2 font-bold text-sm text-blue-600 dark:text-cyan-400 mb-2"><Target className="w-4 h-4" /> Mission</div>
-              <p className="text-xs text-slate-600 dark:text-slate-300">{c.aboutUs.mission}</p>
+            <div className="rounded-xl border border-slate-700 p-4" style={{ backgroundColor: '#020617' }}>
+              <div className="flex items-center gap-2 font-bold text-sm text-cyan-400 mb-2"><Target className="w-4 h-4" /> Mission</div>
+              <p className="text-xs text-slate-400">{c.aboutUs.mission}</p>
             </div>
-            <div className="rounded-xl border border-slate-200 dark:border-slate-700 p-4 bg-slate-50 dark:bg-slate-800/40">
-              <div className="flex items-center gap-2 font-bold text-sm text-indigo-600 mb-2"><Eye className="w-4 h-4" /> Vision</div>
-              <p className="text-xs text-slate-600 dark:text-slate-300">{c.aboutUs.vision}</p>
+            <div className="rounded-xl border border-slate-700 p-4" style={{ backgroundColor: '#020617' }}>
+              <div className="flex items-center gap-2 font-bold text-sm text-emerald-400 mb-2"><Eye className="w-4 h-4" /> Vision</div>
+              <p className="text-xs text-slate-400">{c.aboutUs.vision}</p>
             </div>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
             {c.values.map((v) => (
-              <div key={v.title} className="rounded-xl border border-slate-200 dark:border-slate-700 p-3">
-                <div className="font-bold text-sm">{v.title}</div>
+              <div key={v.title} className="rounded-xl border border-slate-700 p-3" style={{ backgroundColor: '#020617' }}>
+                <div className="font-bold text-sm text-white">{v.title}</div>
                 <p className="text-[11px] text-slate-500 mt-1">{v.text}</p>
               </div>
             ))}
@@ -257,178 +269,116 @@ export const CompanyPillar: React.FC<CompanyPillarProps> = () => {
         </div>
       )}
 
-      {/* CONTACT */}
       {tab === 'contact' && (
         <div className="grid lg:grid-cols-12 gap-6">
-          <div className="lg:col-span-7 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 sm:p-8 space-y-5">
-            <h2 className="text-2xl font-bold font-display flex items-center gap-2">
-              <Mail className="w-6 h-6 text-blue-600" /> Contact Melbourne HQ
+          <div className="lg:col-span-7 rounded-2xl border border-slate-700 p-6 sm:p-8 space-y-5" style={{ backgroundColor: '#0f172a' }}>
+            <h2 className="text-2xl font-bold text-white flex items-center gap-2">
+              <Mail className="w-6 h-6 text-cyan-400" /> Contact Melbourne HQ
             </h2>
             <p className="text-xs text-slate-500">{c.hq.fullAddress} · Hours: {c.hq.hours}</p>
-
             <div className="flex flex-wrap gap-2">
-              <a href={mailUrl} className="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl">
-                <Mail className="w-4 h-4" /> Email us
-              </a>
-              <a href={waUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl">
-                <MessageSquare className="w-4 h-4" /> Chat on WhatsApp
-              </a>
-              <a href={`tel:${c.hq.phone.replace(/\s/g, '')}`} className="inline-flex items-center gap-2 px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold rounded-xl">
-                <Phone className="w-4 h-4" /> Call
-              </a>
+              <a href={mailUrl} className="inline-flex items-center gap-2 px-4 py-2.5 bg-cyan-500 text-slate-950 text-xs font-bold rounded-xl">Email us</a>
+              <a href={waUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-600 text-white text-xs font-bold rounded-xl">WhatsApp</a>
+              <a href={`tel:${c.hq.phone.replace(/\s/g, '')}`} className="inline-flex items-center gap-2 px-4 py-2.5 bg-slate-800 text-white text-xs font-bold rounded-xl border border-slate-600">Call</a>
             </div>
-            <p className="text-[11px] text-slate-400">WhatsApp number is a placeholder — replace <code className="text-cyan-600">hq.whatsapp</code> in companyContent.ts with your number (e.g. 614xxxxxxxx).</p>
-
             {contactSuccess && (
-              <div className="flex items-center gap-2 p-3 bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800 rounded-xl text-xs text-emerald-800 dark:text-emerald-200">
-                <CheckCircle2 className="w-4 h-4" /> {contactSuccess}
-              </div>
+              <div className="p-3 rounded-xl border border-emerald-500/40 text-xs text-emerald-300">{contactSuccess}</div>
             )}
-
             <form onSubmit={handleContactSubmit} className="space-y-3 text-xs">
               <div className="grid sm:grid-cols-2 gap-3">
-                <input required value={contactName} onChange={(e) => setContactName(e.target.value)} placeholder="Full name *" className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2.5" />
-                <input required type="email" value={contactEmail} onChange={(e) => setContactEmail(e.target.value)} placeholder="Email *" className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2.5" />
+                <input required value={contactName} onChange={(e) => setContactName(e.target.value)} placeholder="Full name *" className="w-full rounded-xl px-3 py-2.5 border border-slate-600 bg-slate-950 text-white" />
+                <input required type="email" value={contactEmail} onChange={(e) => setContactEmail(e.target.value)} placeholder="Email *" className="w-full rounded-xl px-3 py-2.5 border border-slate-600 bg-slate-950 text-white" />
               </div>
               <div className="grid sm:grid-cols-2 gap-3">
-                <input type="tel" value={contactPhone} onChange={(e) => setContactPhone(e.target.value)} placeholder="Phone / mobile" className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2.5" />
-                <select value={contactMethod} onChange={(e: any) => setContactMethod(e.target.value)} className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2.5">
+                <input type="tel" value={contactPhone} onChange={(e) => setContactPhone(e.target.value)} placeholder="Phone" className="w-full rounded-xl px-3 py-2.5 border border-slate-600 bg-slate-950 text-white" />
+                <select value={contactMethod} onChange={(e: any) => setContactMethod(e.target.value)} className="w-full rounded-xl px-3 py-2.5 border border-slate-600 bg-slate-950 text-white">
                   <option value="email">Prefer email</option>
                   <option value="whatsapp">Prefer WhatsApp</option>
-                  <option value="phone">Prefer phone call</option>
+                  <option value="phone">Prefer phone</option>
                   <option value="sms">Prefer SMS</option>
                 </select>
               </div>
-              <input required value={contactSubject} onChange={(e) => setContactSubject(e.target.value)} placeholder="Subject *" className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2.5" />
-              <textarea required rows={4} value={contactMessage} onChange={(e) => setContactMessage(e.target.value)} placeholder="Message *" className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2.5" />
-              <button type="submit" disabled={contactSubmitting} className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl flex items-center justify-center gap-2 cursor-pointer">
-                {contactSubmitting ? 'Sending…' : 'Send to Melbourne HQ'} <Send className="w-4 h-4" />
+              <input required value={contactSubject} onChange={(e) => setContactSubject(e.target.value)} placeholder="Subject *" className="w-full rounded-xl px-3 py-2.5 border border-slate-600 bg-slate-950 text-white" />
+              <textarea required rows={4} value={contactMessage} onChange={(e) => setContactMessage(e.target.value)} placeholder="Message *" className="w-full rounded-xl px-3 py-2.5 border border-slate-600 bg-slate-950 text-white" />
+              <button type="submit" disabled={contactSubmitting} className="w-full py-3 bg-cyan-500 text-slate-950 font-bold rounded-xl">
+                {contactSubmitting ? 'Sending…' : 'Send to Melbourne HQ'}
               </button>
             </form>
           </div>
-
           <div className="lg:col-span-5 space-y-4">
-            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 text-xs space-y-2">
-              <div className="font-bold text-sm flex items-center gap-2"><Building2 className="w-4 h-4 text-blue-600" /> Office</div>
+            <div className="rounded-2xl border border-slate-700 p-5 text-xs text-slate-300 space-y-2" style={{ backgroundColor: '#0f172a' }}>
+              <div className="font-bold text-sm text-white">Office</div>
               <p>{c.hq.fullAddress}</p>
               <p>Phone: {c.hq.phoneDisplay}</p>
               <p>General: {c.hq.email}</p>
               <p>Support: {c.hq.supportEmail}</p>
-              <p>Privacy: {c.hq.privacyEmail}</p>
-              <p>Legal: {c.hq.legalEmail}</p>
-              <p className="text-slate-400">ABN {c.hq.abn}</p>
+              <p className="text-slate-500">ABN {c.hq.abn}</p>
             </div>
-            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 space-y-3">
-              <div className="flex items-center gap-2 font-bold text-sm"><Briefcase className="w-4 h-4 text-amber-500" /> Careers</div>
-              {jobSuccess && <p className="text-xs text-emerald-600">{jobSuccess}</p>}
+            <div className="rounded-2xl border border-slate-700 p-5 space-y-3" style={{ backgroundColor: '#0f172a' }}>
+              <div className="font-bold text-sm text-white">Careers</div>
+              {jobSuccess && <p className="text-xs text-emerald-400">{jobSuccess}</p>}
               <form onSubmit={handleJobSubmit} className="space-y-2 text-xs">
-                <input type="email" required value={jobEmail} onChange={(e) => setJobEmail(e.target.value)} placeholder="Email" className="w-full bg-slate-50 dark:bg-slate-800 border rounded-lg px-3 py-2" />
-                <input type="tel" value={jobPhone} onChange={(e) => setJobPhone(e.target.value)} placeholder="Phone optional" className="w-full bg-slate-50 dark:bg-slate-800 border rounded-lg px-3 py-2" />
-                <select value={jobInterest} onChange={(e) => setJobInterest(e.target.value)} className="w-full bg-slate-50 dark:bg-slate-800 border rounded-lg px-3 py-2">
+                <input type="email" required value={jobEmail} onChange={(e) => setJobEmail(e.target.value)} placeholder="Email" className="w-full rounded-lg px-3 py-2 border border-slate-600 bg-slate-950 text-white" />
+                <input type="tel" value={jobPhone} onChange={(e) => setJobPhone(e.target.value)} placeholder="Phone optional" className="w-full rounded-lg px-3 py-2 border border-slate-600 bg-slate-950 text-white" />
+                <select value={jobInterest} onChange={(e) => setJobInterest(e.target.value)} className="w-full rounded-lg px-3 py-2 border border-slate-600 bg-slate-950 text-white">
                   <option value="software_engineering">Engineering</option>
                   <option value="ui_ux">Design</option>
                   <option value="sales_support">Sales & Support</option>
                 </select>
-                <button type="submit" disabled={jobSubmitting} className="w-full py-2 bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 font-bold rounded-lg text-xs cursor-pointer">
-                  {jobSubmitting ? '…' : 'Job alerts'}
-                </button>
+                <button type="submit" disabled={jobSubmitting} className="w-full py-2 bg-slate-100 text-slate-900 font-bold rounded-lg text-xs">Job alerts</button>
               </form>
             </div>
           </div>
         </div>
       )}
 
-      {/* NEWSLETTERS */}
       {tab === 'newsletter' && (
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 sm:p-8 space-y-6 max-w-2xl">
-          <h2 className="text-2xl font-bold font-display">Newsletters</h2>
-          <p className="text-sm text-slate-600 dark:text-slate-300">
-            Choose weekly, monthly and/or yearly. Opt-in only (Australian Spam Act 2003). Unsubscribe in every email when delivery is connected.
-          </p>
+        <div className="rounded-2xl border border-slate-700 p-6 sm:p-8 space-y-6 max-w-2xl" style={{ backgroundColor: '#0f172a' }}>
+          <h2 className="text-2xl font-bold text-white">Newsletters</h2>
+          <p className="text-sm text-slate-400">Weekly / monthly / yearly. Opt-in only (Spam Act 2003).</p>
           <div className="space-y-3">
             {(['weekly', 'monthly', 'yearly'] as const).map((key) => (
-              <label key={key} className="flex items-start gap-3 p-4 rounded-xl border border-slate-200 dark:border-slate-700 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50">
-                <input
-                  type="checkbox"
-                  checked={cadence[key]}
-                  onChange={(e) => setCadence((prev) => ({ ...prev, [key]: e.target.checked }))}
-                  className="mt-1"
-                />
+              <label key={key} className="flex items-start gap-3 p-4 rounded-xl border border-slate-700 cursor-pointer">
+                <input type="checkbox" checked={cadence[key]} onChange={(e) => setCadence((prev) => ({ ...prev, [key]: e.target.checked }))} className="mt-1" />
                 <div>
-                  <div className="font-bold text-sm">{c.newsletter[key].name}</div>
+                  <div className="font-bold text-sm text-white">{c.newsletter[key].name}</div>
                   <p className="text-xs text-slate-500">{c.newsletter[key].description}</p>
                 </div>
               </label>
             ))}
           </div>
-          {newsletterSuccess && (
-            <div className="p-3 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 rounded-xl text-xs text-emerald-800 dark:text-emerald-200">{newsletterSuccess}</div>
-          )}
+          {newsletterSuccess && <div className="p-3 rounded-xl border border-emerald-500/40 text-xs text-emerald-300">{newsletterSuccess}</div>}
           <form onSubmit={handleNewsletterSubmit} className="flex flex-col sm:flex-row gap-2">
-            <input
-              type="email"
-              required
-              value={newsletterEmail}
-              onChange={(e) => setNewsletterEmail(e.target.value)}
-              placeholder="you@company.com"
-              className="flex-1 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm"
-            />
-            <button type="submit" disabled={newsletterSubmitting} className="px-6 py-2.5 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold rounded-xl text-sm cursor-pointer">
-              {newsletterSubmitting ? 'Saving…' : 'Subscribe'}
-            </button>
+            <input type="email" required value={newsletterEmail} onChange={(e) => setNewsletterEmail(e.target.value)} placeholder="you@company.com" className="flex-1 rounded-xl px-4 py-2.5 border border-slate-600 bg-slate-950 text-white text-sm" />
+            <button type="submit" disabled={newsletterSubmitting} className="px-6 py-2.5 bg-cyan-500 text-slate-950 font-bold rounded-xl text-sm">Subscribe</button>
           </form>
-          <div className="text-[11px] text-slate-400 border-t border-slate-100 dark:border-slate-800 pt-4 space-y-1">
-            <p><strong>Auto-send setup:</strong> Email HTML templates live in <code>src/content/emailTemplates.ts</code>.</p>
-            <p>Connect Resend or SendGrid API key in Cloudflare → schedule Worker cron for weekly / monthly / yearly sends → store cadence flags in D1.</p>
-            <p>Until an email provider is connected, subscriptions are stored via API but emails are not sent automatically.</p>
-          </div>
         </div>
       )}
 
-      {/* PODCAST */}
       {tab === 'podcast' && (
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 sm:p-8 space-y-6">
-          <div className="flex items-start gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-violet-500/20 text-violet-600 flex items-center justify-center">
-              <Mic2 className="w-6 h-6" />
-            </div>
-            <div>
-              <h2 className="text-2xl font-bold font-display">{c.podcast.title}</h2>
-              <p className="text-sm text-slate-500">{c.podcast.subtitle}</p>
-            </div>
-          </div>
-          <p className="text-sm text-slate-600 dark:text-slate-300">{c.podcast.description}</p>
+        <div className="rounded-2xl border border-slate-700 p-6 sm:p-8 space-y-6" style={{ backgroundColor: '#0f172a' }}>
+          <h2 className="text-2xl font-bold text-white">{c.podcast.title}</h2>
+          <p className="text-sm text-slate-500">{c.podcast.subtitle}</p>
+          <p className="text-sm text-slate-400">{c.podcast.description}</p>
           <div className="space-y-3">
             {c.podcast.episodes.map((ep) => (
-              <div key={ep.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
-                <div>
-                  <div className="font-bold text-sm text-slate-900 dark:text-white">{ep.title}</div>
-                  <p className="text-xs text-slate-500 mt-1">{ep.summary}</p>
-                  <p className="text-[11px] text-slate-400 mt-1">{ep.date} · {ep.duration}</p>
-                </div>
-                <button
-                  type="button"
-                  disabled={!ep.audioUrl}
-                  className="px-4 py-2 rounded-xl text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-500 cursor-not-allowed"
-                  title="Add audioUrl in companyContent when ready"
-                >
-                  {ep.audioUrl ? 'Play' : 'Coming soon'}
-                </button>
+              <div key={ep.id} className="p-4 rounded-xl border border-slate-700">
+                <div className="font-bold text-sm text-white">{ep.title}</div>
+                <p className="text-xs text-slate-500 mt-1">{ep.summary}</p>
+                <p className="text-[11px] text-slate-600 mt-1">{ep.date} · {ep.duration}</p>
               </div>
             ))}
           </div>
-          <p className="text-[11px] text-slate-400">To publish: host MP3 (e.g. Cloudflare R2 or Buzzsprout), set each episode <code>audioUrl</code> in companyContent.ts, or embed a podcast RSS player later.</p>
         </div>
       )}
 
-      {/* TRUST */}
       {tab === 'trust' && (
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 sm:p-8 space-y-6">
-          <h2 className="text-2xl font-bold font-display flex items-center gap-2"><Shield className="w-6 h-6 text-emerald-500" /> {L.trustCentre.title}</h2>
+        <div className="rounded-2xl border border-slate-700 p-6 sm:p-8 space-y-6" style={{ backgroundColor: '#0f172a' }}>
+          <h2 className="text-2xl font-bold text-white flex items-center gap-2"><Shield className="w-6 h-6 text-emerald-400" /> {L.trustCentre.title}</h2>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {L.trustCentre.points.map((p) => (
-              <div key={p.title} className="rounded-xl border border-slate-200 dark:border-slate-700 p-4">
-                <div className="font-bold text-sm mb-1">{p.title}</div>
+              <div key={p.title} className="rounded-xl border border-slate-700 p-4">
+                <div className="font-bold text-sm text-white mb-1">{p.title}</div>
                 <p className="text-xs text-slate-500">{p.text}</p>
               </div>
             ))}
@@ -437,26 +387,28 @@ export const CompanyPillar: React.FC<CompanyPillarProps> = () => {
         </div>
       )}
 
-      {/* LEGAL */}
       {tab === 'legal' && (
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 sm:p-8 space-y-4">
-          <h2 className="text-2xl font-bold font-display flex items-center gap-2"><Scale className="w-6 h-6 text-blue-600" /> Legal</h2>
+        <div className="rounded-2xl border border-slate-700 p-6 sm:p-8 space-y-4" style={{ backgroundColor: '#0f172a' }}>
+          <h2 className="text-2xl font-bold text-white flex items-center gap-2"><Scale className="w-6 h-6 text-cyan-400" /> Legal</h2>
           <div className="flex flex-wrap gap-2">
             {([
-              { id: 'privacy' as const, label: 'Privacy Policy', icon: <Shield className="w-3.5 h-3.5" /> },
-              { id: 'terms' as const, label: 'Terms of Use', icon: <Scale className="w-3.5 h-3.5" /> },
-              { id: 'ads' as const, label: 'Advertising Policy', icon: <Megaphone className="w-3.5 h-3.5" /> },
-              { id: 'cookies' as const, label: 'Cookies', icon: <Cookie className="w-3.5 h-3.5" /> },
+              { id: 'privacy' as const, label: 'Privacy Policy' },
+              { id: 'terms' as const, label: 'Terms of Use' },
+              { id: 'ads' as const, label: 'Advertising Policy' },
+              { id: 'cookies' as const, label: 'Cookies' },
             ]).map((x) => (
               <button
                 key={x.id}
                 type="button"
                 onClick={() => setLegalSection(x.id)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer ${
-                  legalSection === x.id ? 'bg-blue-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
-                }`}
+                className="px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer border"
+                style={
+                  legalSection === x.id
+                    ? { backgroundColor: '#22d3ee', color: '#020617', borderColor: '#67e8f9' }
+                    : { backgroundColor: '#1e293b', color: '#f8fafc', borderColor: '#475569' }
+                }
               >
-                {x.icon} {x.label}
+                {x.label}
               </button>
             ))}
           </div>
@@ -464,8 +416,8 @@ export const CompanyPillar: React.FC<CompanyPillarProps> = () => {
         </div>
       )}
 
-      <p className="text-[10px] text-center text-slate-400">
-        © {c.legal.year} {c.legal.copyrightName}. {c.hq.city}, {c.hq.country}. Governing law: {c.legal.governingLaw}.
+      <p className="text-[10px] text-center text-slate-600">
+        © {c.legal.year} {c.legal.copyrightName}. {c.hq.city}, {c.hq.country}.
       </p>
     </div>
   );
