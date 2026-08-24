@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import { companyContent } from '../content/companyContent';
 import { legalContent } from '../content/legalContent';
+import { buildNewsletterEmail } from '../content/emailTemplates';
 
 interface CompanyPillarProps {
   onNavigatePillar?: (pillar: number) => void;
@@ -28,12 +29,11 @@ export const CompanyPillar: React.FC<CompanyPillarProps> = () => {
 
   const [newsletterEmail, setNewsletterEmail] = useState('');
   const [cadence, setCadence] = useState<{ weekly: boolean; monthly: boolean; yearly: boolean }>({
-    weekly: true,
-    monthly: false,
-    yearly: false,
+    weekly: true, monthly: false, yearly: false,
   });
   const [newsletterSubmitting, setNewsletterSubmitting] = useState(false);
   const [newsletterSuccess, setNewsletterSuccess] = useState<string | null>(null);
+  const [newsletterPreview, setNewsletterPreview] = useState<{ subject: string; text: string } | null>(null);
 
   const [jobEmail, setJobEmail] = useState('');
   const [jobPhone, setJobPhone] = useState('');
@@ -43,12 +43,8 @@ export const CompanyPillar: React.FC<CompanyPillarProps> = () => {
 
   const [legalSection, setLegalSection] = useState<'privacy' | 'terms' | 'ads' | 'cookies'>('privacy');
 
-  const waUrl = `https://wa.me/${c.hq.whatsapp}?text=${encodeURIComponent(
-    'Hello TimeGovern Melbourne, I have an inquiry about timegovern.com'
-  )}`;
-  const mailUrl = `mailto:${c.hq.email}?subject=${encodeURIComponent('Enquiry — TimeGovern')}&body=${encodeURIComponent(
-    'Hello TimeGovern team,\n\n'
-  )}`;
+  const waUrl = `https://wa.me/${c.hq.whatsapp}?text=${encodeURIComponent(c.contactTemplates.whatsappPrefill)}`;
+  const mailUrl = `mailto:${c.hq.email}?subject=${encodeURIComponent(c.contactTemplates.emailSubject)}&body=${encodeURIComponent(c.contactTemplates.emailBody)}`;
 
   const handleContactSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,27 +55,17 @@ export const CompanyPillar: React.FC<CompanyPillarProps> = () => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name: contactName,
-          email: contactEmail,
-          phone: contactPhone,
-          preferred_method: contactMethod,
-          subject: contactSubject,
-          message: contactMessage,
+          name: contactName, email: contactEmail, phone: contactPhone,
+          preferred_method: contactMethod, subject: contactSubject, message: contactMessage,
         }),
       });
       const data = await res.json();
       if (data.success) {
         setContactSuccess(`Received. Ticket: ${data.ticket_id || 'TG-MELB'}`);
-        setContactName('');
-        setContactEmail('');
-        setContactPhone('');
-        setContactSubject('');
-        setContactMessage('');
-      } else {
-        setContactSuccess('Message saved. Our Melbourne team will follow up.');
-      }
+        setContactName(''); setContactEmail(''); setContactPhone(''); setContactSubject(''); setContactMessage('');
+      } else setContactSuccess('Message saved. Our Melbourne team will follow up.');
     } catch {
-      setContactSuccess('Message recorded. Thank you — Melbourne HQ will respond when online.');
+      setContactSuccess('Message recorded. Melbourne HQ will respond when online.');
     } finally {
       setContactSubmitting(false);
     }
@@ -93,34 +79,28 @@ export const CompanyPillar: React.FC<CompanyPillarProps> = () => {
     }
     setNewsletterSubmitting(true);
     setNewsletterSuccess(null);
+    const primary = cadence.weekly ? 'weekly' : cadence.monthly ? 'monthly' : 'yearly';
+    const built = buildNewsletterEmail({ cadence: primary as 'weekly' | 'monthly' | 'yearly', toEmail: newsletterEmail });
+    setNewsletterPreview({ subject: built.subject, text: built.text });
+    const parts = [
+      cadence.weekly ? 'Weekly' : null,
+      cadence.monthly ? 'Monthly' : null,
+      cadence.yearly ? 'Yearly' : null,
+    ].filter(Boolean);
     try {
-      const res = await fetch('/api/newsletter', {
+      await fetch('/api/newsletter', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email: newsletterEmail,
           source: 'company_hub',
-          cadence: {
-            weekly: cadence.weekly,
-            monthly: cadence.monthly,
-            yearly: cadence.yearly,
-          },
+          cadence: { weekly: cadence.weekly, monthly: cadence.monthly, yearly: cadence.yearly },
         }),
       });
-      const data = await res.json();
-      if (data.success) {
-        const parts = [
-          cadence.weekly ? 'Weekly' : null,
-          cadence.monthly ? 'Monthly' : null,
-          cadence.yearly ? 'Yearly' : null,
-        ].filter(Boolean);
-        setNewsletterSuccess(`Subscribed (${parts.join(' + ')}). Check your inbox for confirmation when email delivery is connected.`);
-        setNewsletterEmail('');
-      } else {
-        setNewsletterSuccess('Subscription recorded.');
-      }
+      setNewsletterSuccess(`Opt-in saved for ${parts.join(' + ')}. Live SMTP is not connected yet — preview below is the Spam Act–compliant email that would send. Connect Resend/SendGrid to deliver for real.`);
+      setNewsletterEmail('');
     } catch {
-      setNewsletterSuccess('Subscription saved locally. Connect an email provider (Resend/SendGrid) to send automatically.');
+      setNewsletterSuccess(`Opt-in recorded for ${parts.join(' + ')}. SMTP not connected — preview below is what would send.`);
     } finally {
       setNewsletterSubmitting(false);
     }
@@ -137,8 +117,7 @@ export const CompanyPillar: React.FC<CompanyPillarProps> = () => {
         body: JSON.stringify({ email: jobEmail, phone: jobPhone, position_interest: jobInterest }),
       });
       setJobSuccess('Registered for Melbourne career alerts.');
-      setJobEmail('');
-      setJobPhone('');
+      setJobEmail(''); setJobPhone('');
     } catch {
       setJobSuccess('Registered. We will contact you when roles open.');
     } finally {
@@ -157,13 +136,9 @@ export const CompanyPillar: React.FC<CompanyPillarProps> = () => {
 
   const renderLegalDoc = () => {
     const doc =
-      legalSection === 'privacy'
-        ? L.privacyPolicy
-        : legalSection === 'terms'
-          ? L.termsOfUse
-          : legalSection === 'ads'
-            ? L.advertisingPolicy
-            : null;
+      legalSection === 'privacy' ? L.privacyPolicy
+        : legalSection === 'terms' ? L.termsOfUse
+          : legalSection === 'ads' ? L.advertisingPolicy : null;
     if (legalSection === 'cookies') {
       return (
         <div className="space-y-3 text-sm text-slate-300">
@@ -183,30 +158,24 @@ export const CompanyPillar: React.FC<CompanyPillarProps> = () => {
             <p className="text-xs text-slate-400 leading-relaxed">{s.body}</p>
           </div>
         ))}
-        <p className="text-[10px] text-slate-500 pt-2">Last updated: {L.lastUpdated}. Not formal legal advice.</p>
+        <p className="text-[10px] text-slate-500 pt-2">Last updated: {L.lastUpdated}. Not formal legal advice — review with an Australian solicitor.</p>
       </div>
     );
   };
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto" data-testid="company-pillar">
-      <div
-        className="rounded-xl border-2 border-cyan-400 px-4 py-3 text-sm font-bold text-cyan-300"
-        style={{ backgroundColor: '#020617', borderColor: '#22d3ee', color: '#67e8f9' }}
-      >
-        COMPANY HUB ACTIVE — use tabs below: About · Contact · Newsletters · Podcast · Trust · Legal
+      <div className="rounded-xl border-2 px-4 py-3 text-sm font-bold" style={{ backgroundColor: '#020617', borderColor: '#22d3ee', color: '#67e8f9' }}>
+        COMPANY HUB ACTIVE — About · Contact · Newsletters · Podcast · Trust · Legal
       </div>
 
       <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-10 text-white relative overflow-hidden">
-        <div className="absolute right-0 top-0 opacity-10 p-6 pointer-events-none">
-          <Building2 className="w-80 h-80 text-cyan-400" />
-        </div>
         <div className="relative z-10 max-w-3xl space-y-3">
           <div className="inline-flex items-center gap-2 px-3 py-1 bg-cyan-500/20 text-cyan-300 rounded-full border border-cyan-400/30 text-xs font-bold uppercase">
             <MapPin className="w-3.5 h-3.5" /> Melbourne, Australia · HQ
           </div>
-          <h1 className="text-3xl sm:text-4xl font-black font-display">{c.brandName}<span className="text-cyan-400">.com</span></h1>
-          <p className="text-slate-300 text-sm leading-relaxed">{c.shortDescription}</p>
+          <h1 className="text-3xl sm:text-4xl font-black">{c.brandName}<span className="text-cyan-400">.com</span></h1>
+          <p className="text-slate-300 text-sm">{c.shortDescription}</p>
           <div className="flex flex-wrap gap-4 text-xs text-slate-200 pt-2 border-t border-slate-800">
             <span className="flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5 text-rose-400" />{c.hq.fullAddress}</span>
             <span className="flex items-center gap-1.5"><Phone className="w-3.5 h-3.5 text-emerald-400" />{c.hq.phoneDisplay}</span>
@@ -215,46 +184,28 @@ export const CompanyPillar: React.FC<CompanyPillarProps> = () => {
         </div>
       </div>
 
-      <div
-        role="tablist"
-        aria-label="Company sections"
-        className="flex flex-wrap gap-2 p-2 rounded-2xl border-2"
-        style={{ backgroundColor: '#020617', borderColor: 'rgba(34,211,238,0.5)' }}
-      >
+      <div role="tablist" className="flex flex-wrap gap-2 p-2 rounded-2xl border-2" style={{ backgroundColor: '#020617', borderColor: 'rgba(34,211,238,0.5)' }}>
         {tabs.map((t) => (
-          <button
-            key={t.id}
-            type="button"
-            role="tab"
-            aria-selected={tab === t.id}
-            onClick={() => setTab(t.id)}
+          <button key={t.id} type="button" role="tab" aria-selected={tab === t.id} onClick={() => setTab(t.id)}
             className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-bold cursor-pointer border"
-            style={
-              tab === t.id
-                ? { backgroundColor: '#22d3ee', color: '#020617', borderColor: '#67e8f9' }
-                : { backgroundColor: '#1e293b', color: '#f8fafc', borderColor: '#475569' }
-            }
-          >
-            {t.icon}
-            {t.label}
+            style={tab === t.id ? { backgroundColor: '#22d3ee', color: '#020617', borderColor: '#67e8f9' } : { backgroundColor: '#1e293b', color: '#f8fafc', borderColor: '#475569' }}>
+            {t.icon}{t.label}
           </button>
         ))}
       </div>
 
       {tab === 'about' && (
-        <div className="rounded-2xl border border-slate-700 p-6 sm:p-8 space-y-6" style={{ backgroundColor: '#0f172a', color: '#e2e8f0' }}>
+        <div className="rounded-2xl border border-slate-700 p-6 sm:p-8 space-y-6" style={{ backgroundColor: '#0f172a' }}>
           <h2 className="text-2xl font-bold text-white">{c.aboutUs.title}</h2>
-          <p className="text-base font-medium text-cyan-100">{c.aboutUs.lead}</p>
-          {c.aboutUs.paragraphs.map((p, i) => (
-            <p key={i} className="text-sm text-slate-400 leading-relaxed">{p}</p>
-          ))}
+          <p className="text-base text-cyan-100">{c.aboutUs.lead}</p>
+          {c.aboutUs.paragraphs.map((p, i) => (<p key={i} className="text-sm text-slate-400">{p}</p>))}
           <div className="grid md:grid-cols-2 gap-4">
             <div className="rounded-xl border border-slate-700 p-4" style={{ backgroundColor: '#020617' }}>
-              <div className="flex items-center gap-2 font-bold text-sm text-cyan-400 mb-2"><Target className="w-4 h-4" /> Mission</div>
+              <div className="font-bold text-sm text-cyan-400 mb-2 flex items-center gap-2"><Target className="w-4 h-4" /> Mission</div>
               <p className="text-xs text-slate-400">{c.aboutUs.mission}</p>
             </div>
             <div className="rounded-xl border border-slate-700 p-4" style={{ backgroundColor: '#020617' }}>
-              <div className="flex items-center gap-2 font-bold text-sm text-emerald-400 mb-2"><Eye className="w-4 h-4" /> Vision</div>
+              <div className="font-bold text-sm text-emerald-400 mb-2 flex items-center gap-2"><Eye className="w-4 h-4" /> Vision</div>
               <p className="text-xs text-slate-400">{c.aboutUs.vision}</p>
             </div>
           </div>
@@ -271,38 +222,23 @@ export const CompanyPillar: React.FC<CompanyPillarProps> = () => {
 
       {tab === 'contact' && (
         <div className="grid lg:grid-cols-12 gap-6">
-          <div className="lg:col-span-7 rounded-2xl border border-slate-700 p-6 sm:p-8 space-y-5" style={{ backgroundColor: '#0f172a' }}>
-            <h2 className="text-2xl font-bold text-white flex items-center gap-2">
-              <Mail className="w-6 h-6 text-cyan-400" /> Contact Melbourne HQ
-            </h2>
-            <p className="text-xs text-slate-500">{c.hq.fullAddress} · Hours: {c.hq.hours}</p>
+          <div className="lg:col-span-7 rounded-2xl border border-slate-700 p-6 space-y-5" style={{ backgroundColor: '#0f172a' }}>
+            <h2 className="text-2xl font-bold text-white flex items-center gap-2"><Mail className="w-6 h-6 text-cyan-400" /> Contact Melbourne HQ</h2>
+            <p className="text-xs text-slate-500">{c.hq.fullAddress} · {c.hq.hours}</p>
             <div className="flex flex-wrap gap-2">
-              <a href={mailUrl} className="inline-flex items-center gap-2 px-4 py-2.5 bg-cyan-500 text-slate-950 text-xs font-bold rounded-xl">Email us</a>
-              <a href={waUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-600 text-white text-xs font-bold rounded-xl">WhatsApp</a>
-              <a href={`tel:${c.hq.phone.replace(/\s/g, '')}`} className="inline-flex items-center gap-2 px-4 py-2.5 bg-slate-800 text-white text-xs font-bold rounded-xl border border-slate-600">Call</a>
+              <a href={mailUrl} className="px-4 py-2.5 bg-cyan-500 text-slate-950 text-xs font-bold rounded-xl">Email</a>
+              <a href={waUrl} target="_blank" rel="noreferrer" className="px-4 py-2.5 bg-emerald-600 text-white text-xs font-bold rounded-xl">WhatsApp</a>
+              <a href={`tel:${c.hq.phone.replace(/\s/g, '')}`} className="px-4 py-2.5 bg-slate-800 text-white text-xs font-bold rounded-xl border border-slate-600">Call</a>
             </div>
-            {contactSuccess && (
-              <div className="p-3 rounded-xl border border-emerald-500/40 text-xs text-emerald-300">{contactSuccess}</div>
-            )}
+            {contactSuccess && <div className="p-3 rounded-xl border border-emerald-500/40 text-xs text-emerald-300">{contactSuccess}</div>}
             <form onSubmit={handleContactSubmit} className="space-y-3 text-xs">
               <div className="grid sm:grid-cols-2 gap-3">
                 <input required value={contactName} onChange={(e) => setContactName(e.target.value)} placeholder="Full name *" className="w-full rounded-xl px-3 py-2.5 border border-slate-600 bg-slate-950 text-white" />
                 <input required type="email" value={contactEmail} onChange={(e) => setContactEmail(e.target.value)} placeholder="Email *" className="w-full rounded-xl px-3 py-2.5 border border-slate-600 bg-slate-950 text-white" />
               </div>
-              <div className="grid sm:grid-cols-2 gap-3">
-                <input type="tel" value={contactPhone} onChange={(e) => setContactPhone(e.target.value)} placeholder="Phone" className="w-full rounded-xl px-3 py-2.5 border border-slate-600 bg-slate-950 text-white" />
-                <select value={contactMethod} onChange={(e: any) => setContactMethod(e.target.value)} className="w-full rounded-xl px-3 py-2.5 border border-slate-600 bg-slate-950 text-white">
-                  <option value="email">Prefer email</option>
-                  <option value="whatsapp">Prefer WhatsApp</option>
-                  <option value="phone">Prefer phone</option>
-                  <option value="sms">Prefer SMS</option>
-                </select>
-              </div>
               <input required value={contactSubject} onChange={(e) => setContactSubject(e.target.value)} placeholder="Subject *" className="w-full rounded-xl px-3 py-2.5 border border-slate-600 bg-slate-950 text-white" />
               <textarea required rows={4} value={contactMessage} onChange={(e) => setContactMessage(e.target.value)} placeholder="Message *" className="w-full rounded-xl px-3 py-2.5 border border-slate-600 bg-slate-950 text-white" />
-              <button type="submit" disabled={contactSubmitting} className="w-full py-3 bg-cyan-500 text-slate-950 font-bold rounded-xl">
-                {contactSubmitting ? 'Sending…' : 'Send to Melbourne HQ'}
-              </button>
+              <button type="submit" disabled={contactSubmitting} className="w-full py-3 bg-cyan-500 text-slate-950 font-bold rounded-xl">{contactSubmitting ? 'Sending…' : 'Send to Melbourne HQ'}</button>
             </form>
           </div>
           <div className="lg:col-span-5 space-y-4">
@@ -311,31 +247,17 @@ export const CompanyPillar: React.FC<CompanyPillarProps> = () => {
               <p>{c.hq.fullAddress}</p>
               <p>Phone: {c.hq.phoneDisplay}</p>
               <p>General: {c.hq.email}</p>
-              <p>Support: {c.hq.supportEmail}</p>
+              <p>Privacy: {c.hq.privacyEmail}</p>
               <p className="text-slate-500">ABN {c.hq.abn}</p>
-            </div>
-            <div className="rounded-2xl border border-slate-700 p-5 space-y-3" style={{ backgroundColor: '#0f172a' }}>
-              <div className="font-bold text-sm text-white">Careers</div>
-              {jobSuccess && <p className="text-xs text-emerald-400">{jobSuccess}</p>}
-              <form onSubmit={handleJobSubmit} className="space-y-2 text-xs">
-                <input type="email" required value={jobEmail} onChange={(e) => setJobEmail(e.target.value)} placeholder="Email" className="w-full rounded-lg px-3 py-2 border border-slate-600 bg-slate-950 text-white" />
-                <input type="tel" value={jobPhone} onChange={(e) => setJobPhone(e.target.value)} placeholder="Phone optional" className="w-full rounded-lg px-3 py-2 border border-slate-600 bg-slate-950 text-white" />
-                <select value={jobInterest} onChange={(e) => setJobInterest(e.target.value)} className="w-full rounded-lg px-3 py-2 border border-slate-600 bg-slate-950 text-white">
-                  <option value="software_engineering">Engineering</option>
-                  <option value="ui_ux">Design</option>
-                  <option value="sales_support">Sales & Support</option>
-                </select>
-                <button type="submit" disabled={jobSubmitting} className="w-full py-2 bg-slate-100 text-slate-900 font-bold rounded-lg text-xs">Job alerts</button>
-              </form>
             </div>
           </div>
         </div>
       )}
 
       {tab === 'newsletter' && (
-        <div className="rounded-2xl border border-slate-700 p-6 sm:p-8 space-y-6 max-w-2xl" style={{ backgroundColor: '#0f172a' }}>
+        <div className="rounded-2xl border border-slate-700 p-6 sm:p-8 space-y-6 max-w-3xl" style={{ backgroundColor: '#0f172a' }}>
           <h2 className="text-2xl font-bold text-white">Newsletters</h2>
-          <p className="text-sm text-slate-400">Weekly / monthly / yearly. Opt-in only (Spam Act 2003).</p>
+          <p className="text-sm text-slate-400">Weekly / monthly / yearly. Express opt-in only (Spam Act 2003). Unsubscribe in every commercial email.</p>
           <div className="space-y-3">
             {(['weekly', 'monthly', 'yearly'] as const).map((key) => (
               <label key={key} className="flex items-start gap-3 p-4 rounded-xl border border-slate-700 cursor-pointer">
@@ -347,11 +269,34 @@ export const CompanyPillar: React.FC<CompanyPillarProps> = () => {
               </label>
             ))}
           </div>
+          <div className="space-y-4">
+            <h3 className="text-sm font-bold text-cyan-300">Sample issue subjects (5 each)</h3>
+            {(['weekly', 'monthly', 'yearly'] as const).map((key) => (
+              <div key={key} className="rounded-xl border border-slate-700 p-3">
+                <div className="text-xs font-bold text-white mb-2">{c.newsletter[key].name}</div>
+                <ul className="space-y-1">
+                  {c.newsletter[key].samples.map((s) => (
+                    <li key={s.id} className="text-[11px] text-slate-400">
+                      <span className="text-slate-200 font-medium">{s.subject}</span> — {s.preview}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
           {newsletterSuccess && <div className="p-3 rounded-xl border border-emerald-500/40 text-xs text-emerald-300">{newsletterSuccess}</div>}
+          {newsletterPreview && (
+            <div className="rounded-xl border border-cyan-500/30 p-4 text-[11px] space-y-2" style={{ backgroundColor: '#020617' }}>
+              <div className="font-bold text-cyan-300">Would-send preview (not delivered until SMTP connected)</div>
+              <div className="text-white">Subject: {newsletterPreview.subject}</div>
+              <pre className="whitespace-pre-wrap text-slate-400 max-h-48 overflow-auto">{newsletterPreview.text}</pre>
+            </div>
+          )}
           <form onSubmit={handleNewsletterSubmit} className="flex flex-col sm:flex-row gap-2">
             <input type="email" required value={newsletterEmail} onChange={(e) => setNewsletterEmail(e.target.value)} placeholder="you@company.com" className="flex-1 rounded-xl px-4 py-2.5 border border-slate-600 bg-slate-950 text-white text-sm" />
-            <button type="submit" disabled={newsletterSubmitting} className="px-6 py-2.5 bg-cyan-500 text-slate-950 font-bold rounded-xl text-sm">Subscribe</button>
+            <button type="submit" disabled={newsletterSubmitting} className="px-6 py-2.5 bg-cyan-500 text-slate-950 font-bold rounded-xl text-sm">{newsletterSubmitting ? 'Saving…' : 'Subscribe'}</button>
           </form>
+          <p className="text-[11px] text-slate-500">To send for real: Resend or SendGrid API key in Cloudflare secrets + Worker cron. Templates: src/content/emailTemplates.ts</p>
         </div>
       )}
 
@@ -361,11 +306,15 @@ export const CompanyPillar: React.FC<CompanyPillarProps> = () => {
           <p className="text-sm text-slate-500">{c.podcast.subtitle}</p>
           <p className="text-sm text-slate-400">{c.podcast.description}</p>
           <div className="space-y-3">
-            {c.podcast.episodes.map((ep) => (
-              <div key={ep.id} className="p-4 rounded-xl border border-slate-700">
-                <div className="font-bold text-sm text-white">{ep.title}</div>
-                <p className="text-xs text-slate-500 mt-1">{ep.summary}</p>
-                <p className="text-[11px] text-slate-600 mt-1">{ep.date} · {ep.duration}</p>
+            {c.podcast.episodes.map((ep: any) => (
+              <div key={ep.id} className="p-4 rounded-xl border border-slate-700 space-y-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-slate-800 text-cyan-300 border border-slate-600">{ep.cadence || 'weekly'}</span>
+                  <span className="font-bold text-sm text-white">{ep.title}</span>
+                </div>
+                <p className="text-xs text-slate-500">{ep.summary}</p>
+                <p className="text-[11px] text-slate-600">{ep.date} · {ep.duration} · text script</p>
+                {ep.script && <p className="text-[11px] text-slate-400 border-t border-slate-800 pt-2"><span className="text-slate-500">Script: </span>{ep.script}</p>}
               </div>
             ))}
           </div>
@@ -375,6 +324,7 @@ export const CompanyPillar: React.FC<CompanyPillarProps> = () => {
       {tab === 'trust' && (
         <div className="rounded-2xl border border-slate-700 p-6 sm:p-8 space-y-6" style={{ backgroundColor: '#0f172a' }}>
           <h2 className="text-2xl font-bold text-white flex items-center gap-2"><Shield className="w-6 h-6 text-emerald-400" /> {L.trustCentre.title}</h2>
+          {L.trustCentre.intro && <p className="text-sm text-slate-400">{L.trustCentre.intro}</p>}
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {L.trustCentre.points.map((p) => (
               <div key={p.title} className="rounded-xl border border-slate-700 p-4">
@@ -384,6 +334,18 @@ export const CompanyPillar: React.FC<CompanyPillarProps> = () => {
             ))}
           </div>
           <p className="text-xs text-slate-500">Entity: {L.entity} · ABN {L.abn} · {L.address}</p>
+          <div className="rounded-xl border border-cyan-500/30 p-4 space-y-2" style={{ backgroundColor: '#020617' }}>
+            <h3 className="text-sm font-bold text-cyan-300">{L.securityCheckExplainer.title}</h3>
+            <ol className="list-decimal pl-4 space-y-1 text-xs text-slate-400">
+              {L.securityCheckExplainer.steps.map((s: string, i: number) => (<li key={i}>{s}</li>))}
+            </ol>
+          </div>
+          <div className="rounded-xl border border-emerald-500/30 p-4 space-y-2" style={{ backgroundColor: '#020617' }}>
+            <h3 className="text-sm font-bold text-emerald-300">{L.sslSetup.title}</h3>
+            <ol className="list-decimal pl-4 space-y-1 text-xs text-slate-400">
+              {L.sslSetup.steps.map((s: string, i: number) => (<li key={i}>{s}</li>))}
+            </ol>
+          </div>
         </div>
       )}
 
@@ -397,17 +359,9 @@ export const CompanyPillar: React.FC<CompanyPillarProps> = () => {
               { id: 'ads' as const, label: 'Advertising Policy' },
               { id: 'cookies' as const, label: 'Cookies' },
             ]).map((x) => (
-              <button
-                key={x.id}
-                type="button"
-                onClick={() => setLegalSection(x.id)}
+              <button key={x.id} type="button" onClick={() => setLegalSection(x.id)}
                 className="px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer border"
-                style={
-                  legalSection === x.id
-                    ? { backgroundColor: '#22d3ee', color: '#020617', borderColor: '#67e8f9' }
-                    : { backgroundColor: '#1e293b', color: '#f8fafc', borderColor: '#475569' }
-                }
-              >
+                style={legalSection === x.id ? { backgroundColor: '#22d3ee', color: '#020617', borderColor: '#67e8f9' } : { backgroundColor: '#1e293b', color: '#f8fafc', borderColor: '#475569' }}>
                 {x.label}
               </button>
             ))}
@@ -416,9 +370,7 @@ export const CompanyPillar: React.FC<CompanyPillarProps> = () => {
         </div>
       )}
 
-      <p className="text-[10px] text-center text-slate-600">
-        © {c.legal.year} {c.legal.copyrightName}. {c.hq.city}, {c.hq.country}.
-      </p>
+      <p className="text-[10px] text-center text-slate-600">© {c.legal.year} {c.legal.copyrightName}. {c.hq.city}, {c.hq.country}. Not formal legal advice.</p>
     </div>
   );
 };
