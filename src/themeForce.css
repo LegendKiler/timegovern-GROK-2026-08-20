@@ -30,3 +30,50 @@ main .tg-widget-surface.tg-widget-dark {
   color: #f8fafc !important;
   border-color: #475569 !important;
 }
+
+/*
+ * Site footer — MUST override global #f8fafc text lock.
+ * Light gray footer + inherited near-white text = unreadable (user screenshots).
+ * Force a dark footer band with high-contrast link colours.
+ */
+.tg-site-footer {
+  background-color: #0f172a !important;
+  color: #e2e8f0 !important;
+  border-top: 1px solid #334155 !important;
+}
+.tg-site-footer .tg-footer-body {
+  background-color: #0f172a !important;
+  color: #e2e8f0 !important;
+}
+.tg-site-footer .tg-footer-title {
+  color: #f8fafc !important;
+  font-weight: 700 !important;
+}
+.tg-site-footer .tg-footer-link {
+  color: #e2e8f0 !important;
+  font-weight: 600 !important;
+  background: transparent !important;
+  border: none !important;
+  cursor: pointer;
+  text-align: left;
+  font-size: 13px;
+  line-height: 1.5;
+  padding: 0;
+}
+.tg-site-footer .tg-footer-link:hover {
+  color: #22d3ee !important;
+  text-decoration: underline;
+}
+.tg-site-footer .tg-footer-muted {
+  color: #94a3b8 !important;
+}
+.tg-site-footer .tg-footer-strong {
+  color: #f8fafc !important;
+  font-weight: 700 !important;
+}
+.tg-site-footer .tg-footer-brand {
+  color: #f8fafc !important;
+}
+.tg-site-footer .tg-footer-brand-accent {
+  color: #22d3ee !important;
+}
