@@ -99,7 +99,6 @@ export async function fetchBillingStatus(): Promise<BillingStatus> {
   try {
     const { ok, data } = await api('/api/billing/status');
     if (ok && data.success) {
-      // Mirror cloud into local for ad-hiding offline
       saveLocalEnt({
         supporterUntil: data.supporterUntil,
         calendarUntil: data.calendarUntil,
@@ -136,7 +135,6 @@ export async function startCheckout(plan: PlanCode): Promise<{
       if (data.url) {
         return { success: true, url: data.url, mode: data.mode };
       }
-      // lab-mock granted on server
       if (data.periodEnd) {
         if (plan.startsWith('supporter')) {
           saveLocalEnt({ ...loadLocalEnt(), supporterUntil: data.periodEnd });
@@ -155,15 +153,18 @@ export async function startCheckout(plan: PlanCode): Promise<{
       };
     }
 
-    // API missing (pure Vite without Worker) → pure local mock
     if (status === 404 || status === 0) {
       const ent = applyLocalPlan(plan);
       return {
         success: true,
         url: null,
         mode: 'lab-mock',
-        message: 'Local lab mock — plan activated on this device until ' + (ent.supporterUntil || ent.calendarUntil),
-        periodEnd: plan.startsWith('supporter') ? ent.supporterUntil || undefined : ent.calendarUntil || undefined,
+        message:
+          'Local lab mock — plan activated on this device until ' +
+          (ent.supporterUntil || ent.calendarUntil),
+        periodEnd: plan.startsWith('supporter')
+          ? ent.supporterUntil || undefined
+          : ent.calendarUntil || undefined,
       };
     }
 
@@ -175,7 +176,9 @@ export async function startCheckout(plan: PlanCode): Promise<{
       url: null,
       mode: 'lab-mock',
       message: 'Offline lab mock activated on this device.',
-      periodEnd: plan.startsWith('supporter') ? ent.supporterUntil || undefined : ent.calendarUntil || undefined,
+      periodEnd: plan.startsWith('supporter')
+        ? ent.supporterUntil || undefined
+        : ent.calendarUntil || undefined,
     };
   }
 }
