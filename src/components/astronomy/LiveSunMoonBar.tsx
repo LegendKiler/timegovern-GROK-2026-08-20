@@ -11,6 +11,7 @@ import {
   azimuthToCompass,
   polarBadgeLabel,
 } from '../../lib/liveAstronomy';
+import { getMemberEntitlements, formatMemberTime } from '../../lib/memberEntitlements';
 
 interface LiveSunMoonBarProps {
   city: City;
@@ -24,6 +25,7 @@ export const LiveSunMoonBar: React.FC<LiveSunMoonBarProps> = ({ city, now, synce
     city.lng,
     now
   );
+  const precise = getMemberEntitlements().preciseAstro;
   const elev = sun.solarElevation;
   const isUp = elev > -0.833;
   const polarLabel = polarBadgeLabel(polar);
@@ -53,69 +55,70 @@ export const LiveSunMoonBar: React.FC<LiveSunMoonBarProps> = ({ city, now, synce
               {polarLabel}
             </span>
           )}
+          {precise ? (
+            <span className="text-[9px] font-bold text-emerald-600 dark:text-emerald-400">to the second</span>
+          ) : (
+            <span className="text-[9px] text-slate-400">HH:mm · Supporter unlocks seconds</span>
+          )}
         </div>
-        <span className="text-[10px] font-mono text-slate-400">
-          {now.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
-        </span>
+        <span className="text-[10px] font-mono text-slate-400">{formatMemberTime(now, true)}</span>
       </div>
 
       {polarNote && (
-        <p className="text-[11px] text-slate-600 dark:text-slate-300 bg-slate-100/80 dark:bg-slate-800/50 rounded-lg px-3 py-2">
+        <p className="text-[11px] text-slate-600 dark:text-slate-300 flex items-start gap-1.5">
+          <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5 text-amber-500" />
           {polarNote}
         </p>
       )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className="rounded-xl border border-amber-200/80 dark:border-amber-800/40 bg-white/70 dark:bg-slate-950/50 p-3">
-          <div className="flex items-center gap-1.5 font-bold text-amber-700 dark:text-amber-300 mb-1">
-            <Sun className="w-4 h-4" /> Sun now
+          <div className="flex items-center gap-2 text-xs font-bold text-amber-800 dark:text-amber-200 mb-1">
+            <Sun className="w-4 h-4" />
+            Sun {isUp ? 'above horizon' : 'below horizon'}
           </div>
-          <p className="text-lg font-extrabold font-mono text-slate-900 dark:text-white">{elev.toFixed(1)}° alt</p>
-          <p className="text-[11px] text-slate-600 dark:text-slate-300">
-            Az {sun.solarAzimuth.toFixed(0)}° ({azimuthToCompass(sun.solarAzimuth)}) ·{' '}
-            {isUp ? 'Above horizon' : 'Below horizon'}
+          <p className="text-[11px] text-slate-600 dark:text-slate-400">
+            Elev {elev.toFixed(1)}° · Az {sun.solarAzimuth.toFixed(0)}° ({azimuthToCompass(sun.solarAzimuth)})
           </p>
-        </div>
-
-        <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white/70 dark:bg-slate-950/50 p-3">
-          <div className="flex items-center gap-1.5 font-bold text-slate-700 dark:text-slate-200 mb-1">
-            <ArrowUpRight className="w-4 h-4 text-blue-500" /> Next sun event
-          </div>
-          <p className="text-lg font-extrabold text-slate-900 dark:text-white">{nextSun.label}</p>
-          <p className="text-[11px] font-mono text-blue-600 dark:text-cyan-400">
-            {formatCountdown(nextSun.msUntil)}
+          <p className="text-sm font-mono font-semibold text-slate-800 dark:text-slate-100 mt-1">
+            Next: {nextSun.label}{' '}
+            {nextSun.kind !== 'none' ? formatCountdown(nextSun.msUntil) : '—'}
             {nextSun.at && (
-              <span className="text-slate-400 ml-1">
-                ({nextSun.at.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })})
+              <span className="text-slate-500 font-normal text-xs">
+                {' '}({formatMemberTime(nextSun.at, precise)})
+              </span>
+            )}
+          </p>
+          <p className="text-[11px] text-slate-500 mt-1">
+            Day length {formatDayLength(sun.dayLengthMinutes || 0)}
+            {dayDeltaMin != null && (
+              <span>
+                {' '}
+                · Δ {dayDeltaMin >= 0 ? '+' : ''}
+                {dayDeltaMin.toFixed(1)}m vs yesterday
               </span>
             )}
           </p>
         </div>
 
-        <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white/70 dark:bg-slate-950/50 p-3">
-          <div className="font-bold text-slate-700 dark:text-slate-200 mb-1">Day length</div>
-          <p className="text-lg font-extrabold font-mono text-slate-900 dark:text-white">
-            {formatDayLength(sun.dayLengthMinutes || 0)}
-          </p>
-          <p className="text-[11px] text-slate-500">
-            {dayDeltaMin == null
-              ? 'vs yesterday: —'
-              : dayDeltaMin >= 0
-                ? `+${dayDeltaMin.toFixed(1)} min vs yesterday`
-                : `${dayDeltaMin.toFixed(1)} min vs yesterday`}
-          </p>
-        </div>
-
         <div className="rounded-xl border border-indigo-200/80 dark:border-indigo-800/40 bg-white/70 dark:bg-slate-950/50 p-3">
-          <div className="flex items-center gap-1.5 font-bold text-indigo-700 dark:text-indigo-300 mb-1">
-            <Moon className="w-4 h-4" /> Moon
+          <div className="flex items-center gap-2 text-xs font-bold text-indigo-800 dark:text-indigo-200 mb-1">
+            <Moon className="w-4 h-4" />
+            Moon · {moon.phaseName}
           </div>
-          <p className="text-sm font-extrabold text-slate-900 dark:text-white">{moon.phaseName}</p>
-          <p className="text-[11px] text-slate-600 dark:text-slate-300">
-            {moon.illuminationPercent.toFixed(0)}% lit · alt {moonPos.altitude.toFixed(1)}°
+          <p className="text-[11px] text-slate-600 dark:text-slate-400">
+            Illum {moon.illuminationPercent.toFixed(0)}% · Alt ~{moonPos.altitude.toFixed(1)}° · Az{' '}
+            {moonPos.azimuth.toFixed(0)}°
           </p>
-          <p className="text-[11px] font-mono text-indigo-600 dark:text-indigo-300 mt-0.5">
-            Next: {nextMoon.label} {nextMoon.kind !== 'none' ? formatCountdown(nextMoon.msUntil) : '—'}
+          <p className="text-sm font-mono font-semibold text-slate-800 dark:text-slate-100 mt-1 flex items-center gap-1">
+            <ArrowUpRight className="w-3.5 h-3.5 text-indigo-500" />
+            Next: {nextMoon.label}{' '}
+            {nextMoon.kind !== 'none' ? formatCountdown(nextMoon.msUntil) : '—'}
+            {nextMoon.at && (
+              <span className="text-slate-500 font-normal text-xs">
+                ({formatMemberTime(nextMoon.at, precise)})
+              </span>
+            )}
           </p>
         </div>
       </div>
