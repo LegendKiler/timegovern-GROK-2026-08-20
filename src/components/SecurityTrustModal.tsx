@@ -1,44 +1,57 @@
 import React, { useState } from 'react';
-import { Shield, ShieldCheck, Lock, Globe, Server, CheckCircle2, AlertCircle, RefreshCw, Key, FileText, ExternalLink, Cpu } from 'lucide-react';
+import {
+  Shield,
+  ShieldCheck,
+  Lock,
+  Globe,
+  Server,
+  CheckCircle2,
+  AlertCircle,
+  RefreshCw,
+  FileText,
+  Cpu,
+} from 'lucide-react';
 
 interface SecurityTrustModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
+/**
+ * Public Trust & Security centre — written for visitors, not hosting dashboards.
+ * Explains how timegovern.com protects connections and data in plain language.
+ */
 export const SecurityTrustModal: React.FC<SecurityTrustModalProps> = ({ isOpen, onClose }) => {
   const [testingSecurity, setTestingSecurity] = useState(false);
   const [testResults, setTestResults] = useState<{
     protocol: string;
     host: string;
     isHttps: boolean;
-    tlsVersion: string;
-    hstsActive: boolean;
-    cloudflareEdge: boolean;
+    tlsLabel: string;
+    secureContext: boolean;
   } | null>(null);
 
   if (!isOpen) return null;
 
   const runSecurityAudit = () => {
     setTestingSecurity(true);
-    setTimeout(() => {
+    window.setTimeout(() => {
       const isHttps = window.location.protocol === 'https:';
+      const secureContext = typeof window.isSecureContext === 'boolean' ? window.isSecureContext : isHttps;
       setTestResults({
-        protocol: window.location.protocol.replace(':', '').toUpperCase(),
+        protocol: window.location.protocol.replace(':', '').toUpperCase() || 'HTTP',
         host: window.location.hostname || 'timegovern.com',
-        isHttps: isHttps || true, // Treated as encrypted on Edge
-        tlsVersion: 'TLS 1.3 (256-Bit AES_256_GCM)',
-        hstsActive: true,
-        cloudflareEdge: true
+        isHttps,
+        tlsLabel: isHttps ? 'Encrypted connection (browser HTTPS)' : 'Local or non-HTTPS session',
+        secureContext,
       });
       setTestingSecurity(false);
-    }, 600);
+    }, 500);
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fadeIn">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
       <div className="bg-[#0f172a] border border-slate-700/80 rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto text-slate-100 shadow-2xl">
-        {/* Modal Header */}
         <div className="p-5 border-b border-slate-800 bg-gradient-to-r from-emerald-950/60 via-slate-900 to-blue-950/60 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400">
@@ -46,184 +59,185 @@ export const SecurityTrustModal: React.FC<SecurityTrustModalProps> = ({ isOpen, 
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-lg font-bold text-white tracking-tight">Security, Trust & SSL Certificate Center</h2>
+                <h2 className="text-lg font-bold text-white tracking-tight">Security & Trust Centre</h2>
                 <span className="text-[10px] bg-emerald-500/20 text-emerald-300 font-mono font-bold px-2 py-0.5 rounded-full border border-emerald-500/40">
-                  VERIFIED SECURE
+                  TIMEGOVERN
                 </span>
               </div>
-              <p className="text-xs text-slate-400">Official Encryption, Custom Domain Routing & Infrastructure Compliance</p>
+              <p className="text-xs text-slate-400">How we protect your connection, privacy expectations, and site integrity</p>
             </div>
           </div>
           <button
+            type="button"
             onClick={onClose}
-            className="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+            className="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center"
+            aria-label="Close"
           >
             ✕
           </button>
         </div>
 
-        {/* Modal Body */}
         <div className="p-6 space-y-6 text-xs">
-          {/* Quick Security Status Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div className="bg-slate-900/90 border border-emerald-500/30 p-3.5 rounded-xl flex items-start gap-3">
               <Lock className="w-5 h-5 text-emerald-400 mt-0.5 shrink-0" />
               <div>
-                <h4 className="font-bold text-white text-xs">256-Bit SSL/TLS</h4>
-                <p className="text-[11px] text-slate-300 mt-0.5">Automated Cloudflare Edge Certificates (TLS 1.3)</p>
+                <h4 className="font-bold text-white text-xs">Encrypted transport</h4>
+                <p className="text-[11px] text-slate-300 mt-0.5">
+                  Production sites use HTTPS so browsers encrypt data in transit (TLS).
+                </p>
               </div>
             </div>
-
             <div className="bg-slate-900/90 border border-cyan-500/30 p-3.5 rounded-xl flex items-start gap-3">
               <Globe className="w-5 h-5 text-cyan-400 mt-0.5 shrink-0" />
               <div>
-                <h4 className="font-bold text-white text-xs">Dual Domain Support</h4>
-                <p className="text-[11px] text-slate-300 mt-0.5">Both timegovern.com & www.timegovern.com</p>
+                <h4 className="font-bold text-white text-xs">Official domains</h4>
+                <p className="text-[11px] text-slate-300 mt-0.5">
+                  Use <span className="font-mono text-cyan-300">timegovern.com</span> or{' '}
+                  <span className="font-mono text-cyan-300">www.timegovern.com</span> — same service.
+                </p>
               </div>
             </div>
-
             <div className="bg-slate-900/90 border border-purple-500/30 p-3.5 rounded-xl flex items-start gap-3">
               <Server className="w-5 h-5 text-purple-400 mt-0.5 shrink-0" />
               <div>
-                <h4 className="font-bold text-white text-xs">Cloudflare Edge</h4>
-                <p className="text-[11px] text-slate-300 mt-0.5">DDoS Mitigation & HSTS Preload Protection</p>
+                <h4 className="font-bold text-white text-xs">Availability & abuse resistance</h4>
+                <p className="text-[11px] text-slate-300 mt-0.5">
+                  Global edge delivery and standard protections against common volumetric attacks.
+                </p>
               </div>
             </div>
           </div>
 
-          {/* Domain Access & SSL Setup Guide */}
           <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-4 space-y-3">
             <div className="flex items-center gap-2 border-b border-slate-800 pb-2">
               <Globe className="w-4 h-4 text-cyan-400" />
-              <h3 className="font-bold text-sm text-white">How Both Domain Formats Work (Apex & WWW)</h3>
+              <h3 className="font-bold text-sm text-white">Domains & the browser padlock</h3>
             </div>
-
             <p className="text-slate-300 leading-relaxed">
-              Visitors can reach <strong className="text-cyan-300 font-mono">timegovern.com</strong> and <strong className="text-cyan-300 font-mono">www.timegovern.com</strong> under a unified SSL certificate managed automatically by Cloudflare Edge Servers.
+              When you open TimeGovern on the public internet, your browser should show a secure connection (padlock)
+              for <strong className="text-cyan-300 font-mono">timegovern.com</strong>. That means the page and API
+              calls between your device and our servers are encrypted. On local development (for example{' '}
+              <span className="font-mono text-slate-400">localhost</span>), HTTP is normal and the padlock may not appear.
             </p>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
-              <div className="bg-[#0b1120] border border-slate-800 p-3 rounded-lg">
-                <div className="font-bold text-emerald-400 flex items-center gap-1.5 mb-1">
-                  <CheckCircle2 className="w-3.5 h-3.5" /> Apex Domain (timegovern.com)
-                </div>
-                <p className="text-slate-400 text-[11px]">
-                  Configured with Cloudflare Worker Custom Domain or Proxied CNAME/A records. Automatic HTTP → HTTPS upgrade enforced.
-                </p>
-              </div>
-
-              <div className="bg-[#0b1120] border border-slate-800 p-3 rounded-lg">
-                <div className="font-bold text-cyan-400 flex items-center gap-1.5 mb-1">
-                  <CheckCircle2 className="w-3.5 h-3.5" /> Subdomain (www.timegovern.com)
-                </div>
-                <p className="text-slate-400 text-[11px]">
-                  Added under Cloudflare Workers Custom Domains / Routes to forward or serve content seamlessly without 1016 or 404 errors.
-                </p>
-              </div>
-            </div>
+            <p className="text-slate-400 leading-relaxed">
+              Certificates are issued and renewed automatically for the production domain. You do not need to install
+              a certificate on your computer to use the site.
+            </p>
           </div>
 
-          {/* Security Test Console */}
           <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-4 space-y-3">
             <div className="flex items-center justify-between border-b border-slate-800 pb-2">
               <div className="flex items-center gap-2">
                 <Cpu className="w-4 h-4 text-emerald-400" />
-                <h3 className="font-bold text-sm text-white">Live Edge Security & Certificate Verification</h3>
+                <h3 className="font-bold text-sm text-white">Quick connection check</h3>
               </div>
               <button
+                type="button"
                 onClick={runSecurityAudit}
                 disabled={testingSecurity}
-                className="flex items-center gap-1.5 px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[11px] rounded-lg transition-all cursor-pointer shadow-md disabled:opacity-50"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-bold disabled:opacity-60"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${testingSecurity ? 'animate-spin' : ''}`} />
-                <span>{testingSecurity ? 'Auditing...' : 'Run Security Check'}</span>
+                {testingSecurity ? 'Checking…' : 'Run Security check'}
               </button>
             </div>
-
-            {testResults ? (
-              <div className="bg-[#070b14] border border-emerald-500/40 p-4 rounded-xl space-y-2 font-mono text-[11px]">
-                <div className="flex justify-between border-b border-slate-800 pb-1.5">
-                  <span className="text-slate-400">Target Hostname:</span>
-                  <span className="text-cyan-300 font-bold">{testResults.host}</span>
+            {!testResults ? (
+              <p className="text-slate-400">
+                Runs entirely in your browser. It reports the protocol and host of this page — it does not scan other
+                people&apos;s devices or change your settings.
+              </p>
+            ) : (
+              <div className="space-y-1.5 font-mono text-[11px]">
+                <div className="flex justify-between gap-2">
+                  <span className="text-slate-400">Host</span>
+                  <span className="text-cyan-300">{testResults.host}</span>
                 </div>
-                <div className="flex justify-between border-b border-slate-800 pb-1.5">
-                  <span className="text-slate-400">Connection Protocol:</span>
-                  <span className="text-emerald-400 font-bold">{testResults.protocol} / HTTPS</span>
+                <div className="flex justify-between gap-2">
+                  <span className="text-slate-400">Protocol</span>
+                  <span className={testResults.isHttps ? 'text-emerald-400 font-bold' : 'text-amber-300'}>
+                    {testResults.protocol}
+                  </span>
                 </div>
-                <div className="flex justify-between border-b border-slate-800 pb-1.5">
-                  <span className="text-slate-400">SSL/TLS Cipher Suite:</span>
-                  <span className="text-purple-300 font-bold">{testResults.tlsVersion}</span>
+                <div className="flex justify-between gap-2">
+                  <span className="text-slate-400">Status</span>
+                  <span className="text-slate-200">{testResults.tlsLabel}</span>
                 </div>
-                <div className="flex justify-between border-b border-slate-800 pb-1.5">
-                  <span className="text-slate-400">HSTS Security Header:</span>
-                  <span className="text-emerald-400 font-bold">Enabled (31536000s)</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Cloudflare Edge Shield:</span>
-                  <span className="text-cyan-400 font-bold">Active (Universal SSL)</span>
+                <div className="flex justify-between gap-2">
+                  <span className="text-slate-400">Secure context</span>
+                  <span className={testResults.secureContext ? 'text-emerald-400' : 'text-amber-300'}>
+                    {testResults.secureContext ? 'Yes' : 'No (expected on plain HTTP localhost)'}
+                  </span>
                 </div>
               </div>
-            ) : (
-              <p className="text-slate-400 italic text-center py-2">
-                Click "Run Security Check" above to perform a live real-time audit of your connection and encryption parameters.
-              </p>
             )}
           </div>
 
-          {/* User Trust & Privacy Guarantees */}
           <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-4 space-y-3">
             <div className="flex items-center gap-2 border-b border-slate-800 pb-2">
-              <Key className="w-4 h-4 text-purple-400" />
-              <h3 className="font-bold text-sm text-white">Trust, Privacy & Compliance Badges</h3>
+              <Shield className="w-4 h-4 text-emerald-400" />
+              <h3 className="font-bold text-sm text-white">What TimeGovern does with your data</h3>
             </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="space-y-2.5">
               <div className="flex items-start gap-2.5">
-                <Shield className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
                 <div>
-                  <h5 className="font-bold text-white text-[11px]">Zero-Log Privacy Standard</h5>
-                  <p className="text-slate-400 text-[10px]">Your queries, searches, and meeting plans are calculated client-side or in ephemeral Edge memory without personal data selling.</p>
+                  <h5 className="font-bold text-white text-[11px]">Tools first, accounts optional</h5>
+                  <p className="text-slate-400 text-[10px]">
+                    World clocks, calendars and many calculators work without signing in. Preferences such as pinned
+                    cities can stay in your browser.
+                  </p>
                 </div>
               </div>
-
               <div className="flex items-start gap-2.5">
                 <FileText className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
                 <div>
-                  <h5 className="font-bold text-white text-[11px]">IANA Standard Synchronization</h5>
-                  <p className="text-slate-400 text-[10px]">Synchronized against official IANA tzdata databases for exact legal, astronomical, and temporal compliance.</p>
+                  <h5 className="font-bold text-white text-[11px]">Standards-based time data</h5>
+                  <p className="text-slate-400 text-[10px]">
+                    Zone rules follow the public IANA time zone database. Astronomical times use established solar and
+                    lunar algorithms. Always confirm critical legal or medical deadlines with official sources.
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-start gap-2.5">
+                <AlertCircle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                <div>
+                  <h5 className="font-bold text-white text-[11px]">Privacy & contact</h5>
+                  <p className="text-slate-400 text-[10px]">
+                    See Privacy Policy and Trust Centre under Company for collection purposes, marketing rules (including
+                    Australia&apos;s Spam Act 2003), and how to request access or deletion:{' '}
+                    <span className="text-cyan-300">privacy@timegovern.com</span>. Report security issues to{' '}
+                    <span className="text-cyan-300">security@timegovern.com</span>.
+                  </p>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Action Checklist for Admin / Owner */}
-          <div className="bg-blue-950/40 border border-blue-500/30 p-4 rounded-xl space-y-2 text-[11px]">
-            <h4 className="font-bold text-blue-300 flex items-center gap-1.5">
-              <AlertCircle className="w-4 h-4 text-blue-400" /> Owner Checklist for Cloudflare Custom Domains
-            </h4>
-            <ol className="list-decimal list-inside text-slate-300 space-y-1 pl-1">
-              <li>In Cloudflare Dashboard → <strong>Workers & Pages</strong> → Select <strong>timegovern-website</strong>.</li>
-              <li>Go to <strong>Settings</strong> → <strong>Domains & Routes</strong>.</li>
-              <li>Click <strong>Add Custom Domain</strong> and add both <code className="text-cyan-300 bg-slate-900 px-1 py-0.5 rounded">timegovern.com</code> and <code className="text-cyan-300 bg-slate-900 px-1 py-0.5 rounded">www.timegovern.com</code>.</li>
-              <li>Go to <strong>SSL/TLS</strong> → <strong>Edge Certificates</strong> → Enable <strong>Always Use HTTPS</strong> and <strong>Automatic HTTPS Rewrites</strong>.</li>
-            </ol>
+          <div className="bg-slate-900/50 border border-slate-700 p-4 rounded-xl text-[11px] text-slate-400 leading-relaxed">
+            <strong className="text-slate-200">Note for visitors:</strong> This panel explains TimeGovern&apos;s security
+            posture in everyday language. It is not a substitute for independent security testing or legal advice. For
+            full policy text open <strong className="text-slate-200">Company → Legal</strong> and{' '}
+            <strong className="text-slate-200">Company → Trust Centre</strong>.
           </div>
         </div>
 
-        {/* Modal Footer */}
         <div className="p-4 border-t border-slate-800 bg-slate-900/90 flex items-center justify-between">
           <div className="flex items-center gap-2 text-slate-400 text-[11px]">
             <ShieldCheck className="w-4 h-4 text-emerald-400" />
-            <span>TimeGovern Trust & Security Framework 2026</span>
+            <span>TimeGovern Trust & Security · Melbourne, Australia</span>
           </div>
           <button
+            type="button"
             onClick={onClose}
-            className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl transition-colors cursor-pointer text-xs"
+            className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl text-xs"
           >
-            Close Security Center
+            Close
           </button>
         </div>
       </div>
     </div>
   );
 };
+
+export default SecurityTrustModal;
