@@ -9,11 +9,9 @@ import {
   isFeedbackModUnlocked,
   unlockFeedbackMod,
   lockFeedbackMod,
-  FEEDBACK_MOD_PIN,
   type ExperienceEntry,
 } from '../lib/experienceFeedback';
 
-/** Company hub → Feedback: public wall (approved only) + your moderation queue */
 export const ExperienceFeedbackPanel: React.FC = () => {
   const [publicList, setPublicList] = useState<ExperienceEntry[]>([]);
   const [pending, setPending] = useState<ExperienceEntry[]>([]);
@@ -43,8 +41,8 @@ export const ExperienceFeedbackPanel: React.FC = () => {
           <MessageSquare className="w-5 h-5 text-cyan-400" /> Experience feedback
         </h3>
         <p className="text-xs text-slate-400 mt-1">
-          Visitors rate the site from the footer (👍 / 👎). Comments marked “share on site” only appear here
-          after <strong className="text-slate-200">you approve</strong> them. Nothing is published without your permission.
+          Visitors rate the site from the footer. Comments marked “share on site” only appear after{' '}
+          <strong className="text-slate-200">you approve</strong> them.
         </p>
       </div>
 
@@ -63,9 +61,7 @@ export const ExperienceFeedbackPanel: React.FC = () => {
                     <ThumbsDown className="w-3.5 h-3.5 text-rose-400" />
                   )}
                   {e.displayName}
-                  <span className="text-slate-500 font-normal">
-                    {new Date(e.createdAt).toLocaleDateString()}
-                  </span>
+                  <span className="text-slate-500 font-normal">{new Date(e.createdAt).toLocaleDateString()}</span>
                 </div>
                 <p className="mt-1 text-slate-300">{e.comment}</p>
               </li>
@@ -81,10 +77,20 @@ export const ExperienceFeedbackPanel: React.FC = () => {
         {!mod ? (
           <div className="flex flex-wrap gap-2 items-center">
             <input
-              type="password"
+              type="text"
+              autoComplete="off"
               value={pin}
               onChange={(e) => setPin(e.target.value)}
-              placeholder="Moderator PIN"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  if (unlockFeedbackMod(pin)) {
+                    setMod(true);
+                    setPinError(null);
+                    refresh();
+                  } else setPinError('Wrong PIN — try: timegovern');
+                }
+              }}
+              placeholder="Enter PIN"
               className="px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-600 text-xs text-white"
             />
             <button
@@ -95,15 +101,14 @@ export const ExperienceFeedbackPanel: React.FC = () => {
                   setMod(true);
                   setPinError(null);
                   refresh();
-                } else setPinError('Wrong PIN');
+                } else setPinError('Wrong PIN — try: timegovern');
               }}
             >
               Unlock queue
             </button>
             {pinError && <span className="text-rose-400 text-xs">{pinError}</span>}
-            <p className="text-[10px] text-slate-500 w-full">
-              Default PIN for lab: <code className="text-slate-400">{FEEDBACK_MOD_PIN}</code> — change in{' '}
-              <code className="text-slate-400">src/lib/experienceFeedback.ts</code>
+            <p className="text-[11px] text-slate-400 w-full">
+              PIN is <strong className="text-cyan-300">timegovern</strong> (lowercase, no spaces). Also accepts TG-MELB-2026.
             </p>
           </div>
         ) : (
@@ -127,18 +132,12 @@ export const ExperienceFeedbackPanel: React.FC = () => {
                     </div>
                     <p className="text-slate-300">{e.comment || '(no comment)'}</p>
                     <div className="flex gap-2">
-                      <button
-                        type="button"
-                        className="inline-flex items-center gap-1 px-2 py-1 rounded bg-emerald-600 text-white text-[10px] font-bold"
-                        onClick={() => { approveFeedback(e.id); refresh(); }}
-                      >
+                      <button type="button" className="inline-flex items-center gap-1 px-2 py-1 rounded bg-emerald-600 text-white text-[10px] font-bold"
+                        onClick={() => { approveFeedback(e.id); refresh(); }}>
                         <Check className="w-3 h-3" /> Approve for site
                       </button>
-                      <button
-                        type="button"
-                        className="inline-flex items-center gap-1 px-2 py-1 rounded bg-slate-700 text-slate-200 text-[10px] font-bold"
-                        onClick={() => { rejectFeedback(e.id); refresh(); }}
-                      >
+                      <button type="button" className="inline-flex items-center gap-1 px-2 py-1 rounded bg-slate-700 text-slate-200 text-[10px] font-bold"
+                        onClick={() => { rejectFeedback(e.id); refresh(); }}>
                         <X className="w-3 h-3" /> Reject
                       </button>
                     </div>
