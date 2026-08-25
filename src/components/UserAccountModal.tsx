@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import {
   X, User, Mail, Globe, Sparkles, Check, Heart, Shield, LogIn, UserPlus, LogOut, Cloud, Lock,
 } from 'lucide-react';
+import { BillingPlansPanel } from './BillingPlansPanel';
 import { MAJOR_CITIES } from '../lib/citiesData';
 import { companyContent } from '../content/companyContent';
 import {
@@ -35,7 +36,7 @@ const emptyPrefs = (email = ''): UserPrefs => ({
   holidayAlerts: false,
 });
 
-/** Phase 2 — free account sign up/in, session, prefs (D1 cloud or local fallback). */
+/** Phase 2 free accounts + Phase 3 Supporter/Calendar checkout. */
 export const UserAccountModal: React.FC<UserAccountModalProps> = ({
   isOpen,
   onClose,
@@ -322,45 +323,12 @@ export const UserAccountModal: React.FC<UserAccountModalProps> = ({
         )}
 
         {panel === 'supporter' && (
-          <div className="space-y-4 text-sm">
-            <div className="rounded-xl border border-rose-500/30 bg-rose-950/20 p-4">
-              <h4 className="font-bold text-white flex items-center gap-2 mb-2">
-                <Heart className="w-4 h-4 text-rose-400" /> TimeGovern Supporter
-              </h4>
-              <ul className="mt-2 space-y-1.5 text-xs text-slate-300 list-disc pl-4">
-                <li>Ad-free browsing</li>
-                <li>Cloud-saved cities (free account + cloud)</li>
-                <li>Precision / export perks as they ship</li>
-              </ul>
-            </div>
-            <div className="grid sm:grid-cols-2 gap-3">
-              <div className="rounded-xl border border-slate-700 p-4 bg-slate-950">
-                <div className="text-[10px] font-bold uppercase text-slate-500">Quarterly</div>
-                <div className="text-xl font-black text-white mt-1">A$9.99</div>
-                <div className="text-[11px] text-slate-400">≈ US$5.99</div>
-              </div>
-              <div className="rounded-xl border border-cyan-500/40 p-4 bg-slate-950">
-                <div className="text-[10px] font-bold uppercase text-cyan-400">Yearly</div>
-                <div className="text-xl font-black text-white mt-1">A$29.99</div>
-                <div className="text-[11px] text-slate-400">≈ US$14.99</div>
-              </div>
-            </div>
-            <div className="rounded-xl border border-slate-700 p-3 text-[11px] text-slate-400 space-y-2">
-              <p className="flex items-start gap-2">
-                <Shield className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
-                <span><strong className="text-slate-200">Not a charitable donation.</strong> {c.legalName} · ABN {c.hq.abn}.</span>
-              </p>
-            </div>
-            <button type="button" disabled className="w-full py-2.5 rounded-xl text-xs font-bold bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700">
-              Checkout coming in Phase 3 (Stripe)
-            </button>
-            {!user && (
-              <button type="button" onClick={() => { setPanel('account'); setAuthMode('signup'); }}
-                className="w-full py-2.5 rounded-xl text-xs font-bold bg-blue-600 text-white">
-                Create free account first
-              </button>
-            )}
-          </div>
+          <BillingPlansPanel
+            user={user}
+            onNeedAccount={() => { setPanel('account'); setAuthMode('signup'); }}
+            onNotice={setNotice}
+            onError={setError}
+          />
         )}
       </div>
     </div>
