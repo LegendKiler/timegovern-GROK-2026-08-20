@@ -69,7 +69,7 @@ export const legalContent = {
       },
       {
         heading: '8. Disclosure to others',
-        body: 'We may disclose personal information to: infrastructure providers (e.g. Cloudflare for hosting and security); email or payment processors acting on our instructions; professional advisers; and authorities where required by law or to protect rights and safety. We require service providers to protect information appropriately for the services they perform.',
+        body: 'We may disclose personal information to: infrastructure and hosting providers that deliver the website and protect it from abuse; email or payment processors acting on our instructions; professional advisers; and authorities where required by law or to protect rights and safety. We require service providers to protect information appropriately for the services they perform.',
       },
       {
         heading: '9. Overseas disclosure (APP 8)',
@@ -167,11 +167,11 @@ export const legalContent = {
       },
       {
         heading: '2. Networks',
-        body: 'We may use Google AdSense or similar partners. Their policies and privacy notices apply to their tags and cookies.',
+        body: 'We may use established advertising partners. Their policies and privacy notices apply to their tags and cookies.',
       },
       {
         heading: '3. Prohibited categories',
-        body: 'We do not intentionally run ads for illegal products, malware, or content that exploits children. Report problematic ads to ${contactEmail}.',
+        body: `We do not intentionally run ads for illegal products, malware, or content that exploits children. Report problematic ads to ${contactEmail}.`,
       },
       {
         heading: '4. Data',
@@ -229,7 +229,7 @@ export const legalContent = {
     title: 'Trust Centre',
     intro: 'How we approach security, privacy and uptime for timegovern.com — Australian operator, global users.',
     points: [
-      { title: 'HTTPS / TLS (SSL)', text: 'Production traffic should use HTTPS via Cloudflare (or equivalent) with certificates auto-issued and renewed.' },
+      { title: 'HTTPS / TLS (SSL)', text: 'Production traffic uses HTTPS with TLS certificates that are issued and renewed automatically for timegovern.com.' },
       { title: 'Privacy Act and APPs', text: `Transparency, purpose limitation, security, access and correction. Contact ${privacyEmail}.` },
       { title: 'Spam Act 2003', text: 'Consent, identify sender, functional unsubscribe, honour opt-outs.' },
       { title: 'Australian Consumer Law', text: 'Non-excludable consumer guarantees remain where the ACL applies.' },
@@ -244,10 +244,10 @@ export const legalContent = {
     title: 'How Security check works online',
     steps: [
       'Local development may use HTTP; the browser padlock appears after HTTPS is deployed.',
-      'Point DNS to your host (e.g. Cloudflare) with proxy enabled where required.',
-      'Universal SSL or equivalent issues certificates automatically.',
-      'Enable Always Use HTTPS at the edge when available.',
-      'Optional: test with SSL Labs after go-live.',
+      'Point the domain’s DNS to your production host and enable HTTPS for the apex and www hostnames.',
+      'Certificates are issued and renewed automatically for the production domain.',
+      'Enable always-use-HTTPS at the edge when available.',
+      'Optional: run an independent SSL test after go-live.',
     ],
   },
 };
