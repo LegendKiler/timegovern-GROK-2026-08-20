@@ -7,12 +7,19 @@ import { handleDriftAlerts } from './api/driftAlerts';
 import { ensureSchema } from './db/init';
 import { handleV1Time, handleV1Convert, isV1TimePath, isV1ConvertPath } from './api/v1Time';
 import { handleAuth } from './api/auth';
+import { handleBilling } from './api/billing';
 
 export interface Env {
   DB?: D1Database;
   ASSETS?: {
     fetch: (request: Request) => Promise<Response>;
   };
+  STRIPE_SECRET_KEY?: string;
+  STRIPE_WEBHOOK_SECRET?: string;
+  STRIPE_PRICE_SUPPORTER_QUARTERLY?: string;
+  STRIPE_PRICE_SUPPORTER_YEARLY?: string;
+  STRIPE_PRICE_CALENDAR_YEARLY?: string;
+  PUBLIC_ORIGIN?: string;
 }
 
 const corsHeaders = {
@@ -78,21 +85,25 @@ export default {
     }
 
     if (url.pathname === '/api/health' || url.pathname === '/api/health/') {
-      return new Response(
-        JSON.stringify({ status: 'ok', service: 'timegovern', ts: new Date().toISOString() }),
-        { status: 200, headers: { ...corsHeaders, ...securityHeaders } }
-      );
+      return new Response(JSON.stringify({ ok: true, service: 'timegovern' }), {
+        headers: { ...corsHeaders, ...securityHeaders },
+      });
     }
 
     if (url.pathname.startsWith('/api/auth')) {
       return handleAuth(request, env, url.pathname);
     }
 
-    if (isV1TimePath(url.pathname)) {
-      return handleV1Time(request);
+    if (url.pathname.startsWith('/api/billing')) {
+      return handleBilling(request, env, url.pathname);
     }
+
+    if (isV1TimePath(url.pathname)) {
+      return handleV1Time(request, env, url);
+    }
+
     if (isV1ConvertPath(url.pathname)) {
-      return handleV1Convert(request);
+      return handleV1Convert(request, env, url);
     }
 
     if (
@@ -101,76 +112,57 @@ export default {
       url.pathname === '/api/time/tai-utc' ||
       url.pathname === '/api/time/tai-utc/'
     ) {
-      return await handleLeapSeconds(request);
+      return handleLeapSeconds(request, env);
     }
 
     if (url.pathname.startsWith('/api/drift-alerts') || url.pathname.startsWith('/api/alerts/drift')) {
-      return await handleDriftAlerts(request, env);
+      return handleDriftAlerts(request, env);
     }
 
     if (url.pathname === '/api/contact' || url.pathname === '/api/contact/') {
-      if (request.method === 'POST') {
-        try {
-          return new Response(
-            JSON.stringify({
-              success: true,
-              message: 'Thank you for contacting TimeGovern Headquarters in Melbourne, Australia.',
-              ticket_id: `TG-MELB-${Date.now().toString(36).toUpperCase()}`,
-            }),
-            { status: 200, headers: { ...corsHeaders, ...securityHeaders } }
-          );
-        } catch {
-          return new Response(JSON.stringify({ success: false }), {
-            status: 500,
-            headers: { ...corsHeaders, ...securityHeaders },
-          });
-        }
+      if (request.method !== 'POST') {
+        return new Response(JSON.stringify({ success: false, message: 'POST only' }), {
+          status: 405,
+          headers: { ...corsHeaders, ...securityHeaders },
+        });
       }
-      return new Response(JSON.stringify({ success: false, message: 'Method Not Allowed' }), {
-        status: 405,
-        headers: { ...corsHeaders, ...securityHeaders },
-      });
+      try {
+        const body = await request.json();
+        return new Response(JSON.stringify({ success: true, received: true }), {
+          headers: { ...corsHeaders, ...securityHeaders },
+        });
+      } catch {
+        return new Response(JSON.stringify({ success: false, error: 'Invalid JSON' }), {
+          status: 400,
+          headers: { ...corsHeaders, ...securityHeaders },
+        });
+      }
     }
 
     if (url.pathname === '/api/newsletter' || url.pathname === '/api/newsletter/') {
-      if (request.method === 'POST') {
-        return new Response(
-          JSON.stringify({ success: true, message: 'Subscribed successfully.' }),
-          { status: 200, headers: { ...corsHeaders, ...securityHeaders } }
-        );
-      }
-      return new Response(JSON.stringify({ success: false, message: 'Method Not Allowed' }), {
-        status: 405,
+      return new Response(JSON.stringify({ success: true }), {
         headers: { ...corsHeaders, ...securityHeaders },
       });
     }
 
     if (url.pathname === '/api/job-subscribe' || url.pathname === '/api/job-subscribe/') {
-      if (request.method === 'POST') {
-        return new Response(
-          JSON.stringify({ success: true, message: 'Career profile saved.' }),
-          { status: 200, headers: { ...corsHeaders, ...securityHeaders } }
-        );
-      }
-      return new Response(JSON.stringify({ success: false, message: 'Method Not Allowed' }), {
-        status: 405,
+      return new Response(JSON.stringify({ success: true }), {
         headers: { ...corsHeaders, ...securityHeaders },
       });
     }
 
     if (url.pathname === '/api/news' || url.pathname === '/api/news/') {
-      return await handleNews(request);
+      return handleNews(request, env);
     }
 
     if (url.pathname === '/robots.txt') {
-      const robotsTxt = `User-agent: *\nAllow: /\nSitemap: https://timegovern.com/sitemap.xml\n`;
-      return new Response(robotsTxt, {
+      return new Response('User-agent: *\nAllow: /\n', {
         headers: { 'Content-Type': 'text/plain', ...securityHeaders },
       });
     }
 
     if (url.pathname === '/.well-known/security.txt' || url.pathname === '/security.txt') {
-      const securityTxt = `Contact: mailto:security@timegovern.com\nPreferred-Languages: en\n`;
+      const securityTxt = 'Contact: mailto:security@timegovern.com\nPreferred-Languages: en\n';
       return new Response(securityTxt, {
         headers: { 'Content-Type': 'text/plain', ...securityHeaders },
       });
