@@ -1,40 +1,37 @@
-/**
- * Newsletter HTML/text templates — weekly / monthly / yearly.
- */
 import { companyContent } from './companyContent';
 
 export type NewsletterCadence = 'weekly' | 'monthly' | 'yearly';
 
 const INTERESTING: Record<NewsletterCadence, { subject: string; bullets: string[]; tip: string }> = {
   weekly: {
-    subject: 'TimeGovern Weekly: clocks, DST, and one sky note',
+    subject: 'TimeGovern Weekly: clocks, zones and one clear tip',
     bullets: [
-      'Which regions change clocks this week (and how Meeting Planner avoids 2 a.m. surprises).',
-      'One IANA / tzdata reminder: saved cities follow the latest rules automatically.',
-      'Sunrise table tip: pick a city, scan 7–14 days for outdoor or shift work.',
-      'Live news desk: time-policy headlines we surface on the News pillar.',
+      'Daylight-saving and zone notes worth checking before you send global invites.',
+      'One Meeting Planner habit: pin focal cities and read the hour strip before locking a time.',
+      'A short sky note — sunrise, moon phase or twilight — tied to planning, not sensationalism.',
+      'Product tip of the week from World Clock, Calendar or Sun & Moon.',
     ],
-    tip: 'Pin your three busiest cities and enable “only pinned” on World Clock for a calmer morning scan.',
+    tip: 'When in doubt, show the UTC offset next to the city name. Abbreviations alone are easy to misread.',
   },
   monthly: {
-    subject: 'TimeGovern Monthly: sky calendar + team hygiene',
+    subject: 'TimeGovern Monthly: sky calendar and team hygiene',
     bullets: [
-      'Moon phases and notable twilight windows for the month ahead.',
-      'Calendar hygiene: week numbers, public holidays, and PDF schedules for your team.',
-      'AU workday & calculator notes (always verify critical figures with official sources).',
-      'Widgets & embeds: safe patterns for schools and public screens.',
+      'Moon phases and useful twilight windows for the month ahead.',
+      'Calendar hygiene: week numbers, holidays and printable schedules for your team.',
+      'Australian workday helpers in context — educational only; confirm critical figures with official sources.',
+      'Widgets and embeds: practical patterns for schools and shared screens.',
     ],
-    tip: 'Export a logo-free multi-month PDF if you are a Supporter — ideal for office walls.',
+    tip: 'Supporters can export multi-month PDF calendars without site branding — useful for office walls and studios.',
   },
   yearly: {
-    subject: 'Year in Time: reforms, leaps, and what we built',
+    subject: 'Year in Time: reforms, leaps and steady habits',
     bullets: [
-      'Timezone and DST policy watchlist for the year ahead.',
-      'Leap-second context: rare, but we keep the story clear on the site.',
-      'Teaching edition: free tools for classrooms and science clubs.',
-      'Enterprise habits: fair meeting hours across AU–US–EU.',
+      'Civil-time and daylight-saving policy themes to watch over the coming year.',
+      'Leap seconds in plain language — rare, but we keep the explanation clear on the site.',
+      'Teaching edition: free tools for classrooms and science clubs without student accounts for core clocks.',
+      'Enterprise habits: fair meeting hours across Australia, the Americas and Europe.',
     ],
-    tip: 'Review your pinned cities once a year when daylight-saving maps shift.',
+    tip: 'Once a year, review your pinned cities when daylight-saving maps change.',
   },
 };
 
@@ -61,32 +58,21 @@ export function buildNewsletterEmail(opts: {
     '',
     `Tip: ${pack.tip}`,
     '',
-    `Unsubscribe: reply STOP or use the link in a live send (Spam Act 2003 — Australia).`,
-    `Contact: ${c.hq.email}`,
-    '',
-    `— ${c.legalName}`,
+    '—',
+    `${c.legalName} · ${c.hq.fullAddress}`,
+    `Privacy: ${c.hq.privacyEmail || c.hq.email}`,
+    'Unsubscribe: reply with UNSUBSCRIBE or use the link in production emails.',
+    'This message is sent only with your opt-in (Spam Act 2003).',
   ].join('\n');
 
-  const html = `
-  <div style="font-family:system-ui,Segoe UI,sans-serif;max-width:560px;margin:0 auto;color:#0f172a">
-    <h1 style="font-size:20px;color:#0e7490">${subject}</h1>
-    <p style="color:#64748b;font-size:14px">From ${c.brandName} · ${c.hq.city}</p>
-    <p style="font-size:14px">You are on the <strong>${name}</strong> list.</p>
-    <ol style="font-size:14px;line-height:1.5;color:#334155">
-      ${pack.bullets.map((b) => `<li style="margin-bottom:8px">${b}</li>`).join('')}
-    </ol>
-    <p style="background:#ecfeff;border-left:4px solid #06b6d4;padding:12px;font-size:14px"><strong>Tip:</strong> ${pack.tip}</p>
-    <p style="font-size:12px;color:#94a3b8">Spam Act 2003 (Cth) · Unsubscribe in every live email · ${c.hq.email}</p>
-  </div>`;
+  const html = `<!DOCTYPE html><html><body style="font-family:system-ui,sans-serif;line-height:1.5;color:#0f172a">
+  <p>Hello from <strong>${c.brandName}</strong> (${c.hq.city})</p>
+  <p>You are subscribed to: <strong>${name}</strong></p>
+  <ol>${pack.bullets.map((b) => `<li>${b}</li>`).join('')}</ol>
+  <p><em>Tip: ${pack.tip}</em></p>
+  <hr/>
+  <p style="font-size:12px;color:#64748b">${c.legalName} · ${c.hq.fullAddress}<br/>Privacy: ${c.hq.privacyEmail || c.hq.email}<br/>Unsubscribe available on every commercial email (Spam Act 2003).</p>
+  </body></html>`;
 
   return { subject, text, html };
-}
-
-export function welcomeEmailHtml(opts: { email: string; cadence: NewsletterCadence }) {
-  const label =
-    opts.cadence === 'weekly' ? 'Weekly Bulletin' : opts.cadence === 'monthly' ? 'Monthly Digest' : 'Year in Time';
-  return buildNewsletterEmail({ cadence: opts.cadence, toEmail: opts.email }).html.replace(
-    'You are on the',
-    `Welcome — you joined <strong>${label}</strong>. You are on the`
-  );
 }
