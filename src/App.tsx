@@ -1,4 +1,5 @@
 import React, { useState, useEffect, Suspense, lazy } from 'react';
+import { fetchBillingStatus } from './lib/billing';
 import { Header } from './components/Header';
 import { AdBanner } from './components/AdBanner';
 import { AdSenseLoader } from './components/ads/AdSenseLoader';
@@ -44,6 +45,23 @@ export default function App() {
   const [isShortcutsModalOpen, setIsShortcutsModalOpen] = useState(false);
   const [showAds, setShowAds] = useState(true);
   const [isDarkMode, setIsDarkMode] = useState(false);
+
+  // Phase 3: hide ads when Supporter entitlement is active (cloud or lab-mock)
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const st = await fetchBillingStatus();
+        if (cancelled) return;
+        if (st.supporter) setShowAds(false);
+      } catch {
+        /* ignore */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     const root = document.documentElement;
@@ -196,7 +214,7 @@ export default function App() {
               </p>
               <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-2">
                 Plans from <strong className="text-slate-700 dark:text-slate-200">A$29.99/year</strong> (indicative).
-                Not a tax-deductible donation. Checkout is Phase 3.
+                Not a tax-deductible donation. Stripe checkout (lab-mock until keys).
               </p>
             </div>
           </div>
