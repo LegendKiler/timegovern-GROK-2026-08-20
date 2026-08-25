@@ -18,6 +18,7 @@ export const CompanyPillar: React.FC<CompanyPillarProps> = ({ onNavigatePillar }
   const c = companyContent;
   const L = legalContent;
   const [tab, setTab] = useState<HubTab>('about');
+  const [contactView, setContactView] = useState<'form' | 'details'>('form');
   const [contactName, setContactName] = useState('');
   const [contactEmail, setContactEmail] = useState('');
   const [contactPhone, setContactPhone] = useState('');
@@ -31,8 +32,6 @@ export const CompanyPillar: React.FC<CompanyPillarProps> = ({ onNavigatePillar }
   const [newsletterSubmitting, setNewsletterSubmitting] = useState(false);
   const [newsletterSuccess, setNewsletterSuccess] = useState<string | null>(null);
   const [newsletterPreview, setNewsletterPreview] = useState<{ subject: string; text: string } | null>(null);
-  const [jobEmail, setJobEmail] = useState('');
-  const [jobSuccess, setJobSuccess] = useState<string | null>(null);
   const [legalSection, setLegalSection] = useState<'privacy' | 'terms' | 'ads' | 'cookies'>('privacy');
 
   useEffect(() => {
@@ -51,6 +50,8 @@ export const CompanyPillar: React.FC<CompanyPillarProps> = ({ onNavigatePillar }
       const next = map[h];
       if (!next) return;
       setTab(next);
+      if (h === 'contact-details') setContactView('details');
+      else if (h === 'contact') setContactView('form');
       if (h === 'advertising' || h === 'advertise') setLegalSection('ads');
       if (h === 'terms' || h === 'disclaimer' || h === 'link-policy') setLegalSection('terms');
       if (h === 'privacy') setLegalSection('privacy');
@@ -100,11 +101,7 @@ export const CompanyPillar: React.FC<CompanyPillarProps> = ({ onNavigatePillar }
     const primary = cadence.weekly ? 'weekly' : cadence.monthly ? 'monthly' : 'yearly';
     const built = buildNewsletterEmail({ cadence: primary as 'weekly' | 'monthly' | 'yearly', toEmail: newsletterEmail });
     setNewsletterPreview({ subject: built.subject, text: built.text });
-    const parts = [
-      cadence.weekly ? 'Weekly' : null,
-      cadence.monthly ? 'Monthly' : null,
-      cadence.yearly ? 'Yearly' : null,
-    ].filter(Boolean);
+    const parts = [cadence.weekly ? 'Weekly' : null, cadence.monthly ? 'Monthly' : null, cadence.yearly ? 'Yearly' : null].filter(Boolean);
     try {
       await fetch('/api/newsletter', {
         method: 'POST',
@@ -116,7 +113,7 @@ export const CompanyPillar: React.FC<CompanyPillarProps> = ({ onNavigatePillar }
         }),
       });
     } catch { /* offline ok */ }
-    setNewsletterSuccess(`Opt-in saved for ${parts.join(' + ')}. Preview below (Spam Act 2003). Connect Resend/SendGrid for live delivery.`);
+    setNewsletterSuccess(`Opt-in saved for ${parts.join(' + ')}. Preview below (Spam Act 2003).`);
     setNewsletterEmail('');
     setNewsletterSubmitting(false);
   };
@@ -134,23 +131,33 @@ export const CompanyPillar: React.FC<CompanyPillarProps> = ({ onNavigatePillar }
   ];
 
   const renderLegalDoc = () => {
-    const doc =
-      legalSection === 'privacy' ? L.privacyPolicy
-        : legalSection === 'terms' ? L.termsOfUse
-          : legalSection === 'ads' ? L.advertisingPolicy : null;
-    if (legalSection === 'cookies') {
+    type Doc = { title: string; intro: string; sections: { heading: string; body: string }[] };
+    let doc: Doc | null = null;
+    if (legalSection === 'privacy') doc = L.privacyPolicy as Doc;
+    else if (legalSection === 'terms') doc = L.termsOfUse as Doc;
+    else if (legalSection === 'ads') doc = L.advertisingPolicy as Doc;
+    else if (legalSection === 'cookies') doc = (L as { cookieNotice?: Doc }).cookieNotice || null;
+
+    if (!doc) {
       return (
         <div className="text-xs text-slate-300 space-y-2">
-          <p>We use essential storage for theme, pins, and preferences. Analytics cookies only if you enable them later.</p>
-          <p>Contact {c.hq.privacyEmail || c.hq.email} for data requests (Australian Privacy Principles / GDPR-style rights).</p>
+          <p>Essential storage for theme, pins and preferences. Contact {c.hq.privacyEmail || c.hq.email} for data requests.</p>
         </div>
       );
     }
-    if (!doc) return null;
     return (
-      <div className="text-xs text-slate-300 space-y-2 max-h-96 overflow-y-auto">
-        <h4 className="font-bold text-white text-sm">{(doc as { title?: string }).title || legalSection}</h4>
-        <pre className="whitespace-pre-wrap font-sans text-slate-400">{typeof doc === 'string' ? doc : JSON.stringify(doc, null, 2).slice(0, 4000)}</pre>
+      <div className="text-xs text-slate-200 space-y-4 max-h-[28rem] overflow-y-auto pr-1">
+        <div>
+          <h4 className="font-bold text-white text-sm">{doc.title}</h4>
+          <p className="text-slate-400 mt-1 leading-relaxed">{doc.intro}</p>
+          <p className="text-[10px] text-slate-500 mt-1">Last updated: {L.lastUpdated} · Policy text for the website — not a substitute for legal advice</p>
+        </div>
+        {doc.sections.map((s) => (
+          <div key={s.heading}>
+            <h5 className="font-semibold text-cyan-300 text-[11px] mb-1">{s.heading}</h5>
+            <p className="text-slate-300 leading-relaxed">{s.body}</p>
+          </div>
+        ))}
       </div>
     );
   };
@@ -192,27 +199,49 @@ export const CompanyPillar: React.FC<CompanyPillarProps> = ({ onNavigatePillar }
 
       {tab === 'contact' && (
         <div className="rounded-2xl border border-slate-700 bg-slate-950/80 p-5 space-y-4 text-sm">
-          <h3 className="font-bold text-white text-lg">Contact Melbourne HQ</h3>
-          <div className="flex flex-wrap gap-2 text-xs">
-            <a href={mailUrl} className="px-3 py-2 rounded-lg bg-cyan-600 text-white font-bold">Email</a>
-            <a href={waUrl} target="_blank" rel="noreferrer" className="px-3 py-2 rounded-lg bg-emerald-600 text-white font-bold">WhatsApp</a>
-            <a href={`tel:${c.hq.phone.replace(/\s/g, '')}`} className="px-3 py-2 rounded-lg border border-slate-600 text-slate-200">{c.hq.phoneDisplay}</a>
+          <div className="flex flex-wrap gap-2">
+            <button type="button" onClick={() => setContactView('form')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold border ${contactView === 'form' ? 'bg-cyan-500 text-slate-950 border-cyan-400' : 'border-slate-600 text-slate-200'}`}>Contact Us (message)</button>
+            <button type="button" onClick={() => setContactView('details')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold border ${contactView === 'details' ? 'bg-cyan-500 text-slate-950 border-cyan-400' : 'border-slate-600 text-slate-200'}`}>Contact Details (address)</button>
           </div>
-          <form onSubmit={handleContactSubmit} className="space-y-2">
-            <input required value={contactName} onChange={(e) => setContactName(e.target.value)} placeholder="Name" className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-600 text-white text-xs" />
-            <input required type="email" value={contactEmail} onChange={(e) => setContactEmail(e.target.value)} placeholder="Email" className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-600 text-white text-xs" />
-            <input value={contactSubject} onChange={(e) => setContactSubject(e.target.value)} placeholder="Subject" className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-600 text-white text-xs" />
-            <textarea required rows={4} value={contactMessage} onChange={(e) => setContactMessage(e.target.value)} placeholder="Message" className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-600 text-white text-xs" />
-            <button type="submit" disabled={contactSubmitting} className="px-4 py-2 rounded-xl bg-cyan-600 text-white text-xs font-bold">{contactSubmitting ? 'Sending…' : 'Send'}</button>
-            {contactSuccess && <p className="text-xs text-emerald-400">{contactSuccess}</p>}
-          </form>
+          {contactView === 'details' && (
+            <div className="rounded-xl border border-slate-600 bg-slate-900 p-4 space-y-2 text-xs text-slate-300">
+              <h3 className="font-bold text-white text-sm">Registered details</h3>
+              <p><strong className="text-white">{c.legalName}</strong>{c.hq.abn ? ` · ABN ${c.hq.abn}` : ''}</p>
+              <p>{c.hq.fullAddress}</p>
+              <p>Phone: {c.hq.phoneDisplay}</p>
+              <p>Email: {c.hq.email}</p>
+              <p>Privacy: {c.hq.privacyEmail || c.hq.email}</p>
+              <p>Legal: {c.hq.legalEmail || c.hq.email}</p>
+              <p className="text-slate-500">Address and identifiers only. Use Contact Us to send a message.</p>
+            </div>
+          )}
+          {contactView === 'form' && (
+            <>
+              <h3 className="font-bold text-white text-lg">Contact Us — send a message</h3>
+              <div className="flex flex-wrap gap-2 text-xs">
+                <a href={mailUrl} className="px-3 py-2 rounded-lg bg-cyan-600 text-white font-bold">Email</a>
+                <a href={waUrl} target="_blank" rel="noreferrer" className="px-3 py-2 rounded-lg bg-emerald-600 text-white font-bold">WhatsApp</a>
+                <a href={`tel:${c.hq.phone.replace(/\s/g, '')}`} className="px-3 py-2 rounded-lg border border-slate-600 text-slate-200">{c.hq.phoneDisplay}</a>
+              </div>
+              <form onSubmit={handleContactSubmit} className="space-y-2">
+                <input required value={contactName} onChange={(e) => setContactName(e.target.value)} placeholder="Name" className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-600 text-white text-xs" />
+                <input required type="email" value={contactEmail} onChange={(e) => setContactEmail(e.target.value)} placeholder="Email" className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-600 text-white text-xs" />
+                <input value={contactSubject} onChange={(e) => setContactSubject(e.target.value)} placeholder="Subject" className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-600 text-white text-xs" />
+                <textarea required rows={4} value={contactMessage} onChange={(e) => setContactMessage(e.target.value)} placeholder="Message" className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-600 text-white text-xs" />
+                <button type="submit" disabled={contactSubmitting} className="px-4 py-2 rounded-xl bg-cyan-600 text-white text-xs font-bold">{contactSubmitting ? 'Sending…' : 'Send'}</button>
+                {contactSuccess && <p className="text-xs text-emerald-400">{contactSuccess}</p>}
+              </form>
+            </>
+          )}
         </div>
       )}
 
       {tab === 'newsletter' && (
         <div className="rounded-2xl border border-slate-700 bg-slate-950/80 p-5 space-y-4 text-sm text-slate-200">
           <h3 className="font-bold text-white text-lg flex items-center gap-2"><Radio className="w-5 h-5 text-cyan-400" /> Newsletters</h3>
-          <p className="text-xs text-slate-400">Weekly · Monthly · Yearly. Express opt-in. Unsubscribe in every live email (Spam Act 2003).</p>
+          <p className="text-xs text-slate-400">Weekly · Monthly · Yearly. Express opt-in (Spam Act 2003).</p>
           <form onSubmit={handleNewsletterSubmit} className="space-y-3">
             <input required type="email" value={newsletterEmail} onChange={(e) => setNewsletterEmail(e.target.value)} placeholder="you@example.com"
               className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-600 text-white text-xs" />
@@ -233,23 +262,15 @@ export const CompanyPillar: React.FC<CompanyPillarProps> = ({ onNavigatePillar }
               <pre className="whitespace-pre-wrap text-slate-400 font-sans">{newsletterPreview.text}</pre>
             </div>
           )}
-          <div className="grid sm:grid-cols-3 gap-2 text-[11px]">
-            {(['weekly', 'monthly', 'yearly'] as const).map((k) => (
-              <div key={k} className="rounded-lg border border-slate-700 p-2">
-                <p className="font-bold text-white capitalize">{c.newsletter[k].name}</p>
-                <p className="text-slate-500 mt-1">{c.newsletter[k].description}</p>
-              </div>
-            ))}
-          </div>
         </div>
       )}
 
       {tab === 'podcast' && (
         <div className="rounded-2xl border border-slate-700 bg-slate-950/80 p-5 space-y-3 text-sm text-slate-200">
           <h3 className="font-bold text-white text-lg flex items-center gap-2"><Mic2 className="w-5 h-5 text-cyan-400" /> Podcast</h3>
-          <p className="text-xs text-slate-400">Weekly / monthly / yearly episodes on time, calendars, DST and sky events (text catalogue until audio hosting is connected).</p>
+          <p className="text-xs text-slate-400">Catalogue of time, calendar and sky topics (audio hosting can be connected later).</p>
           <ul className="space-y-2 text-xs">
-            {(c.podcast?.episodes || []).slice(0, 8).map((ep: { id: string; title: string; date?: string; description?: string }) => (
+            {((c as { podcast?: { episodes?: { id: string; title: string; date?: string; description?: string }[] } }).podcast?.episodes || []).slice(0, 8).map((ep) => (
               <li key={ep.id} className="rounded-lg border border-slate-700 p-2">
                 <p className="font-semibold text-white">{ep.title}</p>
                 <p className="text-slate-500">{ep.date} — {ep.description}</p>
@@ -262,13 +283,12 @@ export const CompanyPillar: React.FC<CompanyPillarProps> = ({ onNavigatePillar }
       {tab === 'careers' && (
         <div className="rounded-2xl border border-slate-700 bg-slate-950/80 p-5 space-y-3 text-sm text-slate-200">
           <h3 className="text-lg font-bold text-white flex items-center gap-2"><Briefcase className="w-5 h-5 text-cyan-400" /> Careers / Jobs</h3>
-          <p className="text-slate-400 text-xs">Melbourne-based · remote-friendly roles in time systems, frontend, and data.</p>
+          <p className="text-slate-400 text-xs">Melbourne-based · remote-friendly roles.</p>
           <ul className="list-disc pl-5 space-y-1 text-xs text-slate-300">
             <li>Frontend engineer (React, performance, accessibility)</li>
             <li>Content & astronomy editor (part-time)</li>
-            <li>Student internships — timezone tools for education</li>
+            <li>Student internships</li>
           </ul>
-          <p className="text-xs text-slate-400">Email <a className="text-cyan-400 underline" href={`mailto:${c.hq.email}?subject=Careers`}>{c.hq.email}</a></p>
           <button type="button" className="text-xs font-bold text-cyan-400 underline" onClick={() => setTab('contact')}>Go to Contact</button>
         </div>
       )}
@@ -294,8 +314,11 @@ export const CompanyPillar: React.FC<CompanyPillarProps> = ({ onNavigatePillar }
       {tab === 'trust' && (
         <div className="rounded-2xl border border-slate-700 bg-slate-950/80 p-5 space-y-3 text-sm text-slate-200">
           <h3 className="font-bold text-white text-lg flex items-center gap-2"><Shield className="w-5 h-5 text-cyan-400" /> Trust Centre</h3>
-          <p className="text-xs text-slate-400">HTTPS in production · Australian Privacy Principles · clear privacy contacts.</p>
-          <p className="text-xs">Privacy: {c.hq.privacyEmail || c.hq.email} · Legal: {c.hq.legalEmail || c.hq.email}</p>
+          <ul className="space-y-2 text-xs text-slate-300">
+            {(L.trustCentre?.points || []).map((pt) => (
+              <li key={pt.title}><strong className="text-cyan-300">{pt.title}:</strong> {pt.text}</li>
+            ))}
+          </ul>
           <button type="button" className="text-xs font-bold text-cyan-400 underline" onClick={() => setTab('feedback')}>Moderate experience feedback</button>
         </div>
       )}
@@ -305,8 +328,8 @@ export const CompanyPillar: React.FC<CompanyPillarProps> = ({ onNavigatePillar }
           <h3 className="font-bold text-white text-lg flex items-center gap-2"><Scale className="w-5 h-5 text-cyan-400" /> Legal</h3>
           <div className="flex flex-wrap gap-2">
             {([
-              { id: 'privacy' as const, label: 'Privacy' },
-              { id: 'terms' as const, label: 'Terms' },
+              { id: 'privacy' as const, label: 'Privacy Policy' },
+              { id: 'terms' as const, label: 'Terms & Conditions' },
               { id: 'ads' as const, label: 'Advertising' },
               { id: 'cookies' as const, label: 'Cookies' },
             ]).map((x) => (
@@ -320,7 +343,7 @@ export const CompanyPillar: React.FC<CompanyPillarProps> = ({ onNavigatePillar }
         </div>
       )}
 
-      <p className="text-[10px] text-center text-slate-600">© {c.legal.year} {c.legal.copyrightName}. {c.hq.city}, {c.hq.country}. Not formal legal advice.</p>
+      <p className="text-[10px] text-center text-slate-600">© {c.legal.year} {c.legal.copyrightName}. {c.hq.city}, {c.hq.country}. Website policies — not formal legal advice.</p>
     </div>
   );
 };
