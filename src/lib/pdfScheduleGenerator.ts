@@ -1,5 +1,6 @@
 import { jsPDF } from 'jspdf';
 import { PublicHoliday } from '../types';
+import { getMemberEntitlements } from './memberEntitlements';
 
 export interface CustomScheduleEvent {
   id: string;
@@ -28,6 +29,8 @@ export interface PdfScheduleOptions {
   removeBranding?: boolean;
   multiMonthCount?: number;
   companyLabel?: string;
+  /** Skip auto entitlement merge (internal multi-month loop) */
+  _skipMemberGates?: boolean;
 }
 
 const MONTH_NAMES = [
@@ -39,6 +42,29 @@ const DAYS_SUN_FIRST = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 
 const DAYS_MON_FIRST = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
 const pad = (n: number) => n.toString().padStart(2, '0');
+
+function applyMemberGates(options: PdfScheduleOptions): PdfScheduleOptions {
+  if (options._skipMemberGates) return options;
+  // Explicit flags win; otherwise fill from Supporter/Calendar entitlements
+  if (
+    options.removeBranding !== undefined ||
+    options.multiMonthCount !== undefined ||
+    options.companyLabel !== undefined
+  ) {
+    return options;
+  }
+  const ent = getMemberEntitlements();
+  return {
+    ...options,
+    removeBranding: ent.removePdfBranding,
+    multiMonthCount: ent.multiMonthPdf ? 3 : 1,
+    companyLabel: ent.brandedPdf
+      ? 'COMPANY CALENDAR'
+      : ent.removePdfBranding
+        ? 'PERSONAL CALENDAR SCHEDULE'
+        : '',
+  };
+}
 
 export function generateMonthlyPdf(options: PdfScheduleOptions): jsPDF {
   const {
@@ -57,12 +83,7 @@ export function generateMonthlyPdf(options: PdfScheduleOptions): jsPDF {
     companyLabel = '',
   } = options;
 
-  const doc = new jsPDF({
-    orientation,
-    unit: 'mm',
-    format: 'a4',
-  });
-
+  const doc = new jsPDF({ orientation, unit: 'mm', format: 'a4' });
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
   const marginX = 12;
@@ -80,18 +101,15 @@ export function generateMonthlyPdf(options: PdfScheduleOptions): jsPDF {
     doc.text('TIMEGOVERN · PRECISION TEMPORAL SCHEDULE', marginX + 6, marginTop + 7);
   }
 
-  const monthTitle = `${MONTH_NAMES[month].toUpperCase()} ${year}`;
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(14);
-  doc.text(monthTitle, marginX + 6, marginTop + 15);
+  doc.text(`${MONTH_NAMES[month].toUpperCase()} ${year}`, marginX + 6, marginTop + 15);
 
-  const totalHolidays = selectedHolidays.length;
-  const totalEvents = customEvents.length;
   doc.setFontSize(8.5);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(203, 213, 225);
   doc.text(
-    `Region: ${countryName} (${countryCode}) | ${totalHolidays} Holidays · ${totalEvents} Events`,
+    `Region: ${countryName} (${countryCode}) | ${selectedHolidays.length} Holidays · ${customEvents.length} Events`,
     pageWidth - marginX - 6,
     marginTop + 13,
     { align: 'right' }
@@ -104,12 +122,9 @@ export function generateMonthlyPdf(options: PdfScheduleOptions): jsPDF {
   const dayColWidth = (availableWidth - weekNumColWidth) / 7;
   const headerHeight = 7;
   const footerHeight = 10;
-  const hasAgenda = includeAgenda && orientation === 'portrait';
-  const availableGridHeight =
-    pageHeight - gridTop - headerHeight - footerHeight - 8 - (hasAgenda ? 42 : 0);
+  const availableGridHeight = pageHeight - gridTop - headerHeight - footerHeight - 8;
   const rowHeight = availableGridHeight / 6;
 
-  // Day headers
   let curX = marginX;
   if (includeWeekNumbers) {
     doc.setFillColor(30, 41, 59);
@@ -210,28 +225,36 @@ export function generateMonthlyPdf(options: PdfScheduleOptions): jsPDF {
   const now = new Date();
   const timestampStr = removeBranding
     ? `Generated on ${now.toLocaleDateString()} at ${now.toLocaleTimeString()} UTC`
-    : `Generated on ${now.toLocaleDateString()} at ${now.toLocaleTimeString()} UTC | TimeGovern High-Precision Engine | IANA tzdata 2026a`;
+    : `Generated on ${now.toLocaleDateString()} at ${now.toLocaleTimeString()} UTC | TimeGovern High-Precision Engine`;
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(6);
   doc.setTextColor(148, 163, 184);
   doc.text(timestampStr, marginX, pageHeight - 4);
-  doc.text(`Page 1 of 1`, pageWidth - marginX, pageHeight - 4, { align: 'right' });
+  doc.text('Page 1 of 1', pageWidth - marginX, pageHeight - 4, { align: 'right' });
 
   return doc;
 }
 
+/** Downloads 1 month (free) or 3 months logo-free (Supporter) when options omit explicit gates. */
 export function downloadMonthlyPdfSchedule(options: PdfScheduleOptions): void {
-  const count = Math.max(1, Math.min(options.multiMonthCount || 1, 6));
-  const countrySlug = options.countryCode ? `-${options.countryCode}` : '';
-  const brand = options.removeBranding ? 'Calendar' : 'TimeGovern-Schedule';
+  const gated = applyMemberGates(options);
+  const count = Math.max(1, Math.min(gated.multiMonthCount || 1, 6));
+  const countrySlug = gated.countryCode ? `-${gated.countryCode}` : '';
+  const brand = gated.removeBranding ? 'Calendar' : 'TimeGovern-Schedule';
   for (let i = 0; i < count; i++) {
-    let m = options.month + i;
-    let y = options.year;
+    let m = gated.month + i;
+    let y = gated.year;
     while (m > 11) {
       m -= 12;
       y += 1;
     }
-    const doc = generateMonthlyPdf({ ...options, year: y, month: m, multiMonthCount: 1 });
+    const doc = generateMonthlyPdf({
+      ...gated,
+      year: y,
+      month: m,
+      multiMonthCount: 1,
+      _skipMemberGates: true,
+    });
     const suffix = count > 1 ? `-of-${count}` : '';
     doc.save(`${brand}-${y}-${pad(m + 1)}${suffix}${countrySlug}.pdf`);
   }
