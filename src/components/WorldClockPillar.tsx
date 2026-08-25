@@ -60,7 +60,6 @@ export const WorldClockPillar: React.FC<WorldClockPillarProps> = ({
   }, []);
 
   useEffect(() => {
-    let cancelled = false;
     const sync = async () => {
       await ensureTimeSynced();
     };
@@ -78,7 +77,6 @@ export const WorldClockPillar: React.FC<WorldClockPillarProps> = ({
     };
     document.addEventListener('visibilitychange', onVis);
     return () => {
-      cancelled = true;
       clearInterval(timer);
       clearInterval(resync);
       document.removeEventListener('visibilitychange', onVis);
@@ -101,9 +99,13 @@ export const WorldClockPillar: React.FC<WorldClockPillarProps> = ({
   };
 
   const handleTogglePinCity = (city: City) => {
-    const { isPinned, cities } = togglePinCity(city);
-    setPinnedCities(cities);
-    showToast(isPinned ? `Pinned ${city.name}` : `Unpinned ${city.name}`);
+    const result = togglePinCity(city);
+    setPinnedCities(result.cities);
+    if (!result.ok && result.error) {
+      showToast(result.error);
+      return;
+    }
+    showToast(result.isPinned ? `Pinned ${city.name}` : `Unpinned ${city.name}`);
   };
 
   const handleSelectFocalCity = (city: City) => {
@@ -159,7 +161,7 @@ export const WorldClockPillar: React.FC<WorldClockPillarProps> = ({
             <h1 className="text-2xl font-extrabold flex items-center gap-2">
               <Clock className="w-6 h-6 text-cyan-500" /> World Clock & Global Time
             </h1>
-            <p className="text-xs text-slate-500 mt-1">LIVE · 1s tick · server drift sync · 12/24h · sort</p>
+            <p className="text-xs text-slate-500 mt-1">LIVE · 1s tick · server drift sync · 12/24h · sort · free pins 12 / Supporter 50</p>
           </div>
           <div className="flex flex-wrap gap-1 bg-slate-100 dark:bg-slate-900 p-1 rounded-xl text-xs font-semibold">
             {tabs.map((t) => (
