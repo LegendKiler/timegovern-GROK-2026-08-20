@@ -132,7 +132,7 @@ export const LeapSecondUtility: React.FC<LeapSecondUtilityProps> = ({ compact = 
 
           // Optional welcome notification
           try {
-            new Notification('‚è±Ô∏è Timegovern Leap Second Alert Armed', {
+            new Notification('‘≈¶¥©≈ Timegovern Leap Second Alert Armed', {
               body: 'Active monitoring enabled. You will be alerted 24 hours before any confirmed leap second epoch.',
               icon: '/favicon.ico',
               tag: 'timegovern-welcome'
@@ -189,7 +189,7 @@ export const LeapSecondUtility: React.FC<LeapSecondUtilityProps> = ({ compact = 
       audioSynth.playAlarmSound('chime');
     }
 
-    const alertTitle = '‚ö†Ô∏è Timegovern Leap Second Alert (T-24h)';
+    const alertTitle = '‘‹·¥©≈ Timegovern Leap Second Alert (T-24h)';
     const alertBody = 'IERS Bulletin C Announcement: Prospective Leap Second insertion scheduled in 24 hours at 23:59:59 UTC. Offset TAI-UTC will increase from +37s to +38s.';
 
     if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
@@ -239,7 +239,7 @@ export const LeapSecondUtility: React.FC<LeapSecondUtilityProps> = ({ compact = 
     return () => clearInterval(interval);
   }, []);
 
-  // Fetch live payload from Cloudflare Edge backend on mount
+  // Fetch live payload from TimeGovern API on mount
   const fetchLiveEdgeData = async () => {
     setIsFetchingApi(true);
     const startT = performance.now();
@@ -313,14 +313,14 @@ export const LeapSecondUtility: React.FC<LeapSecondUtilityProps> = ({ compact = 
     standard: [
       { time: '23:59:58.000', label: 'T - 2s', desc: 'Standard UTC second before leap second event' },
       { time: '23:59:59.000', label: 'T - 1s', desc: 'Standard final second of the UTC day' },
-      { time: '23:59:60.000', label: 'LEAP SECOND (+1s)', desc: 'üåü The inserted 61st second! TAI continues unbroken.' },
+      { time: '23:59:60.000', label: 'LEAP SECOND (+1s)', desc: '≠ÉÓÉ The inserted 61st second! TAI continues unbroken.' },
       { time: '00:00:00.000', label: 'T + 1s (New Day)', desc: 'Next UTC day begins perfectly synchronized with Earth rotation' },
       { time: '00:00:01.000', label: 'T + 2s', desc: 'TAI-UTC offset is now incremented by exactly +1 second' }
     ],
     negative: [
       { time: '23:59:57.000', label: 'T - 2s', desc: 'Standard UTC second under accelerated Earth spin' },
       { time: '23:59:58.000', label: 'T - 1s', desc: 'Final second before skipped interval' },
-      { time: '00:00:00.000', label: 'SKIPPED 23:59:59 (-1s)', desc: '‚ö†Ô∏è 23:59:59 is omitted entirely! Clock jumps directly to midnight' },
+      { time: '00:00:00.000', label: 'SKIPPED 23:59:59 (-1s)', desc: '‘‹·¥©≈ 23:59:59 is omitted entirely! Clock jumps directly to midnight' },
       { time: '00:00:01.000', label: 'T + 1s (New Day)', desc: 'New day begins with reduced TAI-UTC offset' }
     ],
     smear: [
@@ -491,7 +491,7 @@ export const LeapSecondUtility: React.FC<LeapSecondUtilityProps> = ({ compact = 
               onClick={fetchLiveEdgeData}
               disabled={isFetchingApi}
               className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-cyan-300 font-bold text-xs rounded-xl border border-slate-700 shadow-md transition-all cursor-pointer flex items-center gap-1.5"
-              title="Sync fresh telemetry from Cloudflare Edge"
+              title="Sync fresh telemetry from TimeGovern API"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${isFetchingApi ? 'animate-spin' : ''}`} />
               <span>{isFetchingApi ? 'Syncing...' : 'Sync Edge'}</span>
@@ -678,7 +678,7 @@ export const LeapSecondUtility: React.FC<LeapSecondUtilityProps> = ({ compact = 
                 </span>
               </div>
               <p className="text-xs text-slate-400 mt-1 max-w-2xl leading-relaxed">
-                Real-time telemetry and synchronization confidence derived from authoritative reference feeds (IANA tzdb, IERS Paris, BIPM S√®vres, NIST Cesium Fountains, and Cloudflare NTS).
+                Real-time telemetry and synchronization confidence derived from authoritative reference feeds (IANA tzdb, IERS Paris, BIPM S+øvres, NIST Cesium Fountains, and NIST time services).
               </p>
             </div>
           </div>
@@ -747,7 +747,7 @@ export const LeapSecondUtility: React.FC<LeapSecondUtilityProps> = ({ compact = 
             <div className="text-base font-extrabold font-mono text-blue-300 mt-1.5">
               {ensembleHealth.meanLatencyMs} ms
             </div>
-            <span className="text-[9px] text-slate-400 mt-1 block">Jitter: ¬±{ensembleHealth.meanJitterMs} ms</span>
+            <span className="text-[9px] text-slate-400 mt-1 block">Jitter: -¶{ensembleHealth.meanJitterMs} ms</span>
           </div>
 
           {/* Root Dispersion */}
@@ -850,7 +850,7 @@ export const LeapSecondUtility: React.FC<LeapSecondUtilityProps> = ({ compact = 
                     </div>
                     <div className="bg-slate-900/80 p-1.5 rounded-lg">
                       <span className="text-slate-500 block text-[9px] uppercase">Jitter</span>
-                      <span className="font-mono font-bold text-slate-300">¬±{server.jitterMs}ms</span>
+                      <span className="font-mono font-bold text-slate-300">-¶{server.jitterMs}ms</span>
                     </div>
                     <div className="bg-slate-900/80 p-1.5 rounded-lg">
                       <span className="text-slate-500 block text-[9px] uppercase">Confidence</span>
@@ -919,7 +919,7 @@ export const LeapSecondUtility: React.FC<LeapSecondUtilityProps> = ({ compact = 
               December 31, 2026 @ 23:59:59 UTC
             </h4>
             <p className="text-xs text-slate-400 mt-0.5">
-              IERS Bulletin C 68 confirms Earth rotation currently remains well within the ¬±0.9s tolerance limit.
+              IERS Bulletin C 68 confirms Earth rotation currently remains well within the -¶0.9s tolerance limit.
             </p>
 
             {/* Countdown Digits */}
@@ -1266,7 +1266,7 @@ export const LeapSecondUtility: React.FC<LeapSecondUtilityProps> = ({ compact = 
           <div>
             <h3 className="text-sm font-extrabold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
               <Calendar className="w-4 h-4 text-blue-600 dark:text-cyan-400" />
-              Complete Historical Leap Seconds Registry (1972‚Äì2026)
+              Complete Historical Leap Seconds Registry (1972‘«Ù2026)
             </h3>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
               Chronological log of all 27 leap seconds inserted by IERS since Coordinated Universal Time adoption.
@@ -1366,7 +1366,7 @@ export const LeapSecondUtility: React.FC<LeapSecondUtilityProps> = ({ compact = 
             Why Earth Rotation Changes
           </h4>
           <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
-            Earth's rotational velocity is affected by lunar tidal friction, core-mantle fluid momentum transfer, atmospheric jet streams, and post-glacial isostatic rebound. While long-term trends slow Earth down, short-term anomalies in 2020‚Äì2026 showed slight acceleration.
+            Earth's rotational velocity is affected by lunar tidal friction, core-mantle fluid momentum transfer, atmospheric jet streams, and post-glacial isostatic rebound. While long-term trends slow Earth down, short-term anomalies in 2020‘«Ù2026 showed slight acceleration.
           </p>
         </div>
 
@@ -1376,7 +1376,7 @@ export const LeapSecondUtility: React.FC<LeapSecondUtilityProps> = ({ compact = 
             POSIX Time & NTP Smearing
           </h4>
           <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
-            Standard POSIX timestamps do not support second <code className="bg-slate-200 dark:bg-slate-800 px-1 rounded font-mono">:60</code>. To prevent server crashes and database concurrency locks, Cloudflare, Google, and Meta use <strong>NTP Leap Smearing</strong>, spreading the 1-second adjustment linearly across 24 hours.
+            Standard POSIX timestamps do not support second <code className="bg-slate-200 dark:bg-slate-800 px-1 rounded font-mono">:60</code>. To prevent server crashes and database concurrency locks, many large platforms use <strong>NTP leap smearing</strong>, spreading the 1-second adjustment linearly across many hours.
           </p>
         </div>
 
