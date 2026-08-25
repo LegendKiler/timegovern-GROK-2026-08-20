@@ -11,9 +11,7 @@ export type ExperienceEntry = {
   comment: string;
   displayName: string;
   createdAt: string;
-  /** User asked to show on site */
   wantPublic: boolean;
-  /** You approved for public wall */
   approved: boolean;
   rejected?: boolean;
 };
@@ -21,8 +19,10 @@ export type ExperienceEntry = {
 const ALL_KEY = 'tg_experience_feedback_v1';
 const MOD_KEY = 'tg_feedback_mod_unlocked';
 
-/** Change this in production if you want; also shown in Trust → Feedback mod */
-export const FEEDBACK_MOD_PIN = 'TG-MELB-2026';
+/** Lab / owner PIN — type exactly: timegovern  (also accepts TG-MELB-2026) */
+export const FEEDBACK_MOD_PIN = 'timegovern';
+
+const ACCEPTED_PINS = ['timegovern', 'tg-melb-2026', 'tgmelb2026', 'tg_melb_2026'];
 
 function loadAll(): ExperienceEntry[] {
   try {
@@ -70,7 +70,6 @@ export function submitExperienceFeedback(input: {
   const list = loadAll();
   list.unshift(entry);
   saveAll(list);
-  // Also mirror last vote for footer UI
   try {
     localStorage.setItem('tg_footer_feedback', input.vote);
     localStorage.setItem('tg_footer_feedback_at', entry.createdAt);
@@ -81,17 +80,11 @@ export function submitExperienceFeedback(input: {
 }
 
 export function approveFeedback(id: string) {
-  const list = loadAll().map((e) =>
-    e.id === id ? { ...e, approved: true, rejected: false } : e
-  );
-  saveAll(list);
+  saveAll(loadAll().map((e) => (e.id === id ? { ...e, approved: true, rejected: false } : e)));
 }
 
 export function rejectFeedback(id: string) {
-  const list = loadAll().map((e) =>
-    e.id === id ? { ...e, rejected: true, approved: false } : e
-  );
-  saveAll(list);
+  saveAll(loadAll().map((e) => (e.id === id ? { ...e, rejected: true, approved: false } : e)));
 }
 
 export function isFeedbackModUnlocked(): boolean {
@@ -102,8 +95,11 @@ export function isFeedbackModUnlocked(): boolean {
   }
 }
 
+/** Case-insensitive; ignores spaces and hyphens */
 export function unlockFeedbackMod(pin: string): boolean {
-  if (pin.trim() === FEEDBACK_MOD_PIN) {
+  const p = pin.trim().toLowerCase().replace(/[\s_-]/g, '');
+  const ok = ACCEPTED_PINS.some((a) => a.replace(/[\s_-]/g, '') === p);
+  if (ok) {
     localStorage.setItem(MOD_KEY, '1');
     return true;
   }
@@ -115,9 +111,9 @@ export function lockFeedbackMod() {
 }
 
 export function feedbackMailto(entry: ExperienceEntry): string {
-  const subject = encodeURIComponent(`TimeGovern experience: ${entry.vote === 'up' ? '👍' : '👎'}`);
+  const subject = encodeURIComponent(`TimeGovern experience: ${entry.vote === 'up' ? 'up' : 'down'}`);
   const body = encodeURIComponent(
-    `Vote: ${entry.vote}\nName: ${entry.displayName}\nPublic request: ${entry.wantPublic}\n\n${entry.comment}\n\n— sent from timegovern.com footer`
+    `Vote: ${entry.vote}\nName: ${entry.displayName}\nPublic request: ${entry.wantPublic}\n\n${entry.comment}\n\n— timegovern.com footer`
   );
   return `mailto:support@timegovern.com?subject=${subject}&body=${body}`;
 }
