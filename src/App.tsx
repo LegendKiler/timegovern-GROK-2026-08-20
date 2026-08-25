@@ -8,9 +8,10 @@ import { PillarLoader } from './components/PillarLoader';
 import { useGlobalShortcuts } from './hooks/useGlobalShortcuts';
 import { City } from './types';
 import type { TemplateTheme } from './components/TemplateGalleryModal';
-import { Globe, Eye, EyeOff, Heart, Facebook, Twitter, Linkedin, Keyboard } from 'lucide-react';
+import { Globe, Eye, EyeOff, Heart, Keyboard } from 'lucide-react';
 import { companyContent } from './content/companyContent';
 import { PillarErrorBoundary } from './components/PillarErrorBoundary';
+import { SiteFooter } from './components/SiteFooter';
 
 const WorldClockPillar = lazy(() => import('./components/WorldClockPillar').then(m => ({ default: m.WorldClockPillar })));
 const CalendarPillar = lazy(() => import('./components/CalendarPillar').then(m => ({ default: m.CalendarPillar })));
@@ -201,126 +202,49 @@ export default function App() {
         </div>
       </div>
 
-      <div className="max-w-[1920px] mx-auto w-full px-4 sm:px-6 my-6">
-        <div className="bg-white dark:bg-slate-900 border border-pink-200 dark:border-slate-700 rounded-2xl p-6 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 shadow-md text-slate-900 dark:text-slate-100">
-          <div className="flex items-start gap-4 min-w-0">
-            <div className="w-14 h-14 shrink-0 rounded-2xl bg-gradient-to-tr from-pink-500 to-rose-600 flex items-center justify-center text-white shadow-md">
-              <Heart className="w-7 h-7 fill-white" />
+      {/* Compact Supporter strip — full detail is in SiteFooter + plans modal */}
+      <div className="max-w-[1200px] mx-auto w-full px-4 my-6">
+        <div className="rounded-2xl border border-pink-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm">
+          <div className="flex items-start gap-3 min-w-0">
+            <div className="w-12 h-12 shrink-0 rounded-2xl bg-gradient-to-b from-pink-500 to-rose-700 flex items-center justify-center text-white">
+              <Heart className="w-6 h-6 fill-white" />
             </div>
-            <div className="min-w-0">
-              <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">Become a TimeGovern Supporter</h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                Ad-free browsing · Cloud-saved cities (Phase 2) · Precision perks. Core clocks stay free.
-              </p>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-2">
-                Plans from <strong className="text-slate-700 dark:text-slate-200">A$29.99/year</strong> (indicative).
-                Not a tax-deductible donation. Stripe checkout (lab-mock until keys).
-              </p>
+            <div>
+              <h3 className="text-[15px] font-bold text-slate-900 dark:text-white">Love Our Site? Become a Supporter</h3>
+              <ul className="mt-1.5 text-[12px] text-slate-600 dark:text-slate-400 space-y-0.5 list-disc pl-4">
+                <li>Browse advert free</li>
+                <li>Sun & Moon times precise to the second</li>
+                <li>Exclusive PDF calendar templates</li>
+              </ul>
+              <p className="text-[11px] text-slate-500 mt-1">From <strong>A$29.99/year</strong> · Not a tax-deductible donation</p>
             </div>
           </div>
-          <div className="flex flex-col sm:flex-row gap-2 w-full lg:w-auto shrink-0">
-            <button
-              type="button"
-              onClick={() => {
-                setAccountModalPanel('supporter');
-                setIsAccountModalOpen(true);
-              }}
-              className="px-5 py-3 bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-700 hover:to-rose-700 text-white font-bold text-xs rounded-xl shadow-md"
-            >
-              View plans
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setAccountModalPanel('account');
-                setIsAccountModalOpen(true);
-              }}
-              className="px-5 py-3 border border-slate-300 dark:border-slate-600 font-bold text-xs rounded-xl text-slate-700 dark:text-slate-200"
-            >
-              Free profile
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={() => {
+              setAccountModalPanel('supporter');
+              setIsAccountModalOpen(true);
+            }}
+            className="shrink-0 px-5 py-3 bg-[#0b6aa2] hover:bg-[#095a8a] text-white font-bold text-xs rounded-xl shadow-md"
+          >
+            Become a Supporter
+          </button>
         </div>
       </div>
 
-      <footer className="bg-slate-900 text-slate-300 border-t border-slate-800 text-xs py-10">
-        <div className="max-w-[1920px] mx-auto px-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-          <div>
-            <div className="flex items-center gap-2 text-white font-extrabold text-lg">
-              <Globe className="w-5 h-5 text-cyan-400" /> {companyContent.brandDomain.replace('.com', '')}<span className="text-cyan-400">.com</span>
-            </div>
-            <p className="text-[11px] text-slate-400 mt-2">{companyContent.tagline}</p>
-            <p className="text-[10px] text-slate-500 mt-2">{companyContent.hq.fullAddress}</p>
-            <p className="text-[10px] text-slate-500">{companyContent.hq.email} · {companyContent.hq.phoneDisplay}</p>
-          </div>
-          <div>
-            <span className="text-white font-bold uppercase tracking-wider">Company</span>
-            <ul className="mt-2 space-y-1 text-[11px]">
-              <li>
-                <button type="button" className="hover:text-cyan-400" onClick={() => setActivePillar(11)}>
-                  About & Company
-                </button>
-              </li>
-              <li>
-                <button type="button" className="hover:text-cyan-400" onClick={() => { setActivePillar(11); window.location.hash = 'contact'; }}>
-                  Contact
-                </button>
-              </li>
-              <li>
-                <button type="button" className="hover:text-cyan-400" onClick={() => { setActivePillar(11); window.location.hash = 'newsletter'; }}>
-                  Newsletters
-                </button>
-              </li>
-              <li>
-                <button type="button" className="hover:text-cyan-400" onClick={() => { setActivePillar(11); window.location.hash = 'legal'; }}>
-                  Legal
-                </button>
-              </li>
-              <li>
-                <button
-                  type="button"
-                  className="hover:text-cyan-400"
-                  onClick={() => {
-                    setActivePillar(11);
-                    window.location.hash = 'advertise';
-                  }}
-                >
-                  Advertise / Media kit
-                </button>
-              </li>
-            </ul>
-          </div>
-          <div>
-            <span className="text-white font-bold uppercase tracking-wider">Legal</span>
-            <ul className="mt-2 space-y-1 text-[11px]">
-              <li>
-                <button type="button" className="hover:text-cyan-400" onClick={() => setIsSecurityModalOpen(true)}>
-                  Privacy & Trust
-                </button>
-              </li>
-              <li>
-                <button type="button" className="hover:text-cyan-400" onClick={() => { setActivePillar(11); window.location.hash = 'trust'; }}>
-                  Trust Centre
-                </button>
-              </li>
-            </ul>
-          </div>
-          <div>
-            <button
-              type="button"
-              onClick={() => setIsShortcutsModalOpen(true)}
-              className="flex items-center gap-2 px-3 py-2 bg-slate-800 rounded-xl text-amber-300 font-bold"
-            >
-              <Keyboard className="w-4 h-4" /> Shortcuts
-            </button>
-            <div className="flex gap-2 mt-3 text-slate-400">
-              <Facebook className="w-4 h-4" />
-              <Twitter className="w-4 h-4" />
-              <Linkedin className="w-4 h-4" />
-            </div>
-          </div>
-        </div>
-      </footer>
+      <SiteFooter
+        isDarkMode={isDarkMode}
+        onNavigatePillar={setActivePillar}
+        onOpenSupporter={() => {
+          setAccountModalPanel('supporter');
+          setIsAccountModalOpen(true);
+        }}
+        onOpenAccount={() => {
+          setAccountModalPanel('account');
+          setIsAccountModalOpen(true);
+        }}
+        onOpenSecurity={() => setIsSecurityModalOpen(true)}
+      />
 
       <Suspense fallback={null}>
         {isArchModalOpen && <ArchitectureModal isOpen={isArchModalOpen} onClose={() => setIsArchModalOpen(false)} />}
