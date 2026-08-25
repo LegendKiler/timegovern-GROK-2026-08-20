@@ -6,14 +6,7 @@ const STORAGE_KEY = 'timegovern_pinned_cities_v1';
 const PINNED_CHANGE_EVENT = 'timegovern_pinned_cities_changed';
 
 export const DEFAULT_PINNED_CITY_IDS: string[] = [
-  'nyc',
-  'lon',
-  'par',
-  'tyo',
-  'syd',
-  'dxb',
-  'sin',
-  'sao',
+  'nyc', 'lon', 'par', 'tyo', 'syd', 'dxb', 'sin', 'sao',
 ];
 
 export function getPinnedCityIds(): string[] {
@@ -64,9 +57,6 @@ export type PinResult = {
   pinLimit?: number;
 };
 
-/**
- * Pin city respecting free (12) vs Supporter (50) limits.
- */
 export function pinCity(city: City): PinResult {
   const ids = getPinnedCityIds();
   if (ids.includes(city.id)) {
@@ -97,8 +87,7 @@ export function unpinCity(cityId: string): City[] {
 
 export function togglePinCity(city: City): PinResult {
   if (isCityPinned(city.id)) {
-    const cities = unpinCity(city.id);
-    return { ok: true, isPinned: false, cities };
+    return { ok: true, isPinned: false, cities: unpinCity(city.id) };
   }
   return pinCity(city);
 }
