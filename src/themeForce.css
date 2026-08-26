@@ -77,3 +77,55 @@ main .tg-widget-surface.tg-widget-dark {
 .tg-site-footer .tg-footer-brand-accent {
   color: #22d3ee !important;
 }
+
+/* Footer headings + social brand buttons */
+.tg-site-footer .tg-footer-heading {
+  color: #f8fafc !important;
+  font-weight: 800 !important;
+  font-size: 13px !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+  margin-bottom: 0.75rem !important;
+  font-family: Inter, "Segoe UI", system-ui, sans-serif !important;
+}
+.tg-site-footer .tg-footer-heading--sub {
+  margin-top: 1.25rem !important;
+}
+.tg-site-footer .tg-footer-heading--hero {
+  font-size: 16px !important;
+  letter-spacing: -0.01em !important;
+  text-transform: none !important;
+  font-weight: 800 !important;
+  color: #f8fafc !important;
+  margin-bottom: 0.5rem !important;
+}
+.tg-site-footer .tg-social-btn {
+  width: 2.25rem !important;
+  height: 2.25rem !important;
+  border-radius: 0.65rem !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  color: #fff !important;
+  transition: transform 0.15s ease, filter 0.15s ease, background-color 0.15s ease !important;
+  border: 1px solid transparent !important;
+}
+.tg-site-footer .tg-social-btn:hover {
+  transform: translateY(-2px) scale(1.05);
+  filter: brightness(1.12);
+}
+.tg-site-footer .tg-social-facebook { background: #1877F2 !important; }
+.tg-site-footer .tg-social-x { background: #0f1419 !important; border-color: #334155 !important; }
+.tg-site-footer .tg-social-linkedin { background: #0A66C2 !important; }
+.tg-site-footer .tg-social-instagram {
+  background: linear-gradient(135deg, #f58529, #dd2a7b 50%, #8134af) !important;
+}
+.tg-site-footer .tg-social-youtube { background: #FF0000 !important; }
+.tg-site-footer .tg-social-btn--muted {
+  opacity: 0.55;
+  filter: grayscale(0.35);
+}
+.tg-site-footer .tg-social-btn--muted:hover {
+  opacity: 0.85;
+  filter: none;
+}
