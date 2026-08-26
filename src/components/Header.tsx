@@ -133,14 +133,14 @@ export const Header: React.FC<HeaderProps> = ({
   const primaryCityOffset = getTimezoneOffsetInfo(now, activePrimaryCity.timezone);
 
   const iconBtn =
-    'inline-flex items-center justify-center h-8 w-8 rounded-lg border border-slate-600/80 bg-slate-800/80 text-slate-200 hover:bg-slate-700 hover:text-white transition-colors cursor-pointer';
+    'inline-flex items-center justify-center h-8 w-8 rounded-lg border border-slate-700/80 bg-slate-800/60 text-slate-300 hover:bg-indigo-500/20 hover:border-indigo-400/40 hover:text-white transition-colors cursor-pointer';
 
   return (
-    <header className="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-40 shadow-lg">
-      <div className="border-b border-slate-800/80 bg-slate-950/80">
+    <header className="bg-slate-900/95 text-white border-b border-slate-700/60 sticky top-0 z-40 shadow-md backdrop-blur-md">
+      <div className="border-b border-slate-700/50 bg-slate-900/80">
         <div className="max-w-7xl mx-auto px-3 sm:px-4 h-9 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2 min-w-0">
-            <div className="flex items-center gap-1.5 font-mono text-[11px] text-emerald-400 bg-slate-900 px-2 py-0.5 rounded border border-emerald-500/30 shrink-0">
+            <div className="flex items-center gap-1.5 font-mono text-[11px] text-emerald-400 bg-slate-800/80 px-2 py-0.5 rounded-md border border-emerald-500/25 shrink-0">
               <Clock className="w-3 h-3" />
               <span className="font-semibold tabular-nums">{utcTime || '--:--:-- UTC'}</span>
             </div>
@@ -150,11 +150,11 @@ export const Header: React.FC<HeaderProps> = ({
                 setShowSearchDropdown(true);
                 searchInputRef.current?.focus();
               }}
-              className="hidden sm:flex items-center gap-1.5 text-[11px] text-slate-300 hover:text-white px-2 py-0.5 rounded border border-slate-700 bg-slate-900 max-w-[220px] cursor-pointer"
+              className="hidden sm:flex items-center gap-1.5 text-[11px] text-slate-300 hover:text-white px-2 py-0.5 rounded-md border border-slate-700/80 bg-slate-800/60 max-w-[220px] cursor-pointer"
             >
               <Star className="w-3 h-3 text-amber-400 fill-amber-400 shrink-0" />
               <span className="truncate font-medium">{activePrimaryCity.name}</span>
-              <span className="font-mono text-cyan-400 shrink-0">{primaryCityOffset.abbreviation}</span>
+              <span className="font-mono text-indigo-300 shrink-0">{primaryCityOffset.abbreviation}</span>
               <span className="font-mono text-slate-400 shrink-0 hidden md:inline">{primaryCityTime.timeStr}</span>
             </button>
           </div>
@@ -225,7 +225,7 @@ export const Header: React.FC<HeaderProps> = ({
                 window.location.hash = 'about';
                 window.dispatchEvent(new HashChangeEvent('hashchange'));
               }}
-              className="hidden sm:inline-flex items-center gap-1 h-8 px-2.5 rounded-lg border border-cyan-500/40 bg-cyan-500/15 text-cyan-300 text-[11px] font-bold hover:bg-cyan-500/25 cursor-pointer"
+              className="hidden sm:inline-flex items-center gap-1 h-8 px-2.5 rounded-lg border border-indigo-400/40 bg-indigo-500/15 text-indigo-200 text-[11px] font-bold hover:bg-indigo-500/25 cursor-pointer"
               title="Company hub"
               aria-label="Company hub"
             >
@@ -242,12 +242,12 @@ export const Header: React.FC<HeaderProps> = ({
           onClick={() => setActivePillar(1)}
           className="flex items-center gap-3 shrink-0 text-left cursor-pointer group"
         >
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-cyan-500 flex items-center justify-center shadow-md group-hover:scale-105 transition-transform">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-600 to-indigo-400 flex items-center justify-center shadow-md shadow-indigo-500/20 group-hover:scale-105 transition-transform">
             <Globe className="w-5 h-5 text-white" />
           </div>
           <div className="min-w-0">
             <div className="font-display font-bold text-lg leading-tight tracking-tight">
-              TimeGovern<span className="text-cyan-400">.com</span>
+              TimeGovern<span className="text-indigo-300">.com</span>
             </div>
             <p className="text-[11px] text-slate-400 leading-tight truncate">World clock, calendars & astronomy</p>
           </div>
@@ -267,12 +267,12 @@ export const Header: React.FC<HeaderProps> = ({
               onFocus={() => setShowSearchDropdown(true)}
               onKeyDown={onSearchKeyDown}
               placeholder="Search global city, country or timezone…"
-              className="w-full h-10 pl-10 pr-3 rounded-xl bg-slate-800 border border-slate-700 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50"
+              className="w-full h-10 pl-10 pr-3 rounded-lg bg-slate-800/80 border border-slate-700/80 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-400/50"
               aria-label="Search cities"
             />
           </div>
           {showSearchDropdown && (
-            <div className="absolute z-50 mt-1 w-full max-h-72 overflow-auto rounded-xl border border-slate-700 bg-slate-900 shadow-xl">
+            <div className="absolute z-50 mt-1 w-full max-h-72 overflow-auto rounded-lg border border-slate-700/80 bg-slate-900/95 shadow-xl backdrop-blur-sm">
               <div className="flex flex-wrap gap-1 p-2 border-b border-slate-800">
                 {(['all', 'pinned', ...REGION_CATEGORIES.map((r) => r.id)] as const).slice(0, 12).map((id) => (
                   <button
@@ -280,7 +280,7 @@ export const Header: React.FC<HeaderProps> = ({
                     type="button"
                     onClick={() => setSelectedRegion(id as CityRegion | 'pinned')}
                     className={`px-2 py-0.5 rounded text-[10px] font-semibold ${
-                      selectedRegion === id ? 'bg-cyan-600 text-white' : 'bg-slate-800 text-slate-300'
+                      selectedRegion === id ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-slate-300'
                     }`}
                   >
                     {id === 'all' ? 'All' : id === 'pinned' ? 'Pinned' : String(id)}
@@ -330,10 +330,10 @@ export const Header: React.FC<HeaderProps> = ({
               key={item.id}
               type="button"
               onClick={() => setActivePillar(item.id)}
-              className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-bold border transition-colors ${
+              className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold border transition-colors ${
                 active
-                  ? 'bg-cyan-500 text-slate-950 border-cyan-400'
-                  : 'bg-slate-900/80 text-slate-300 border-slate-700 hover:border-slate-500 hover:text-white'
+                  ? 'bg-indigo-500 text-white border-indigo-400 shadow-sm shadow-indigo-500/25'
+                  : 'bg-slate-800/50 text-slate-300 border-slate-700/80 hover:border-indigo-400/40 hover:text-white hover:bg-slate-800'
               }`}
             >
               <Icon className="w-3.5 h-3.5" />
