@@ -33,8 +33,6 @@ main .tg-widget-surface.tg-widget-dark {
 
 /*
  * Site footer — MUST override global #f8fafc text lock.
- * Light gray footer + inherited near-white text = unreadable (user screenshots).
- * Force a dark footer band with high-contrast link colours.
  */
 .tg-site-footer {
   background-color: #0f172a !important;
@@ -128,4 +126,19 @@ main .tg-widget-surface.tg-widget-dark {
 .tg-site-footer .tg-social-btn--muted:hover {
   opacity: 0.85;
   filter: none;
+}
+.tg-site-footer .tg-footer-svc-icon {
+  width: 1.35rem !important;
+  height: 1.35rem !important;
+  border-radius: 0.35rem !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: #1e293b !important;
+  color: #22d3ee !important;
+  flex-shrink: 0 !important;
+}
+.tg-site-footer .tg-footer-link:hover .tg-footer-svc-icon {
+  background: #0e7490 !important;
+  color: #ecfeff !important;
 }
