@@ -1,17 +1,17 @@
-/* TechFlux locks — dark product surface */
+/* Mosaic-inspired Step 1 — clean slate surface (features unchanged) */
 html, body, #root {
-  background-color: #05080f !important;
-  color: #f8fafc !important;
+  background-color: #0f172a !important;
+  color: #e2e8f0 !important;
 }
 #root > div {
   background-image: none !important;
   background-color: transparent !important;
 }
 main {
-  color: #f1f5f9 !important;
+  color: #e2e8f0 !important;
 }
 main a, main .text-blue-600 {
-  color: #60a5fa !important;
+  color: #818cf8 !important;
 }
 
 /* Widget embed surfaces — do not inherit page colour locks */
@@ -32,7 +32,7 @@ main .tg-widget-surface.tg-widget-dark {
 }
 
 /*
- * Site footer — MUST override global #f8fafc text lock.
+ * Site footer — MUST override global text lock.
  */
 .tg-site-footer {
   background-color: #0f172a !important;
@@ -59,7 +59,7 @@ main .tg-widget-surface.tg-widget-dark {
   padding: 0;
 }
 .tg-site-footer .tg-footer-link:hover {
-  color: #22d3ee !important;
+  color: #a5b4fc !important;
   text-decoration: underline;
 }
 .tg-site-footer .tg-footer-muted {
@@ -73,7 +73,7 @@ main .tg-widget-surface.tg-widget-dark {
   color: #f8fafc !important;
 }
 .tg-site-footer .tg-footer-brand-accent {
-  color: #22d3ee !important;
+  color: #a5b4fc !important;
 }
 
 /* Footer headings + social brand buttons */
@@ -135,10 +135,10 @@ main .tg-widget-surface.tg-widget-dark {
   align-items: center !important;
   justify-content: center !important;
   background: #1e293b !important;
-  color: #22d3ee !important;
+  color: #a5b4fc !important;
   flex-shrink: 0 !important;
 }
 .tg-site-footer .tg-footer-link:hover .tg-footer-svc-icon {
-  background: #0e7490 !important;
-  color: #ecfeff !important;
+  background: #4338ca !important;
+  color: #eef2ff !important;
 }
