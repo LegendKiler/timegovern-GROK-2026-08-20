@@ -173,13 +173,21 @@ export const CompanyPillar: React.FC<CompanyPillarProps> = ({ onNavigatePillar }
 
   return (
     <div id="company-hub" className="space-y-6">
-      <div className="rounded-2xl border-2 border-cyan-500/30 bg-slate-950 p-4">
-        <p className="text-[10px] font-bold uppercase tracking-wider text-cyan-400 mb-2">Company hub</p>
+      <div className="rounded-2xl border-2 border-cyan-500/30 bg-gradient-to-br from-slate-950 via-slate-950 to-cyan-950/20 p-4 sm:p-5 shadow-lg shadow-cyan-950/20">
+        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2 mb-3">
+          <div>
+            <p className="text-[10px] font-extrabold uppercase tracking-[0.14em] text-cyan-400">Company hub</p>
+            <h2 className="text-lg sm:text-xl font-extrabold text-white tracking-tight mt-0.5">About, contact, legal & more</h2>
+            <p className="text-[11px] text-slate-400 mt-1">Melbourne-based · policies, newsletters, and how to reach us</p>
+          </div>
+        </div>
         <div role="tablist" className="flex flex-wrap gap-2">
           {tabs.map((t) => (
             <button key={t.id} type="button" role="tab" aria-selected={tab === t.id} onClick={() => setTab(t.id)}
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border ${
-                tab === t.id ? 'bg-cyan-500 text-slate-950 border-cyan-400' : 'bg-slate-900 text-slate-200 border-slate-700'
+              className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-extrabold border transition-all ${
+                tab === t.id
+                  ? 'bg-cyan-500 text-slate-950 border-cyan-400 shadow-md shadow-cyan-500/25 scale-[1.02]'
+                  : 'bg-slate-900/90 text-slate-200 border-slate-700 hover:border-cyan-500/40 hover:text-white'
               }`}>
               {t.icon} {t.label}
             </button>
@@ -189,7 +197,7 @@ export const CompanyPillar: React.FC<CompanyPillarProps> = ({ onNavigatePillar }
 
       {tab === 'about' && (
         <div className="rounded-2xl border border-slate-700 bg-slate-950/80 p-5 space-y-4 text-sm text-slate-200">
-          <h2 className="text-xl font-bold text-white">{c.aboutUs.title}</h2>
+          <h2 className="text-xl font-extrabold text-white tracking-tight">{c.aboutUs.title}</h2>
           <p className="text-slate-300">{c.aboutUs.lead}</p>
           {c.aboutUs.paragraphs.map((p, i) => (
             <p key={i} className="text-xs text-slate-400 leading-relaxed">{p}</p>
@@ -317,7 +325,8 @@ export const CompanyPillar: React.FC<CompanyPillarProps> = ({ onNavigatePillar }
 
       {tab === 'trust' && (
         <div className="rounded-2xl border border-slate-700 bg-slate-950/80 p-5 space-y-3 text-sm text-slate-200">
-          <h3 className="font-bold text-white text-lg flex items-center gap-2"><Shield className="w-5 h-5 text-cyan-400" /> Trust Centre</h3>
+          <h3 className="font-extrabold text-white text-lg flex items-center gap-2"><Shield className="w-5 h-5 text-cyan-400" /> Trust Centre</h3>
+          <p className="text-xs text-slate-400">Security posture, contacts, and how we handle trust.</p>
           <ul className="space-y-2 text-xs text-slate-300">
             {(L.trustCentre?.points || []).map((pt) => (
               <li key={pt.title}><strong className="text-cyan-300">{pt.title}:</strong> {pt.text}</li>
@@ -328,24 +337,40 @@ export const CompanyPillar: React.FC<CompanyPillarProps> = ({ onNavigatePillar }
       )}
 
       {tab === 'legal' && (
-        <div className="rounded-2xl border border-slate-700 bg-slate-950/80 p-5 space-y-3 text-sm">
-          <h3 className="font-bold text-white text-lg flex items-center gap-2"><Scale className="w-5 h-5 text-cyan-400" /> Legal</h3>
-          <div className="flex flex-wrap gap-2">
+        <div className="rounded-2xl border border-slate-700 bg-slate-950/80 p-5 space-y-4 text-sm">
+          <div>
+            <h3 className="font-extrabold text-white text-lg flex items-center gap-2">
+              <Scale className="w-5 h-5 text-cyan-400" /> Legal
+            </h3>
+            <p className="text-xs text-slate-400 mt-1">Choose a document. Full policy text appears below — same style as professional site policies.</p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
             {([
-              { id: 'privacy' as const, label: 'Privacy Policy' },
-              { id: 'terms' as const, label: 'Terms & Conditions' },
-              { id: 'disclaimer' as const, label: 'Disclaimer' },
-              { id: 'linkpolicy' as const, label: 'Link policy' },
-              { id: 'ads' as const, label: 'Advertising' },
-              { id: 'cookies' as const, label: 'Cookies' },
+              { id: 'privacy' as const, label: 'Privacy Policy', blurb: 'Personal data & your rights' },
+              { id: 'terms' as const, label: 'Terms & Conditions', blurb: 'Rules for using the site' },
+              { id: 'disclaimer' as const, label: 'Disclaimer', blurb: 'Limits on reliance on data' },
+              { id: 'linkpolicy' as const, label: 'Link policy', blurb: 'Linking to and from us' },
+              { id: 'ads' as const, label: 'Advertising', blurb: 'Ad standards on TimeGovern' },
+              { id: 'cookies' as const, label: 'Cookies', blurb: 'Storage & preferences' },
             ]).map((x) => (
-              <button key={x.id} type="button" onClick={() => setLegalSection(x.id)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold border ${
-                  legalSection === x.id ? 'bg-cyan-500 text-slate-950 border-cyan-400' : 'bg-slate-900 text-slate-200 border-slate-600'
-                }`}>{x.label}</button>
+              <button
+                key={x.id}
+                type="button"
+                onClick={() => setLegalSection(x.id)}
+                className={`text-left rounded-xl border p-3 transition-all ${
+                  legalSection === x.id
+                    ? 'bg-cyan-500/15 border-cyan-400 shadow-md shadow-cyan-950/30'
+                    : 'bg-slate-900 border-slate-600 hover:border-cyan-500/40'
+                }`}
+              >
+                <span className={`block text-xs font-extrabold ${legalSection === x.id ? 'text-cyan-300' : 'text-white'}`}>{x.label}</span>
+                <span className="block text-[11px] text-slate-400 mt-0.5">{x.blurb}</span>
+              </button>
             ))}
           </div>
-          <div className="pt-2">{renderLegalDoc()}</div>
+          <div className="rounded-xl border border-slate-600 bg-slate-900/80 p-4">
+            {renderLegalDoc()}
+          </div>
         </div>
       )}
 
