@@ -7,6 +7,7 @@ import { companyContent } from '../content/companyContent';
 import { legalContent } from '../content/legalContent';
 import { buildNewsletterEmail } from '../content/emailTemplates';
 import { ExperienceFeedbackPanel } from './ExperienceFeedbackPanel';
+import { SiteMapPanel } from './SiteMapPanel';
 
 interface CompanyPillarProps {
   onNavigatePillar?: (pillar: number) => void;
@@ -302,19 +303,14 @@ export const CompanyPillar: React.FC<CompanyPillarProps> = ({ onNavigatePillar }
       )}
 
       {tab === 'sitemap' && (
-        <div className="rounded-2xl border border-slate-700 bg-slate-950/80 p-5 space-y-3 text-sm">
-          <h3 className="text-lg font-bold text-white flex items-center gap-2"><Globe className="w-5 h-5 text-cyan-400" /> Sitemap</h3>
-          <div className="grid sm:grid-cols-2 gap-3 text-xs">
-            {[
-              { label: 'World Clock', p: 1 }, { label: 'Calendar', p: 2 }, { label: 'Sun & Moon', p: 3 },
-              { label: 'Weather', p: 4 }, { label: 'Timers', p: 5 }, { label: 'Widgets', p: 7 },
-              { label: 'News', p: 9 }, { label: 'Calculators', p: 10 }, { label: 'Company hub', p: 11 },
-            ].map((x) => (
-              <button key={x.label} type="button" className="text-left px-3 py-2 rounded-lg border border-slate-700 hover:border-cyan-500/50 text-slate-200"
-                onClick={() => onNavigatePillar?.(x.p)}>{x.label}</button>
-            ))}
-          </div>
-        </div>
+        <SiteMapPanel
+          onNavigatePillar={onNavigatePillar}
+          onOpenTab={setTab}
+          onOpenLegal={(section) => {
+            setTab('legal');
+            setLegalSection(section);
+          }}
+        />
       )}
 
       {tab === 'feedback' && <ExperienceFeedbackPanel />}
