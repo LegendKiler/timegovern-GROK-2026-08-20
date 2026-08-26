@@ -12,6 +12,15 @@ import {
   Globe,
   X,
   Send,
+  Clock,
+  Calendar,
+  Sun,
+  Cloud,
+  Timer,
+  LayoutGrid,
+  Newspaper,
+  Calculator,
+  Code2,
 } from 'lucide-react';
 import { companyContent, companyMailto } from '../content/companyContent';
 import { submitExperienceFeedback, type ExperienceVote } from '../lib/experienceFeedback';
@@ -28,8 +37,7 @@ type Props = {
 
 /**
  * Footer colours locked in themeForce.css (.tg-site-footer*).
- * Legal links open Company → Legal with the correct document (not mixed modals).
- * Services switch pillars. Account / Supporter stay modals.
+ * Legal → Company Legal docs. Services → pillars with icons. Account/Supporter → modals.
  */
 export const SiteFooter: React.FC<Props> = ({
   onNavigatePillar,
@@ -188,7 +196,7 @@ export const SiteFooter: React.FC<Props> = ({
                     Browse our site <span className="tg-footer-strong">advert free</span>.
                   </li>
                   <li>
-                    Sun & Moon times <span className="tg-footer-strong">precise to the second</span>.
+                    Sun &amp; Moon times <span className="tg-footer-strong">precise to the second</span>.
                   </li>
                   <li>
                     <span className="tg-footer-strong">Exclusive calendar templates</span> for PDF Calendar.
@@ -261,7 +269,7 @@ export const SiteFooter: React.FC<Props> = ({
                   <li><button type="button" className="tg-footer-link" onClick={() => goCompany('link-policy')}>Link policy</button></li>
                   <li><button type="button" className="tg-footer-link" onClick={() => goCompany('advertise')}>Advertising</button></li>
                   <li><button type="button" className="tg-footer-link" onClick={() => goCompany('disclaimer')}>Disclaimer</button></li>
-                  <li><button type="button" className="tg-footer-link" onClick={() => goCompany('terms')}>Terms & Conditions</button></li>
+                  <li><button type="button" className="tg-footer-link" onClick={() => goCompany('terms')}>Terms &amp; Conditions</button></li>
                   <li><button type="button" className="tg-footer-link" onClick={() => goCompany('privacy')}>Privacy Policy</button></li>
                   <li><button type="button" className="tg-footer-link" onClick={() => goCompany('privacy-settings')}>Privacy Settings</button></li>
                   <li><button type="button" className="tg-footer-link" onClick={() => goCompany('trust')}>Trust Centre</button></li>
@@ -270,17 +278,34 @@ export const SiteFooter: React.FC<Props> = ({
 
               <div>
                 <h3 className="tg-footer-heading">Services</h3>
-                <ul className="space-y-1.5">
-                  <li><button type="button" className="tg-footer-link" onClick={() => onNavigatePillar(1)}>World Clock</button></li>
-                  <li><button type="button" className="tg-footer-link" onClick={() => onNavigatePillar(1)}>Time Zones</button></li>
-                  <li><button type="button" className="tg-footer-link" onClick={() => onNavigatePillar(2)}>Calendar</button></li>
-                  <li><button type="button" className="tg-footer-link" onClick={() => onNavigatePillar(4)}>Weather</button></li>
-                  <li><button type="button" className="tg-footer-link" onClick={() => onNavigatePillar(3)}>Sun & Moon</button></li>
-                  <li><button type="button" className="tg-footer-link" onClick={() => onNavigatePillar(5)}>Timers</button></li>
-                  <li><button type="button" className="tg-footer-link" onClick={() => onNavigatePillar(10)}>Calculators</button></li>
-                  <li><button type="button" className="tg-footer-link" onClick={() => onNavigatePillar(9)}>News</button></li>
-                  <li><button type="button" className="tg-footer-link" onClick={() => onNavigatePillar(7)}>Widgets</button></li>
-                  <li><button type="button" className="tg-footer-link" onClick={() => goCompany('api')}>API</button></li>
+                <ul className="space-y-1">
+                  {(
+                    [
+                      { label: 'World Clock', p: 1 as number | null, hash: null as string | null, Icon: Clock },
+                      { label: 'Time Zones', p: 1, hash: null, Icon: Globe },
+                      { label: 'Calendar', p: 2, hash: null, Icon: Calendar },
+                      { label: 'Sun & Moon', p: 3, hash: null, Icon: Sun },
+                      { label: 'Weather', p: 4, hash: null, Icon: Cloud },
+                      { label: 'Timers', p: 5, hash: null, Icon: Timer },
+                      { label: 'Calculators', p: 10, hash: null, Icon: Calculator },
+                      { label: 'News', p: 9, hash: null, Icon: Newspaper },
+                      { label: 'Widgets', p: 7, hash: null, Icon: LayoutGrid },
+                      { label: 'API', p: null, hash: 'api', Icon: Code2 },
+                    ] as const
+                  ).map(({ label, p, hash, Icon }) => (
+                    <li key={label}>
+                      <button
+                        type="button"
+                        className="tg-footer-link inline-flex items-center gap-2 py-0.5"
+                        onClick={() => (hash ? goCompany(hash) : p != null && onNavigatePillar(p))}
+                      >
+                        <span className="tg-footer-svc-icon" aria-hidden>
+                          <Icon className="w-3.5 h-3.5" />
+                        </span>
+                        {label}
+                      </button>
+                    </li>
+                  ))}
                 </ul>
               </div>
             </div>
