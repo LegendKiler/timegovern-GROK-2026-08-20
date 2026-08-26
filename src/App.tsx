@@ -1,12 +1,28 @@
 import React, { useState, useEffect, Suspense, lazy } from 'react';
+import { fetchBillingStatus } from './lib/billing';
 import { Header } from './components/Header';
-import { SiteFooter } from './components/SiteFooter';
 import { AdBanner } from './components/AdBanner';
-import { AdSenseLoader } from './components/AdSenseLoader';
+import { AdSenseLoader } from './components/ads/AdSenseLoader';
 import { ShortcutToast } from './components/ShortcutToast';
+import { PillarLoader } from './components/PillarLoader';
 import { useGlobalShortcuts } from './hooks/useGlobalShortcuts';
-import type { City } from './types';
-import { Eye, EyeOff } from 'lucide-react';
+import { City } from './types';
+import { Globe, Eye, EyeOff, Heart, Keyboard } from 'lucide-react';
+import { companyContent } from './content/companyContent';
+import { PillarErrorBoundary } from './components/PillarErrorBoundary';
+import { SiteFooter } from './components/SiteFooter';
+
+const WorldClockPillar = lazy(() => import('./components/WorldClockPillar').then(m => ({ default: m.WorldClockPillar })));
+const CalendarPillar = lazy(() => import('./components/CalendarPillar').then(m => ({ default: m.CalendarPillar })));
+const AstronomyPillar = lazy(() => import('./components/AstronomyPillarLive').then(m => ({ default: m.AstronomyPillarLive })));
+const WeatherPillar = lazy(() => import('./components/WeatherPillar').then(m => ({ default: m.WeatherPillar })));
+const TimersPillar = lazy(() => import('./components/TimersPillar').then(m => ({ default: m.TimersPillar })));
+const WorldometersPillar = lazy(() => import('./components/WorldometersPillar').then(m => ({ default: m.WorldometersPillar })));
+const WidgetsPillar = lazy(() => import('./components/WidgetsPillar').then(m => ({ default: m.WidgetsPillar })));
+const ApiPillar = lazy(() => import('./components/ApiPillar').then(m => ({ default: m.ApiPillar })));
+const NewsPillar = lazy(() => import('./components/NewsPillar').then(m => ({ default: m.NewsPillar })));
+const CalculatorsPillar = lazy(() => import('./components/CalculatorsPillar').then(m => ({ default: m.CalculatorsPillar })));
+const CompanyPillar = lazy(() => import('./components/CompanyPillar').then(m => ({ default: m.CompanyPillar })));
 
 const ArchitectureModal = lazy(() => import('./components/ArchitectureModal').then(m => ({ default: m.ArchitectureModal })));
 const QrModal = lazy(() => import('./components/QrModal').then(m => ({ default: m.QrModal })));
@@ -14,30 +30,10 @@ const UserAccountModal = lazy(() => import('./components/UserAccountModal').then
 const SecurityTrustModal = lazy(() => import('./components/SecurityTrustModal').then(m => ({ default: m.SecurityTrustModal })));
 const KeyboardShortcutsModal = lazy(() => import('./components/KeyboardShortcutsModal').then(m => ({ default: m.KeyboardShortcutsModal })));
 
-const WorldClockPillar = lazy(() => import('./components/WorldClockPillar').then(m => ({ default: m.WorldClockPillar })));
-const CalendarPillar = lazy(() => import('./components/CalendarPillar').then(m => ({ default: m.CalendarPillar })));
-const AstronomyPillar = lazy(() => import('./components/AstronomyPillar').then(m => ({ default: m.AstronomyPillar })));
-const WeatherPillar = lazy(() => import('./components/WeatherPillar').then(m => ({ default: m.WeatherPillar })));
-const TimersPillar = lazy(() => import('./components/TimersPillar').then(m => ({ default: m.TimersPillar })));
-const LiveDataPillar = lazy(() => import('./components/LiveDataPillar').then(m => ({ default: m.LiveDataPillar })));
-const WidgetsPillar = lazy(() => import('./components/WidgetsPillar').then(m => ({ default: m.WidgetsPillar })));
-const ApiPillar = lazy(() => import('./components/ApiPillar').then(m => ({ default: m.ApiPillar })));
-const NewsPillar = lazy(() => import('./components/NewsPillar').then(m => ({ default: m.NewsPillar })));
-const CalculatorsPillar = lazy(() => import('./components/CalculatorsPillar').then(m => ({ default: m.CalculatorsPillar })));
-const CompanyPillar = lazy(() => import('./components/CompanyPillar').then(m => ({ default: m.CompanyPillar })));
-
-function PillarLoader({ pillarNumber, isDarkMode }: { pillarNumber: number; isDarkMode: boolean }) {
-  return (
-    <div className={`rounded-2xl border p-8 text-center text-sm ${isDarkMode ? 'border-slate-700 text-slate-400' : 'border-slate-200 text-slate-500'}`}>
-      Loading section {pillarNumber}…
-    </div>
-  );
-}
-
 export default function App() {
-  const [activePillar, setActivePillar] = useState(1);
-  const [primaryCity, setPrimaryCity] = useState<City | undefined>();
-  const [selectedCityFromSearch, setSelectedCityFromSearch] = useState<City | undefined>();
+  const [activePillar, setActivePillar] = useState<number>(1);
+  const [selectedCityFromSearch, setSelectedCityFromSearch] = useState<City | undefined>(undefined);
+  const [primaryCity, setPrimaryCity] = useState<City | undefined>(undefined);
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [showAds, setShowAds] = useState(false);
   const [isArchModalOpen, setIsArchModalOpen] = useState(false);
@@ -61,6 +57,10 @@ export default function App() {
       document.documentElement.classList.toggle('dark', isDarkMode);
     } catch { /* ignore */ }
   }, [isDarkMode]);
+
+  useEffect(() => {
+    fetchBillingStatus().catch(() => undefined);
+  }, []);
 
   const { lastFeedback: shortcutFeedback, isMac } = useGlobalShortcuts({
     onSelectPillar: (pillarIndex: number) => setActivePillar(pillarIndex),
@@ -124,7 +124,7 @@ export default function App() {
       >
         <div className="max-w-[1920px] mx-auto flex items-center justify-between gap-3 flex-wrap">
           <p className="text-[11px] opacity-80">
-            Precision time tools · Melbourne HQ · Not financial or legal advice
+            {companyContent.brandName}.com · Precision time tools · Melbourne HQ
           </p>
           <button
             type="button"
@@ -142,26 +142,28 @@ export default function App() {
       <main className="flex-1 w-full max-w-[1920px] mx-auto px-3 sm:px-4 py-4 flex gap-3">
         {showAds && <AdBanner type="skyscraper-left" />}
         <div className="flex-1 min-w-0">
-          <Suspense fallback={<PillarLoader pillarNumber={activePillar} isDarkMode={isDarkMode} />}>
-            {activePillar === 1 && (
-              <WorldClockPillar
-                isDarkMode={isDarkMode}
-                primaryCity={primaryCity}
-                selectedCityFromSearch={selectedCityFromSearch}
-                onPrimaryCityChange={setPrimaryCity}
-              />
-            )}
-            {activePillar === 2 && <CalendarPillar isDarkMode={isDarkMode} />}
-            {activePillar === 3 && <AstronomyPillar isDarkMode={isDarkMode} primaryCity={primaryCity} />}
-            {activePillar === 4 && <WeatherPillar isDarkMode={isDarkMode} primaryCity={primaryCity} />}
-            {activePillar === 5 && <TimersPillar isDarkMode={isDarkMode} />}
-            {activePillar === 6 && <LiveDataPillar isDarkMode={isDarkMode} />}
-            {activePillar === 7 && <WidgetsPillar isDarkMode={isDarkMode} />}
-            {activePillar === 8 && <ApiPillar isDarkMode={isDarkMode} />}
-            {activePillar === 9 && <NewsPillar isDarkMode={isDarkMode} />}
-            {activePillar === 10 && <CalculatorsPillar isDarkMode={isDarkMode} />}
-            {activePillar === 11 && <CompanyPillar onNavigatePillar={setActivePillar} />}
-          </Suspense>
+          <PillarErrorBoundary>
+            <Suspense fallback={<PillarLoader pillarNumber={activePillar} isDarkMode={isDarkMode} />}>
+              {activePillar === 1 && (
+                <WorldClockPillar
+                  isDarkMode={isDarkMode}
+                  primaryCity={primaryCity}
+                  selectedCityFromSearch={selectedCityFromSearch}
+                  onPrimaryCityChange={setPrimaryCity}
+                />
+              )}
+              {activePillar === 2 && <CalendarPillar isDarkMode={isDarkMode} />}
+              {activePillar === 3 && <AstronomyPillar isDarkMode={isDarkMode} primaryCity={primaryCity} />}
+              {activePillar === 4 && <WeatherPillar isDarkMode={isDarkMode} primaryCity={primaryCity} />}
+              {activePillar === 5 && <TimersPillar isDarkMode={isDarkMode} />}
+              {activePillar === 6 && <WorldometersPillar isDarkMode={isDarkMode} />}
+              {activePillar === 7 && <WidgetsPillar isDarkMode={isDarkMode} />}
+              {activePillar === 8 && <ApiPillar isDarkMode={isDarkMode} />}
+              {activePillar === 9 && <NewsPillar isDarkMode={isDarkMode} />}
+              {activePillar === 10 && <CalculatorsPillar isDarkMode={isDarkMode} />}
+              {activePillar === 11 && <CompanyPillar onNavigatePillar={setActivePillar} />}
+            </Suspense>
+          </PillarErrorBoundary>
         </div>
         {showAds && <AdBanner type="skyscraper-right" />}
       </main>
