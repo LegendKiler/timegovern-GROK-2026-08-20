@@ -13,6 +13,7 @@ interface CompanyPillarProps {
 }
 
 type HubTab = 'about' | 'contact' | 'newsletter' | 'podcast' | 'legal' | 'trust' | 'feedback' | 'sitemap' | 'careers';
+type LegalSection = 'privacy' | 'terms' | 'ads' | 'cookies' | 'disclaimer' | 'linkpolicy';
 
 export const CompanyPillar: React.FC<CompanyPillarProps> = ({ onNavigatePillar }) => {
   const c = companyContent;
@@ -32,7 +33,7 @@ export const CompanyPillar: React.FC<CompanyPillarProps> = ({ onNavigatePillar }
   const [newsletterSubmitting, setNewsletterSubmitting] = useState(false);
   const [newsletterSuccess, setNewsletterSuccess] = useState<string | null>(null);
   const [newsletterPreview, setNewsletterPreview] = useState<{ subject: string; text: string } | null>(null);
-  const [legalSection, setLegalSection] = useState<'privacy' | 'terms' | 'ads' | 'cookies'>('privacy');
+  const [legalSection, setLegalSection] = useState<LegalSection>('privacy');
 
   useEffect(() => {
     const applyHash = (raw: string) => {
@@ -41,9 +42,10 @@ export const CompanyPillar: React.FC<CompanyPillarProps> = ({ onNavigatePillar }
       const map: Record<string, HubTab> = {
         about: 'about', company: 'about', contact: 'contact', 'contact-details': 'contact',
         newsletter: 'newsletter', newsletters: 'newsletter', podcast: 'podcast',
-        legal: 'legal', terms: 'legal', disclaimer: 'legal', 'link-policy': 'legal',
-        advertising: 'legal', advertise: 'legal',
-        privacy: 'trust', trust: 'trust', 'privacy-settings': 'trust',
+        legal: 'legal', terms: 'legal', disclaimer: 'legal', 'link-policy': 'legal', linkpolicy: 'legal',
+        advertising: 'legal', advertise: 'legal', ads: 'legal',
+        privacy: 'legal', 'privacy-policy': 'legal',
+        trust: 'trust', 'privacy-settings': 'trust', cookies: 'legal',
         careers: 'careers', jobs: 'careers', sitemap: 'sitemap',
         api: 'about', feedback: 'feedback', experience: 'feedback',
       };
@@ -52,9 +54,13 @@ export const CompanyPillar: React.FC<CompanyPillarProps> = ({ onNavigatePillar }
       setTab(next);
       if (h === 'contact-details') setContactView('details');
       else if (h === 'contact') setContactView('form');
-      if (h === 'advertising' || h === 'advertise') setLegalSection('ads');
-      if (h === 'terms' || h === 'disclaimer' || h === 'link-policy') setLegalSection('terms');
-      if (h === 'privacy') setLegalSection('privacy');
+      if (h === 'advertising' || h === 'advertise' || h === 'ads') setLegalSection('ads');
+      else if (h === 'disclaimer') setLegalSection('disclaimer');
+      else if (h === 'link-policy' || h === 'linkpolicy') setLegalSection('linkpolicy');
+      else if (h === 'terms') setLegalSection('terms');
+      else if (h === 'privacy' || h === 'privacy-policy') setLegalSection('privacy');
+      else if (h === 'cookies') setLegalSection('cookies');
+      else if (h === 'legal') setLegalSection('privacy');
       window.setTimeout(() => {
         document.getElementById('company-hub')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }, 100);
@@ -136,6 +142,8 @@ export const CompanyPillar: React.FC<CompanyPillarProps> = ({ onNavigatePillar }
     if (legalSection === 'privacy') doc = L.privacyPolicy as Doc;
     else if (legalSection === 'terms') doc = L.termsOfUse as Doc;
     else if (legalSection === 'ads') doc = L.advertisingPolicy as Doc;
+    else if (legalSection === 'disclaimer') doc = (L as { disclaimer?: Doc }).disclaimer || null;
+    else if (legalSection === 'linkpolicy') doc = (L as { linkPolicy?: Doc }).linkPolicy || null;
     else if (legalSection === 'cookies') doc = (L as { cookieNotice?: Doc }).cookieNotice || null;
 
     if (!doc) {
@@ -270,10 +278,10 @@ export const CompanyPillar: React.FC<CompanyPillarProps> = ({ onNavigatePillar }
           <h3 className="font-bold text-white text-lg flex items-center gap-2"><Mic2 className="w-5 h-5 text-cyan-400" /> Podcast</h3>
           <p className="text-xs text-slate-400">Catalogue of time, calendar and sky topics (audio hosting can be connected later).</p>
           <ul className="space-y-2 text-xs">
-            {((c as { podcast?: { episodes?: { id: string; title: string; date?: string; description?: string }[] } }).podcast?.episodes || []).slice(0, 8).map((ep) => (
+            {((c as { podcast?: { episodes?: { id: string; title: string; date?: string; description?: string; summary?: string }[] } }).podcast?.episodes || []).slice(0, 12).map((ep) => (
               <li key={ep.id} className="rounded-lg border border-slate-700 p-2">
                 <p className="font-semibold text-white">{ep.title}</p>
-                <p className="text-slate-500">{ep.date} — {ep.description}</p>
+                <p className="text-slate-500">{ep.date} — {ep.summary || ep.description}</p>
               </li>
             ))}
           </ul>
@@ -330,6 +338,8 @@ export const CompanyPillar: React.FC<CompanyPillarProps> = ({ onNavigatePillar }
             {([
               { id: 'privacy' as const, label: 'Privacy Policy' },
               { id: 'terms' as const, label: 'Terms & Conditions' },
+              { id: 'disclaimer' as const, label: 'Disclaimer' },
+              { id: 'linkpolicy' as const, label: 'Link policy' },
               { id: 'ads' as const, label: 'Advertising' },
               { id: 'cookies' as const, label: 'Cookies' },
             ]).map((x) => (
@@ -347,3 +357,5 @@ export const CompanyPillar: React.FC<CompanyPillarProps> = ({ onNavigatePillar }
     </div>
   );
 };
+
+export default CompanyPillar;
