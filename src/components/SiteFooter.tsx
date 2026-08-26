@@ -27,14 +27,14 @@ type Props = {
 };
 
 /**
- * Footer colours are locked in themeForce.css (.tg-site-footer*) so global
- * `color: #f8fafc !important` cannot wash out links on a light band.
+ * Footer colours locked in themeForce.css (.tg-site-footer*).
+ * Legal links open Company → Legal with the correct document (not mixed modals).
+ * Services switch pillars. Account / Supporter stay modals.
  */
 export const SiteFooter: React.FC<Props> = ({
   onNavigatePillar,
   onOpenSupporter,
   onOpenAccount,
-  onOpenSecurity,
 }) => {
   const c = companyContent;
   const year = c.legal?.year ?? new Date().getFullYear();
@@ -87,7 +87,6 @@ export const SiteFooter: React.FC<Props> = ({
 
   return (
     <footer className="tg-site-footer w-full mt-auto font-sans">
-      {/* Experience bar */}
       <div className="bg-slate-950 text-slate-100 text-[13px] border-b border-slate-700">
         <div className="max-w-[1200px] mx-auto px-4 py-2.5 flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-3 flex-wrap">
@@ -172,7 +171,6 @@ export const SiteFooter: React.FC<Props> = ({
         </div>
       )}
 
-      {/* Main footer — dark band; classes locked in themeForce.css */}
       <div className="tg-footer-body">
         <div className="max-w-[1200px] mx-auto px-4 py-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-6">
@@ -184,13 +182,13 @@ export const SiteFooter: React.FC<Props> = ({
                 <Heart className="w-7 h-7 text-white fill-white" />
               </div>
               <div className="min-w-0">
-                <h2 className="tg-footer-title text-[15px] mb-2">Love Our Site? Become a Supporter</h2>
+                <h2 className="tg-footer-heading tg-footer-heading--hero">Love Our Site? Become a Supporter</h2>
                 <ul className="space-y-1.5 text-[13px] list-disc pl-4">
                   <li>
                     Browse our site <span className="tg-footer-strong">advert free</span>.
                   </li>
                   <li>
-                    Sun &amp; Moon times <span className="tg-footer-strong">precise to the second</span>.
+                    Sun & Moon times <span className="tg-footer-strong">precise to the second</span>.
                   </li>
                   <li>
                     <span className="tg-footer-strong">Exclusive calendar templates</span> for PDF Calendar.
@@ -211,7 +209,7 @@ export const SiteFooter: React.FC<Props> = ({
 
             <div className="lg:col-span-8 grid grid-cols-2 sm:grid-cols-3 gap-6">
               <div>
-                <h3 className="tg-footer-title text-[12px] uppercase tracking-wide mb-2.5">Company</h3>
+                <h3 className="tg-footer-heading">Company</h3>
                 <ul className="space-y-1.5">
                   <li><button type="button" className="tg-footer-link" onClick={() => goCompany('about')}>About us</button></li>
                   <li><button type="button" className="tg-footer-link" onClick={() => goCompany('careers')}>Careers/Jobs</button></li>
@@ -222,17 +220,17 @@ export const SiteFooter: React.FC<Props> = ({
                   <li><button type="button" className="tg-footer-link" onClick={() => goCompany('feedback')}>Feedback wall</button></li>
                   <li><button type="button" className="tg-footer-link" onClick={onOpenAccount}>Free account</button></li>
                 </ul>
-                <h3 className="tg-footer-title text-[12px] uppercase tracking-wide mt-5 mb-2.5">Follow Us</h3>
+                <h3 className="tg-footer-heading tg-footer-heading--sub">Follow Us</h3>
                 <div className="flex flex-wrap gap-2">
                   {(
                     [
-                      { href: c.social.facebook, Icon: Facebook, label: 'Facebook' },
-                      { href: c.social.twitter, Icon: Twitter, label: 'X' },
-                      { href: c.social.linkedin, Icon: Linkedin, label: 'LinkedIn' },
-                      { href: (c.social as { instagram?: string }).instagram || '', Icon: Instagram, label: 'Instagram' },
-                      { href: c.social.youtube, Icon: Youtube, label: 'YouTube' },
+                      { href: c.social.facebook, Icon: Facebook, label: 'Facebook', tone: 'tg-social-facebook' },
+                      { href: c.social.twitter, Icon: Twitter, label: 'X', tone: 'tg-social-x' },
+                      { href: c.social.linkedin, Icon: Linkedin, label: 'LinkedIn', tone: 'tg-social-linkedin' },
+                      { href: (c.social as { instagram?: string }).instagram || '', Icon: Instagram, label: 'Instagram', tone: 'tg-social-instagram' },
+                      { href: c.social.youtube, Icon: Youtube, label: 'YouTube', tone: 'tg-social-youtube' },
                     ] as const
-                  ).map(({ href, Icon, label }) =>
+                  ).map(({ href, Icon, label, tone }) =>
                     href ? (
                       <a
                         key={label}
@@ -240,17 +238,17 @@ export const SiteFooter: React.FC<Props> = ({
                         target="_blank"
                         rel="noopener noreferrer"
                         aria-label={label}
-                        className="w-8 h-8 rounded-lg bg-slate-700 text-white flex items-center justify-center hover:bg-cyan-600"
+                        className={`tg-social-btn ${tone}`}
                       >
-                        <Icon className="w-3.5 h-3.5" />
+                        <Icon className="w-4 h-4" strokeWidth={2.25} />
                       </a>
                     ) : (
                       <span
                         key={label}
                         title={`${label} — add URL in companyContent`}
-                        className="w-8 h-8 rounded-lg bg-slate-700 text-slate-400 flex items-center justify-center"
+                        className={`tg-social-btn tg-social-btn--muted ${tone}`}
                       >
-                        <Icon className="w-3.5 h-3.5" />
+                        <Icon className="w-4 h-4" strokeWidth={2.25} />
                       </span>
                     )
                   )}
@@ -258,26 +256,26 @@ export const SiteFooter: React.FC<Props> = ({
               </div>
 
               <div>
-                <h3 className="tg-footer-title text-[12px] uppercase tracking-wide mb-2.5">Legal</h3>
+                <h3 className="tg-footer-heading">Legal</h3>
                 <ul className="space-y-1.5">
-                  <li><button type="button" className="tg-footer-link" onClick={() => goCompany('legal')}>Link policy</button></li>
+                  <li><button type="button" className="tg-footer-link" onClick={() => goCompany('link-policy')}>Link policy</button></li>
                   <li><button type="button" className="tg-footer-link" onClick={() => goCompany('advertise')}>Advertising</button></li>
-                  <li><button type="button" className="tg-footer-link" onClick={() => goCompany('legal')}>Disclaimer</button></li>
-                  <li><button type="button" className="tg-footer-link" onClick={() => goCompany('terms')}>Terms &amp; Conditions</button></li>
-                  <li><button type="button" className="tg-footer-link" onClick={onOpenSecurity}>Privacy Policy</button></li>
-                  <li><button type="button" className="tg-footer-link" onClick={() => goCompany('trust')}>Privacy Settings</button></li>
+                  <li><button type="button" className="tg-footer-link" onClick={() => goCompany('disclaimer')}>Disclaimer</button></li>
+                  <li><button type="button" className="tg-footer-link" onClick={() => goCompany('terms')}>Terms & Conditions</button></li>
+                  <li><button type="button" className="tg-footer-link" onClick={() => goCompany('privacy')}>Privacy Policy</button></li>
+                  <li><button type="button" className="tg-footer-link" onClick={() => goCompany('privacy-settings')}>Privacy Settings</button></li>
                   <li><button type="button" className="tg-footer-link" onClick={() => goCompany('trust')}>Trust Centre</button></li>
                 </ul>
               </div>
 
               <div>
-                <h3 className="tg-footer-title text-[12px] uppercase tracking-wide mb-2.5">Services</h3>
+                <h3 className="tg-footer-heading">Services</h3>
                 <ul className="space-y-1.5">
                   <li><button type="button" className="tg-footer-link" onClick={() => onNavigatePillar(1)}>World Clock</button></li>
                   <li><button type="button" className="tg-footer-link" onClick={() => onNavigatePillar(1)}>Time Zones</button></li>
                   <li><button type="button" className="tg-footer-link" onClick={() => onNavigatePillar(2)}>Calendar</button></li>
                   <li><button type="button" className="tg-footer-link" onClick={() => onNavigatePillar(4)}>Weather</button></li>
-                  <li><button type="button" className="tg-footer-link" onClick={() => onNavigatePillar(3)}>Sun &amp; Moon</button></li>
+                  <li><button type="button" className="tg-footer-link" onClick={() => onNavigatePillar(3)}>Sun & Moon</button></li>
                   <li><button type="button" className="tg-footer-link" onClick={() => onNavigatePillar(5)}>Timers</button></li>
                   <li><button type="button" className="tg-footer-link" onClick={() => onNavigatePillar(10)}>Calculators</button></li>
                   <li><button type="button" className="tg-footer-link" onClick={() => onNavigatePillar(9)}>News</button></li>
