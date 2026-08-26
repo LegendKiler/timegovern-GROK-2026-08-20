@@ -3,28 +3,29 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 /*
-  TIMEGOVERN — TechFlux (Canva-inspired)
-  Black + blue glass · bold hero · gradient cards
-  Features unchanged
+  TIMEGOVERN — Mosaic-inspired skin Step 1
+  Slate canvas · indigo accent · calmer panels
+  Features unchanged — CSS tokens only
 */
 :root {
-  --tf-bg: #05080f;
-  --tf-bg-2: #0a1220;
-  --tf-panel: rgba(15, 23, 42, 0.72);
-  --tf-panel-solid: #0f172a;
-  --tf-glass: rgba(255, 255, 255, 0.06);
-  --tf-border: rgba(96, 165, 250, 0.28);
-  --tf-text: #f8fafc;
+  /* Mosaic-inspired tokens — Step 1 (skin only) */
+  --tf-bg: #0f172a;
+  --tf-bg-2: #1e293b;
+  --tf-panel: rgba(30, 41, 59, 0.92);
+  --tf-panel-solid: #1e293b;
+  --tf-glass: rgba(255, 255, 255, 0.04);
+  --tf-border: rgba(148, 163, 184, 0.22);
+  --tf-text: #e2e8f0;
   --tf-muted: #94a3b8;
-  --tf-blue: #2563eb;
-  --tf-blue-bright: #3b82f6;
-  --tf-cyan: #22d3ee;
-  --tf-grad-from: #1e3a8a;
-  --tf-grad-to: #38bdf8;
+  --tf-blue: #4f46e5;
+  --tf-blue-bright: #6366f1;
+  --tf-cyan: #818cf8;
+  --tf-grad-from: #312e81;
+  --tf-grad-to: #6366f1;
   --font-sans: Inter, "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
-  --tf-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.55);
-  --tf-glow: 0 0 60px rgba(37, 99, 235, 0.35);
+  --tf-shadow: 0 10px 40px -12px rgba(0, 0, 0, 0.45);
+  --tf-glow: 0 0 40px rgba(99, 102, 241, 0.25);
 }
 
 html {
@@ -45,10 +46,9 @@ body {
   line-height: 1.5;
   margin: 0;
   background:
-    radial-gradient(900px 500px at 85% 15%, rgba(56, 189, 248, 0.22), transparent 55%),
-    radial-gradient(700px 400px at 10% 80%, rgba(37, 99, 235, 0.2), transparent 50%),
-    radial-gradient(600px 300px at 50% 0%, rgba(30, 58, 138, 0.45), transparent 40%),
-    linear-gradient(165deg, #05080f 0%, #0a1628 45%, #05080f 100%) !important;
+    radial-gradient(800px 420px at 90% 10%, rgba(99, 102, 241, 0.12), transparent 55%),
+    radial-gradient(600px 360px at 5% 90%, rgba(79, 70, 229, 0.08), transparent 50%),
+    linear-gradient(180deg, #0f172a 0%, #1e293b 50%, #0f172a 100%) !important;
   background-attachment: fixed !important;
 }
 
@@ -68,26 +68,26 @@ button, input, select, textarea { font-family: inherit; }
 .no-scrollbar::-webkit-scrollbar { display: none; }
 
 .tf-glass {
-  background: linear-gradient(145deg, rgba(30, 58, 138, 0.55) 0%, rgba(15, 23, 42, 0.75) 50%, rgba(8, 15, 30, 0.85) 100%);
-  border: 1px solid rgba(147, 197, 253, 0.25);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-radius: 1.5rem;
-  box-shadow: var(--tf-shadow), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  background: rgba(30, 41, 59, 0.9);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: 0.75rem;
+  box-shadow: var(--tf-shadow), inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
 .tf-card {
-  background: linear-gradient(180deg, #1e3a8a 0%, #1d4ed8 40%, #38bdf8 100%);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 1.25rem;
+  background: linear-gradient(145deg, #312e81 0%, #4f46e5 55%, #6366f1 100%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.75rem;
   color: #fff;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.3);
 }
 
 .tf-panel {
-  background: rgba(15, 23, 42, 0.85);
-  border: 1px solid rgba(59, 130, 246, 0.22);
-  border-radius: 1rem;
+  background: rgba(30, 41, 59, 0.95);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  border-radius: 0.75rem;
   box-shadow: var(--tf-shadow);
   color: var(--tf-text);
 }
@@ -100,16 +100,16 @@ button, input, select, textarea { font-family: inherit; }
   border-radius: 0.5rem;
   font-weight: 700;
   font-size: 0.75rem;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  background: #2563eb;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  background: #4f46e5;
   color: #fff;
   border: none;
-  box-shadow: 0 8px 24px rgba(37, 99, 235, 0.4);
+  box-shadow: 0 6px 16px rgba(79, 70, 229, 0.35);
   transition: background 0.15s, transform 0.15s;
 }
 .tf-btn:hover {
-  background: #1d4ed8;
+  background: #4338ca;
   transform: translateY(-1px);
 }
 
@@ -119,16 +119,16 @@ button, input, select, textarea { font-family: inherit; }
   font-size: clamp(2.75rem, 8vw, 4.5rem);
   line-height: 1;
   letter-spacing: -0.04em;
-  background: linear-gradient(135deg, #ffffff 0%, #93c5fd 50%, #22d3ee 100%);
+  background: linear-gradient(135deg, #ffffff 0%, #c7d2fe 45%, #818cf8 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
 }
 
 .tg-hero-panel {
-  background: linear-gradient(145deg, rgba(30, 64, 175, 0.5) 0%, rgba(15, 23, 42, 0.8) 55%, rgba(8, 12, 24, 0.9) 100%);
-  border: 1px solid rgba(147, 197, 253, 0.28);
-  border-radius: 1.5rem;
+  background: linear-gradient(145deg, rgba(49, 46, 129, 0.45) 0%, rgba(30, 41, 59, 0.9) 55%, rgba(15, 23, 42, 0.95) 100%);
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  border-radius: 0.75rem;
   box-shadow: var(--tf-glow), var(--tf-shadow);
   padding: 1.5rem;
 }
@@ -147,8 +147,8 @@ button, input, select, textarea { font-family: inherit; }
 }
 
 .tg-card-day {
-  background: linear-gradient(160deg, #1e3a8a 0%, #2563eb 50%, #38bdf8 100%);
-  border-color: rgba(147, 197, 253, 0.35) !important;
+  background: linear-gradient(160deg, #312e81 0%, #4f46e5 55%, #6366f1 100%);
+  border-color: rgba(165, 180, 252, 0.35) !important;
   color: #fff !important;
 }
 .tg-card-night {
@@ -157,12 +157,12 @@ button, input, select, textarea { font-family: inherit; }
   color: #e0e7ff !important;
 }
 
-main { color: #f1f5f9 !important; }
+main { color: #e2e8f0 !important; }
 main .bg-white,
 main [class*="bg-white"] {
-  background-color: rgba(15, 23, 42, 0.9) !important;
-  color: #f1f5f9 !important;
-  border-color: rgba(59, 130, 246, 0.25) !important;
+  background-color: rgba(30, 41, 59, 0.95) !important;
+  color: #e2e8f0 !important;
+  border-color: rgba(148, 163, 184, 0.2) !important;
 }
 main .text-slate-500,
 main .text-slate-600,
@@ -175,5 +175,5 @@ main .text-slate-800 {
 }
 main .border-slate-200,
 main .border-slate-100 {
-  border-color: rgba(59, 130, 246, 0.2) !important;
+  border-color: rgba(148, 163, 184, 0.2) !important;
 }
