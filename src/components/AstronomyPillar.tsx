@@ -181,7 +181,12 @@ export const AstronomyPillar: React.FC = () => {
             />
           )}
           {subTab === 'moon-calendar' && (
-            <LunarPhaseCalendar targetDate={safeDate(targetDate)} />
+            <LunarPhaseCalendar
+              selectedCity={city}
+              targetDate={safeDate(targetDate)}
+              onCityChange={onCityChange}
+              onDateChange={onDateChange}
+            />
           )}
           {subTab === 'leap-second' && <LeapSecondUtility />}
           {subTab === 'sun' && (
