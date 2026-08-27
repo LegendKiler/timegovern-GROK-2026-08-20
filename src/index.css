@@ -21,6 +21,7 @@
   --tf-grad-from: #312e81;
   --tf-grad-to: #6366f1;
   --font-sans: Inter, "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+  --font-display: "Space Grotesk", Inter, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
   --tf-shadow: 0 10px 40px -12px rgba(0, 0, 0, 0.45);
   --tf-glow: 0 0 40px rgba(99, 102, 241, 0.25);
@@ -45,156 +46,45 @@ body {
   margin: 0;
   background:
     radial-gradient(800px 420px at 90% 10%, rgba(99, 102, 241, 0.12), transparent 55%),
-    radial-gradient(600px 360px at 5% 90%, rgba(79, 70, 229, 0.08), transparent 50%),
-    linear-gradient(180deg, #0f172a 0%, #1e293b 50%, #0f172a 100%) !important;
-  background-attachment: fixed !important;
+    radial-gradient(600px 360px at 10% 80%, rgba(79, 70, 229, 0.08), transparent 50%),
+    var(--tf-bg) !important;
 }
 
-h1, h2, h3, h4, .font-display {
-  font-family: var(--font-sans) !important;
-  letter-spacing: -0.03em;
-  color: inherit;
-}
-
-.font-mono, .tabular-nums, .font-mono * {
-  font-family: var(--font-mono) !important;
-}
-
-button, input, select, textarea { font-family: inherit; }
-
-.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-.no-scrollbar::-webkit-scrollbar { display: none; }
-
-.tf-glass {
-  background: rgba(30, 41, 59, 0.9);
-  border: 1px solid rgba(148, 163, 184, 0.2);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-radius: 0.75rem;
-  box-shadow: var(--tf-shadow), inset 0 1px 0 rgba(255, 255, 255, 0.04);
-}
-
-.tf-card {
-  background: linear-gradient(145deg, #312e81 0%, #4f46e5 55%, #6366f1 100%);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 0.75rem;
-  color: #fff;
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.3);
-}
-
-.tf-panel {
-  background: rgba(30, 41, 59, 0.95);
-  border: 1px solid rgba(148, 163, 184, 0.18);
-  border-radius: 0.75rem;
+/* Cards / panels */
+.tg-panel {
+  background: var(--tf-panel);
+  border: 1px solid var(--tf-border);
+  border-radius: 1rem;
   box-shadow: var(--tf-shadow);
-  color: var(--tf-text);
 }
 
-.tf-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.65rem 1.35rem;
-  border-radius: 0.5rem;
-  font-weight: 700;
-  font-size: 0.75rem;
-  letter-spacing: 0.02em;
-  text-transform: none;
-  background: #4f46e5;
-  color: #fff;
-  border: none;
-  box-shadow: 0 6px 16px rgba(79, 70, 229, 0.35);
-  transition: background 0.15s, transform 0.15s;
-}
-.tf-btn:hover {
-  background: #4338ca;
-  transform: translateY(-1px);
-}
-
-.tg-hero-time {
-  font-family: var(--font-mono) !important;
-  font-weight: 800;
-  font-size: clamp(2.75rem, 8vw, 4.5rem);
-  line-height: 1;
-  letter-spacing: -0.04em;
-  background: linear-gradient(135deg, #ffffff 0%, #c7d2fe 45%, #818cf8 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
-
-.tg-hero-panel {
-  background: linear-gradient(145deg, rgba(49, 46, 129, 0.45) 0%, rgba(30, 41, 59, 0.9) 55%, rgba(15, 23, 42, 0.95) 100%);
-  border: 1px solid rgba(148, 163, 184, 0.22);
-  border-radius: 0.75rem;
-  box-shadow: var(--tf-glow), var(--tf-shadow);
-  padding: 1.5rem;
+/* LIVE pulse dot */
+.tg-live-dot {
+  width: 0.4rem;
+  height: 0.4rem;
+  border-radius: 9999px;
+  background: #34d399;
+  box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.5);
+  animation: tg-live-pulse 1.6s ease-out infinite;
 }
 
 @keyframes tg-live-pulse {
-  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.5); }
-  50% { opacity: 0.85; box-shadow: 0 0 0 8px rgba(34, 197, 94, 0); }
+  0% { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.45); }
+  70% { box-shadow: 0 0 0 8px rgba(52, 211, 153, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0); }
 }
-.tg-live-dot {
-  width: 8px; height: 8px; border-radius: 999px;
-  background: #22c55e;
-  animation: tg-live-pulse 1.6s ease-in-out infinite;
-}
+
 @media (prefers-reduced-motion: reduce) {
-  .tg-live-dot { animation: none; }
+  .tg-live-dot {
+    animation: none;
+  }
 }
 
-.tg-card-day {
-  background: linear-gradient(160deg, #312e81 0%, #4f46e5 55%, #6366f1 100%);
-  border-color: rgba(165, 180, 252, 0.35) !important;
-  color: #fff !important;
-}
-.tg-card-night {
-  background: linear-gradient(160deg, #0f172a 0%, #1e1b4b 50%, #312e81 100%);
-  border-color: rgba(129, 140, 248, 0.4) !important;
-  color: #e0e7ff !important;
+/* Main content readability helpers */
+main h1, main h2, main h3 {
+  letter-spacing: -0.02em;
 }
 
-main { color: #e2e8f0 !important; }
-main .bg-white,
-main [class*="bg-white"] {
-  background-color: rgba(30, 41, 59, 0.96) !important;
-  color: #e2e8f0 !important;
-  border-color: rgba(148, 163, 184, 0.2) !important;
-  box-shadow: 0 8px 24px -10px rgba(0, 0, 0, 0.4);
-}
-main .text-slate-500,
-main .text-slate-600,
-main .text-slate-400 {
-  color: #94a3b8 !important;
-}
-main .text-slate-900,
-main .text-slate-800 {
-  color: #f8fafc !important;
-}
-main .border-slate-200,
-main .border-slate-100 {
-  border-color: rgba(148, 163, 184, 0.2) !important;
-}
-
-/* ── Mosaic Step 3: content shell / cards ── */
-main .rounded-2xl,
-main .rounded-xl {
-  border-radius: 0.75rem !important;
-}
-main .shadow-xl,
-main .shadow-lg {
-  box-shadow: 0 10px 28px -8px rgba(0, 0, 0, 0.4) !important;
-}
-main .shadow-md {
-  box-shadow: 0 6px 16px -6px rgba(0, 0, 0, 0.35) !important;
-}
-
-main .bg-slate-900,
-main .bg-slate-950 {
-  background-color: rgba(30, 41, 59, 0.92) !important;
-  border-color: rgba(148, 163, 184, 0.16) !important;
-}
 main .bg-slate-800 {
   background-color: rgba(51, 65, 85, 0.55) !important;
 }
@@ -236,4 +126,38 @@ main select:focus,
 main textarea:focus {
   outline: none;
   box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.35);
+}
+
+/* ——— D: typography scale (times + labels) ——— */
+.font-display,
+.tg-time,
+.tg-time-display {
+  font-family: var(--font-display) !important;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.03em;
+  font-weight: 700;
+}
+
+.tg-label {
+  font-family: var(--font-sans);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-weight: 700;
+  font-size: 0.65rem;
+  line-height: 1.2;
+}
+
+/* Tighter micro labels on tools */
+main .text-\[10px\],
+main .text-\[9px\] {
+  letter-spacing: 0.04em;
+}
+
+/* Large digital times default weight */
+.tg-time-xl {
+  font-family: var(--font-display) !important;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.04em;
+  font-weight: 700;
+  line-height: 1.05;
 }
