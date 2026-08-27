@@ -48,32 +48,15 @@ export const WorldClockPillar: React.FC<WorldClockPillarProps> = ({
   );
   const [addCityQuery, setAddCityQuery] = useState('');
   const [addCityResults, setAddCityResults] = useState<City[]>([]);
-  const [plannerCities, setPlannerCities] = useState<City[]>(() =>
-    (['nyc', 'lon', 'tyo'].map((id) => MAJOR_CITIES.find((c) => c.id === id)).filter(Boolean) as City[])
-  );
   const [toastMessage, setToastMessage] = useState<string | null>(null);
-  const [selectedRegion, setSelectedRegion] = useState('europe');
+  const [plannerCities, setPlannerCities] = useState<City[]>([]);
 
   useEffect(() => {
-    const unsub = subscribeToPinnedCities(setPinnedCities);
-    return unsub;
-  }, []);
-
-  useEffect(() => {
-    const sync = async () => {
-      await ensureTimeSynced();
-    };
-    sync();
-    const timer = setInterval(() => {
-      if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return;
-      setNow(getSyncedNow());
-    }, 1000);
-    const resync = setInterval(sync, 10 * 60 * 1000);
+    ensureTimeSynced();
+    const timer = setInterval(() => setNow(getSyncedNow()), 1000);
+    const resync = setInterval(() => ensureTimeSynced(), 5 * 60 * 1000);
     const onVis = () => {
-      if (document.visibilityState === 'visible') {
-        sync();
-        setNow(getSyncedNow());
-      }
+      if (document.visibilityState === 'visible') ensureTimeSynced();
     };
     document.addEventListener('visibilitychange', onVis);
     return () => {
@@ -82,6 +65,14 @@ export const WorldClockPillar: React.FC<WorldClockPillarProps> = ({
       document.removeEventListener('visibilitychange', onVis);
     };
   }, []);
+
+  useEffect(() => {
+    return subscribeToPinnedCities(() => setPinnedCities(getPinnedCities()));
+  }, []);
+
+  useEffect(() => {
+    saveClockPrefs(clockPrefs);
+  }, [clockPrefs]);
 
   useEffect(() => {
     if (!selectedCityFromSearch) return;
@@ -192,73 +183,89 @@ export const WorldClockPillar: React.FC<WorldClockPillarProps> = ({
                     key={city.id}
                     type="button"
                     onClick={() => handleSelectFocalCity(city)}
-                    className={`px-2.5 py-1.5 rounded-xl text-xs border flex items-center gap-1.5 ${
-                      focalCity.id === city.id
-                        ? 'bg-blue-600 text-white border-blue-500'
-                        : 'bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700'
+                    className={`px-2.5 py-1.5 rounded-xl text-xs border ${
+                      focalCity.id === city.id ? 'border-blue-500 bg-blue-500/10' : ''
                     }`}
                   >
-                    {city.name}
-                    <span className="font-mono opacity-80">{t.timeStr}</span>
+                    {city.name} <span className="font-mono text-[10px] opacity-70">{t.timeStr}</span>
                   </button>
                 );
               })}
-              <button
-                type="button"
-                onClick={() => {
-                  const d = resetPinnedCities();
-                  setPinnedCities(d);
-                  setWatchList(d);
-                }}
-                className="text-[10px] text-slate-500 flex items-center gap-1"
-              >
-                <RotateCcw className="w-3 h-3" /> Reset pins
-              </button>
             </div>
 
+            {/* A — Graphic focal hero */}
             <div
-              className={`rounded-2xl border p-5 ${
+              className={`relative overflow-hidden rounded-2xl border p-5 sm:p-7 ${
                 isDaytime
-                  ? 'bg-gradient-to-br from-blue-50 to-amber-50/40 dark:from-slate-900 dark:to-slate-800 border-blue-200 dark:border-blue-800'
-                  : 'bg-gradient-to-br from-indigo-950/40 to-slate-900 border-indigo-800'
+                  ? 'border-amber-500/30 bg-gradient-to-br from-sky-900/90 via-indigo-950 to-slate-950'
+                  : 'border-indigo-500/40 bg-gradient-to-br from-slate-950 via-indigo-950 to-violet-950'
               }`}
             >
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-center">
-                <div className="lg:col-span-8 space-y-2">
-                  <div className="flex flex-wrap gap-2 text-[10px] font-bold">
-                    <span className="px-2 py-0.5 rounded bg-blue-600/15 text-blue-700 dark:text-cyan-300">FOCAL</span>
+              <div
+                className={`pointer-events-none absolute -top-16 -right-10 h-48 w-48 rounded-full blur-3xl opacity-40 ${
+                  isDaytime ? 'bg-amber-400' : 'bg-indigo-500'
+                }`}
+                aria-hidden
+              />
+              <div
+                className={`pointer-events-none absolute -bottom-20 -left-10 h-40 w-40 rounded-full blur-3xl opacity-30 ${
+                  isDaytime ? 'bg-sky-400' : 'bg-violet-600'
+                }`}
+                aria-hidden
+              />
+
+              <div className="relative grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+                <div className="lg:col-span-7 space-y-3">
+                  <div className="flex flex-wrap gap-2 text-[10px] font-bold items-center">
+                    <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                      <span className="tg-live-dot" /> LIVE
+                    </span>
+                    <span className="px-2 py-0.5 rounded-full bg-white/10 text-indigo-200 border border-white/10">FOCAL</span>
                     {isDaytime ? (
-                      <span className="flex items-center gap-1 text-amber-600">
+                      <span className="flex items-center gap-1 text-amber-300">
                         <Sun className="w-3.5 h-3.5" /> Day
                       </span>
                     ) : (
-                      <span className="flex items-center gap-1 text-indigo-400">
+                      <span className="flex items-center gap-1 text-indigo-300">
                         <Moon className="w-3.5 h-3.5" /> Night
                       </span>
                     )}
                     {focalOffset.isDst && (
-                      <span className="text-emerald-600 dark:text-emerald-400">DST</span>
+                      <span className="text-emerald-400 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20">DST</span>
                     )}
                   </div>
-                  <h2 className="text-3xl font-black">
-                    {focalCity.name}{' '}
-                    <span className="text-sm font-semibold text-slate-500">
-                      {focalCity.country} · {focalCity.timezone}
-                    </span>
-                  </h2>
+
+                  <div className="flex items-center gap-2 text-white">
+                    <MapPin className="w-5 h-5 text-indigo-300 shrink-0" />
+                    <h2 className="text-2xl sm:text-3xl font-black tracking-tight">
+                      {focalCity.name}
+                      <span className="block sm:inline sm:ml-2 text-sm font-semibold text-slate-400">
+                        {focalCity.country} · {focalCity.timezone}
+                      </span>
+                    </h2>
+                  </div>
+
                   <AnimatedDigitalClock
                     timeStr={focalFormatted.timeStr}
                     animationStyle="flip"
-                    className="text-4xl sm:text-5xl font-black font-mono text-blue-600 dark:text-cyan-400"
-                    colonClassName="text-blue-400"
-                    amPmClassName="text-xl font-bold ml-2"
+                    className="text-5xl sm:text-6xl md:text-7xl font-black font-mono text-white tracking-tight drop-shadow-lg"
+                    colonClassName="text-indigo-300"
+                    amPmClassName="text-2xl font-bold ml-2 text-indigo-200"
                   />
-                  <p className="text-sm text-slate-500">{focalFormatted.dateStr} · {focalOffset.offsetFormatted}</p>
-                  <div className="flex flex-wrap gap-2 pt-2">
+
+                  <p className="text-sm text-slate-300 font-medium">
+                    {focalFormatted.dateStr}
+                    <span className="mx-2 text-slate-600">·</span>
+                    <span className="font-mono text-indigo-200">{focalOffset.offsetFormatted}</span>
+                    <span className="mx-2 text-slate-600">·</span>
+                    <span className="font-mono text-slate-400">{focalOffset.abbreviation}</span>
+                  </p>
+
+                  <div className="flex flex-wrap gap-2 pt-1">
                     <button
                       type="button"
                       onClick={() => handleTogglePinCity(focalCity)}
-                      className="px-3 py-1.5 rounded-xl text-xs font-bold border"
+                      className="px-3 py-1.5 rounded-xl text-xs font-bold border border-white/15 bg-white/5 text-white hover:bg-white/10"
                     >
                       <Star className="w-3.5 h-3.5 inline" /> Pin
                     </button>
@@ -269,14 +276,17 @@ export const WorldClockPillar: React.FC<WorldClockPillarProps> = ({
                           setPlannerCities((p) => [focalCity, ...p]);
                         setSubTab('converter');
                       }}
-                      className="px-3 py-1.5 rounded-xl text-xs font-bold bg-blue-600 text-white"
+                      className="px-3 py-1.5 rounded-xl text-xs font-bold bg-indigo-500 hover:bg-indigo-400 text-white shadow-md shadow-indigo-500/25"
                     >
                       <Users className="w-3.5 h-3.5 inline" /> Plan meeting
                     </button>
                   </div>
                 </div>
-                <div className="lg:col-span-4 flex justify-center">
-                  <AnalogClock date={focalLocal} size={140} cityName={focalCity.name} />
+
+                <div className="lg:col-span-5 flex justify-center lg:justify-end">
+                  <div className="rounded-full p-3 bg-white/5 border border-white/10 shadow-2xl shadow-indigo-500/20">
+                    <AnalogClock date={focalLocal} size={168} cityName={focalCity.name} />
+                  </div>
                 </div>
               </div>
             </div>
@@ -324,99 +334,65 @@ export const WorldClockPillar: React.FC<WorldClockPillarProps> = ({
               </button>
             </div>
 
-            {clockDisplayStyle === 'grid' && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+            {clockDisplayStyle === 'grid' ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 {visible.map((city) => {
-                  const off = getTimezoneOffsetInfo(now, city.timezone);
-                  const fmt = formatCityDateTime(
-                    now,
-                    city.timezone,
-                    clockPrefs.showSeconds,
-                    clockPrefs.hour12
-                  );
                   const local = new Date(now.toLocaleString('en-US', { timeZone: city.timezone }));
+                  const fmt = formatCityDateTime(now, city.timezone, clockPrefs.showSeconds, clockPrefs.hour12);
+                  const off = getTimezoneOffsetInfo(now, city.timezone);
                   const day = local.getHours() >= 6 && local.getHours() < 18;
                   return (
-                    <div
+                    <button
                       key={city.id}
+                      type="button"
                       onClick={() => handleSelectFocalCity(city)}
-                      className={`border rounded-xl p-3 cursor-pointer ${
+                      className={`text-left rounded-xl border p-3 hover:border-blue-500 transition ${
                         focalCity.id === city.id ? 'ring-2 ring-blue-500' : ''
-                      }`}
+                      } ${day ? 'bg-slate-50 dark:bg-slate-900' : 'bg-slate-100 dark:bg-slate-950'}`}
                     >
-                      <div className="flex justify-between items-start">
+                      <div className="flex justify-between items-start gap-2">
                         <div>
-                          <p className="font-bold text-sm flex items-center gap-1">
-                            {city.name}
-                            {day ? <Sun className="w-3 h-3 text-amber-500" /> : <Moon className="w-3 h-3 text-indigo-400" />}
-                          </p>
-                          <p className="text-[10px] font-mono text-cyan-600">{off.offsetFormatted}</p>
+                          <p className="font-bold text-sm">{city.name}</p>
+                          <p className="text-[10px] text-slate-500">{city.country}</p>
+                          <p className="font-mono text-lg font-bold mt-1">{fmt.timeStr}</p>
+                          <p className="text-[10px] text-slate-500">{off.offsetFormatted}</p>
                         </div>
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleTogglePinCity(city);
-                          }}
-                        >
-                          <Star
-                            className={`w-3.5 h-3.5 ${
-                              isCityPinned(city.id) ? 'fill-amber-400 text-amber-400' : 'text-slate-400'
-                            }`}
-                          />
-                        </button>
-                      </div>
-                      <div className="mt-2 flex items-center justify-between">
                         <AnalogClock date={local} size={72} />
-                        <div className="text-right">
-                          <AnimatedDigitalClock
-                            timeStr={fmt.timeStr}
-                            animationStyle="flip"
-                            className="text-xl font-extrabold font-mono"
-                            colonClassName="text-slate-400"
-                            amPmClassName="text-xs ml-1"
-                          />
-                          <p className="text-[10px] text-slate-500">{fmt.dateStr}</p>
-                        </div>
                       </div>
-                    </div>
+                    </button>
                   );
                 })}
               </div>
-            )}
-
-            {clockDisplayStyle === 'table' && (
-              <div className="overflow-x-auto border rounded-xl">
-                <table className="w-full text-xs text-left">
-                  <thead className="bg-slate-100 dark:bg-slate-800 text-[10px] uppercase">
+            ) : (
+              <div className="overflow-x-auto rounded-xl border">
+                <table className="w-full text-sm">
+                  <thead className="bg-slate-100 dark:bg-slate-900 text-xs">
                     <tr>
-                      <th className="p-2">City</th>
-                      <th className="p-2">Time</th>
-                      <th className="p-2">Offset</th>
-                      <th className="p-2">DST</th>
+                      <th className="p-2 text-left">City</th>
+                      <th className="p-2 text-left">Time</th>
+                      <th className="p-2 text-left">Offset</th>
+                      <th className="p-2" />
                     </tr>
                   </thead>
                   <tbody>
                     {visible.map((city) => {
+                      const fmt = formatCityDateTime(now, city.timezone, clockPrefs.showSeconds, clockPrefs.hour12);
                       const off = getTimezoneOffsetInfo(now, city.timezone);
-                      const fmt = formatCityDateTime(
-                        now,
-                        city.timezone,
-                        clockPrefs.showSeconds,
-                        clockPrefs.hour12
-                      );
                       return (
-                        <tr
-                          key={city.id}
-                          className="border-t cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50"
-                          onClick={() => handleSelectFocalCity(city)}
-                        >
-                          <td className="p-2 font-semibold">
-                            <MapPin className="w-3 h-3 inline text-blue-500" /> {city.name}
+                        <tr key={city.id} className="border-t border-slate-200 dark:border-slate-800">
+                          <td className="p-2">
+                            <button type="button" className="font-semibold text-left" onClick={() => handleSelectFocalCity(city)}>
+                              {city.name}
+                            </button>
+                            <span className="text-xs text-slate-500 block">{city.country}</span>
                           </td>
                           <td className="p-2 font-mono">{fmt.timeStr}</td>
-                          <td className="p-2 font-mono">{off.offsetFormatted}</td>
-                          <td className="p-2">{off.isDst ? 'Yes' : 'No'}</td>
+                          <td className="p-2 font-mono text-xs">{off.offsetFormatted}</td>
+                          <td className="p-2">
+                            <button type="button" onClick={() => handleTogglePinCity(city)} className="p-1">
+                              <Star className={`w-3.5 h-3.5 ${isCityPinned(city.id) ? 'text-amber-400 fill-amber-400' : ''}`} />
+                            </button>
+                          </td>
                         </tr>
                       );
                     })}
@@ -430,89 +406,41 @@ export const WorldClockPillar: React.FC<WorldClockPillarProps> = ({
         )}
 
         {subTab === 'converter' && (
-          <div className="mt-4 space-y-4">
+          <div className="mt-5 space-y-4">
+            <MeetingPlanner cities={plannerCities.length ? plannerCities : watchList.slice(0, 6)} now={now} />
             <GlobalTimeOffsetConverter />
-            <MeetingPlanner initialCities={plannerCities} onAddCityToWatchlist={handleAddCityToWatchlist} />
           </div>
         )}
 
         {subTab === '3d-globe' && (
-          <div className="mt-4">
-            <InteractiveGlobe3D onAddCityToWatchlist={handleAddCityToWatchlist} />
+          <div className="mt-5">
+            <InteractiveGlobe3D onSelectCity={handleSelectFocalCity} />
           </div>
         )}
 
         {subTab === 'map' && (
-          <div className="mt-4">
-            <WorldMapCanvas onSelectCity={handleAddCityToWatchlist} selectedCityId={focalCity.id} />
+          <div className="mt-5">
+            <WorldMapCanvas onSelectCity={handleSelectFocalCity} />
           </div>
         )}
 
         {subTab === 'regions' && (
-          <div className="mt-4 space-y-3">
-            <div className="flex flex-wrap gap-2">
-              {['africa', 'europe', 'asia', 'north-america', 'south-america', 'australasia'].map((r) => (
-                <button
-                  key={r}
-                  type="button"
-                  onClick={() => setSelectedRegion(r)}
-                  className={`px-3 py-1 rounded-lg text-xs font-semibold ${
-                    selectedRegion === r ? 'bg-blue-600 text-white' : 'bg-slate-100 dark:bg-slate-800'
-                  }`}
-                >
-                  {r}
-                </button>
-              ))}
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-              {MAJOR_CITIES.filter((city) => {
-                const tz = city.timezone;
-                if (selectedRegion === 'africa') return tz.startsWith('Africa/');
-                if (selectedRegion === 'europe') return tz.startsWith('Europe/');
-                if (selectedRegion === 'asia') return tz.startsWith('Asia/');
-                if (selectedRegion === 'north-america')
-                  return tz.startsWith('America/') && ['US', 'CA', 'MX'].includes(city.countryCode);
-                if (selectedRegion === 'south-america')
-                  return tz.startsWith('America/') && !['US', 'CA', 'MX'].includes(city.countryCode);
-                if (selectedRegion === 'australasia')
-                  return tz.startsWith('Australia/') || tz.startsWith('Pacific/');
-                return true;
-              }).map((city) => {
-                const fmt = formatCityDateTime(
-                  now,
-                  city.timezone,
-                  clockPrefs.showSeconds,
-                  clockPrefs.hour12
-                );
-                return (
-                  <div key={city.id} className="border rounded-xl p-3 flex justify-between text-xs">
-                    <div>
-                      <p className="font-bold">{city.name}</p>
-                      <p className="text-slate-500">{city.country}</p>
-                    </div>
-                    <div className="text-right font-mono">
-                      <p className="font-bold text-cyan-600">{fmt.timeStr}</p>
-                      <button
-                        type="button"
-                        className="text-blue-600 font-bold"
-                        onClick={() => handleAddCityToWatchlist(city)}
-                      >
-                        + Clock
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+          <div className="mt-5 text-sm text-slate-500">
+            <p>Browse cities via search in the header, or add from the World Clock list. Regions filter is available in city search.</p>
+            <button type="button" className="mt-2 text-blue-600 font-semibold" onClick={() => setSubTab('clock')}>
+              Back to clocks
+            </button>
           </div>
         )}
       </div>
 
       {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-50 bg-slate-900 text-white px-4 py-3 rounded-xl text-xs font-bold shadow-xl">
+        <div className="fixed bottom-4 right-4 z-50 px-4 py-2 rounded-xl bg-slate-900 text-white text-sm shadow-lg">
           {toastMessage}
         </div>
       )}
     </div>
   );
 };
+
+export default WorldClockPillar;
