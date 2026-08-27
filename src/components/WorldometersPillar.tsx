@@ -230,7 +230,7 @@ export const WorldometersPillar: React.FC<{ isDarkMode?: boolean }> = () => {
   return (
     <div className="space-y-4">
       <div className="rounded-xl border border-slate-700/60 bg-slate-900/80 p-4 sm:p-5 shadow-md">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
           <div className="flex items-start gap-3 min-w-0">
             <div className="w-10 h-10 rounded-lg bg-indigo-500/20 border border-indigo-400/30 flex items-center justify-center shrink-0">
               <Activity className="w-5 h-5 text-indigo-300" />
@@ -248,16 +248,8 @@ export const WorldometersPillar: React.FC<{ isDarkMode?: boolean }> = () => {
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-2 shrink-0">
-            <button
-              type="button"
-              onClick={() => setShowSources((v) => !v)}
-              className="inline-flex items-center justify-center gap-1.5 h-10 px-3 rounded-lg border border-slate-600 bg-slate-800 text-xs font-semibold text-slate-200 hover:border-indigo-400/40"
-            >
-              <BookOpen className="w-3.5 h-3.5 text-indigo-300" />
-              {showSources ? 'Hide sources' : 'Sources & method'}
-            </button>
-            <label className="flex flex-col gap-1 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+          <div className="flex flex-col sm:flex-row sm:items-end gap-2 shrink-0 w-full sm:w-auto">
+            <label className="flex flex-col gap-1 text-[10px] font-semibold uppercase tracking-wider text-slate-400 w-full sm:w-auto">
               Category
               <div className="relative">
                 <select
@@ -275,6 +267,15 @@ export const WorldometersPillar: React.FC<{ isDarkMode?: boolean }> = () => {
                 <ActiveIcon className="w-4 h-4 text-indigo-300 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
               </div>
             </label>
+            <button
+              type="button"
+              onClick={() => setShowSources((v) => !v)}
+              title="How these live numbers are calculated"
+              className="inline-flex items-center justify-center gap-1.5 h-10 px-3 rounded-lg border border-slate-600/80 bg-slate-800/80 text-xs font-semibold text-slate-300 hover:text-white hover:border-indigo-400/40 whitespace-nowrap"
+            >
+              <BookOpen className="w-3.5 h-3.5 text-indigo-300 shrink-0" />
+              {showSources ? 'Hide sources' : 'Sources'}
+            </button>
           </div>
         </div>
 
@@ -330,17 +331,14 @@ export const WorldometersPillar: React.FC<{ isDarkMode?: boolean }> = () => {
             </div>
           </div>
           <div className="pt-2 border-t border-slate-800">
-            <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2">
-              Global flow rates (per second)
-            </p>
+            <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2">Global flow rates (per second)</p>
             <div className="space-y-2">
               {[
                 { label: 'Births', rate: 4.3, color: 'bg-emerald-500' },
                 { label: 'Deaths', rate: 1.9, color: 'bg-rose-500' },
                 { label: 'Net growth', rate: 2.4, color: 'bg-indigo-500' },
               ].map((row) => {
-                const max = 4.3;
-                const pct = (row.rate / max) * 100;
+                const pct = (row.rate / 4.3) * 100;
                 return (
                   <div key={row.label}>
                     <div className="flex justify-between text-[11px] mb-0.5">
@@ -365,32 +363,22 @@ export const WorldometersPillar: React.FC<{ isDarkMode?: boolean }> = () => {
           <div className="space-y-2">
             <div className="rounded-lg bg-slate-800/60 border border-slate-700/50 p-2.5">
               <p className="text-[10px] text-slate-500 uppercase">Session length</p>
-              <p className="text-lg font-mono font-bold text-white tabular-nums">
-                {Math.floor(sessionSec).toLocaleString()}s
-              </p>
+              <p className="text-lg font-mono font-bold text-white tabular-nums">{Math.floor(sessionSec).toLocaleString()}s</p>
             </div>
             <div className="rounded-lg bg-slate-800/60 border border-slate-700/50 p-2.5">
               <p className="text-[10px] text-slate-500 uppercase">Births worldwide</p>
-              <p className="text-lg font-mono font-bold text-emerald-400 tabular-nums">
-                +{Math.floor(sessionSec * 4.3).toLocaleString()}
-              </p>
+              <p className="text-lg font-mono font-bold text-emerald-400 tabular-nums">+{Math.floor(sessionSec * 4.3).toLocaleString()}</p>
             </div>
             <div className="rounded-lg bg-slate-800/60 border border-slate-700/50 p-2.5">
               <p className="text-[10px] text-slate-500 uppercase">Deaths worldwide</p>
-              <p className="text-lg font-mono font-bold text-rose-400 tabular-nums">
-                +{Math.floor(sessionSec * 1.9).toLocaleString()}
-              </p>
+              <p className="text-lg font-mono font-bold text-rose-400 tabular-nums">+{Math.floor(sessionSec * 1.9).toLocaleString()}</p>
             </div>
             <div className="rounded-lg bg-slate-800/60 border border-slate-700/50 p-2.5">
               <p className="text-[10px] text-slate-500 uppercase">Net population</p>
-              <p className="text-lg font-mono font-bold text-indigo-300 tabular-nums">
-                +{Math.floor(sessionSec * 2.4).toLocaleString()}
-              </p>
+              <p className="text-lg font-mono font-bold text-indigo-300 tabular-nums">+{Math.floor(sessionSec * 2.4).toLocaleString()}</p>
             </div>
           </div>
-          <p className="text-[10px] text-slate-500 leading-snug">
-            Session counters reset when you reload. Same rate model as the main board.
-          </p>
+          <p className="text-[10px] text-slate-500 leading-snug">Session counters reset when you reload.</p>
         </div>
       </div>
 
@@ -419,14 +407,9 @@ export const WorldometersPillar: React.FC<{ isDarkMode?: boolean }> = () => {
         {counters.map((def) => {
           const raw = computeValue(def, secondsToday, secondsYear);
           return (
-            <div
-              key={def.id}
-              className="rounded-xl border border-slate-700/60 bg-slate-900/80 p-4 shadow-md hover:border-indigo-400/30 transition-colors"
-            >
+            <div key={def.id} className="rounded-xl border border-slate-700/60 bg-slate-900/80 p-4 shadow-md hover:border-indigo-400/30 transition-colors">
               <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wide mb-1.5">{def.label}</p>
-              <p className="text-xl sm:text-2xl font-extrabold font-mono text-white tabular-nums tracking-tight">
-                {formatValue(raw, def.prefix, def.unit)}
-              </p>
+              <p className="text-xl sm:text-2xl font-extrabold font-mono text-white tabular-nums tracking-tight">{formatValue(raw, def.prefix, def.unit)}</p>
               <p className="mt-2 text-[10px] text-slate-500 leading-snug">{def.source}</p>
             </div>
           );
@@ -453,27 +436,13 @@ export const WorldometersPillar: React.FC<{ isDarkMode?: boolean }> = () => {
                   <tr key={row.name} className="border-b border-slate-800/80 hover:bg-slate-800/40">
                     <td className="py-1.5 pr-2 font-mono text-slate-500">{row.rank}</td>
                     <td className="py-1.5 pr-2 font-semibold text-slate-200">{row.name}</td>
-                    <td className="py-1.5 text-right font-mono tabular-nums text-white">
-                      {row.live.toLocaleString('en-US')}
-                    </td>
+                    <td className="py-1.5 text-right font-mono tabular-nums text-white">{row.live.toLocaleString('en-US')}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
-          <p className="mt-2 text-[10px] text-slate-500">
-            Country totals are illustrative bases plus a small net rate per second — for orientation only.
-          </p>
-        </div>
-      )}
-
-      {category === 'population' && (
-        <div className="rounded-xl border border-indigo-500/25 bg-indigo-500/10 p-4 flex flex-col sm:flex-row sm:items-center gap-3">
-          <Clock className="w-5 h-5 text-indigo-300 shrink-0" />
-          <div className="text-sm text-slate-200">
-            <span className="font-bold text-white">TimeGovern angle:</span> counters advance from rates times elapsed
-            seconds. Pair with World Clock for timezone context.
-          </div>
+          <p className="mt-2 text-[10px] text-slate-500">Country totals are illustrative bases plus a small net rate per second.</p>
         </div>
       )}
 
@@ -483,11 +452,9 @@ export const WorldometersPillar: React.FC<{ isDarkMode?: boolean }> = () => {
           <p className="font-semibold text-amber-200/90 mb-1">About these numbers</p>
           <p>
             Illustrative live estimates from published annual or industry rates, interpolated through the day and year.
-            Not official real-time government feeds and not scraped from third-party websites. See{' '}
-            <button type="button" className="text-indigo-300 underline font-semibold" onClick={() => setShowSources(true)}>
-              Sources & method
-            </button>{' '}
-            for calibration date ({CALIBRATION.date}).
+            Not official real-time government feeds and not scraped from third-party websites. Open{' '}
+            <button type="button" className="text-indigo-300 underline font-semibold" onClick={() => setShowSources(true)}>Sources</button>
+            {' '}for method and calibration date ({CALIBRATION.date}).
           </p>
         </div>
       </div>
