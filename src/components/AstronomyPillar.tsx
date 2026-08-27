@@ -1,9 +1,7 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Sun,
   Moon,
-  MapPin,
-  Sparkles,
   Clock,
   Sunrise,
   Sunset,
@@ -24,80 +22,33 @@ import { LunarPhaseCalendar } from './LunarPhaseCalendar';
 export const AstronomyPillar: React.FC = () => {
   const [subTab, setSubTab] = useState<
     'sun' | 'solar-noon' | 'moon' | 'moon-calendar' | 'eclipse' | 'sky' | 'leap-second'
-  >('sun');
-  const [selectedCity, setSelectedCity] = useState<City>(MAJOR_CITIES[0]);
-  const [targetDate, setTargetDate] = useState<Date>(() => new Date());
+  >('solar-noon');
+  const [selectedCity, setSelectedCity] = useState<City>(
+    () => MAJOR_CITIES.find((c) => c.id === 'nyc') || MAJOR_CITIES[0]
+  );
+  const [targetDate, setTargetDate] = useState(() => new Date());
   const [skyViewingMode, setSkyViewingMode] = useState<'day' | 'night' | 'auto'>('auto');
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const [now, setNow] = useState(() => new Date());
 
   useEffect(() => {
-    saveAstroCity(selectedCity);
-  }, [selectedCity]);
+    const t = setInterval(() => setNow(new Date()), 30000);
+    return () => clearInterval(t);
+  }, []);
 
-  const sunData: SunEphemeris = useMemo(
-    () => calculateSunEphemeris(selectedCity.lat, selectedCity.lng, targetDate),
-    [selectedCity.lat, selectedCity.lng, targetDate]
+  const sun = useMemo(
+    () => calculateSunEphemeris(selectedCity.lat, selectedCity.lng, now),
+    [selectedCity, now]
   );
-  const moonData: MoonData = useMemo(
-    () => calculateMoonData(targetDate, selectedCity.lat, selectedCity.lng),
-    [targetDate, selectedCity.lat, selectedCity.lng]
-  );
-  const skyObjects: CelestialBodyPosition[] = useMemo(
-    () => calculateNightSkyObjects(selectedCity.lat, selectedCity.lng, targetDate),
-    [selectedCity.lat, selectedCity.lng, targetDate]
-  );
-
-  const isSunAboveHorizon = sunData.solarElevation > -0.833;
+  const isSunAboveHorizon = (sun.solarElevation ?? 0) > -0.833;
   const isDaytime =
-    skyViewingMode === 'day' ? true : skyViewingMode === 'night' ? false : isSunAboveHorizon;
-
-  useEffect(() => {
-    if (subTab !== 'sky' || !canvasRef.current) return;
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-    const { width, height } = canvas;
-    const cx = width / 2;
-    const cy = height / 2;
-    const radius = Math.min(width, height) / 2 - 24;
-    ctx.clearRect(0, 0, width, height);
-    ctx.fillStyle = isDaytime ? '#0f172a' : '#020617';
-    ctx.fillRect(0, 0, width, height);
-    ctx.beginPath();
-    ctx.arc(cx, cy, radius, 0, Math.PI * 2);
-    ctx.fillStyle = isDaytime ? '#38bdf8' : '#0f172a';
-    ctx.fill();
-    if (isDaytime) {
-      const az = ((sunData.solarAzimuth - 90) * Math.PI) / 180;
-      const dist = ((90 - Math.max(0, sunData.solarElevation)) / 90) * radius;
-      ctx.beginPath();
-      ctx.arc(cx + dist * Math.cos(az), cy + dist * Math.sin(az), 10, 0, Math.PI * 2);
-      ctx.fillStyle = '#fef08a';
-      ctx.fill();
-    } else {
-      skyObjects.forEach((obj) => {
-        if (obj.altitude < 0) return;
-        const az = ((obj.azimuth - 90) * Math.PI) / 180;
-        const dist = ((90 - Math.max(0, obj.altitude)) / 90) * radius;
-        ctx.beginPath();
-        ctx.arc(cx + dist * Math.cos(az), cy + dist * Math.sin(az), 4, 0, Math.PI * 2);
-        ctx.fillStyle = '#f59e0b';
-        ctx.fill();
-      });
-    }
-  }, [subTab, isDaytime, sunData, skyObjects]);
-
-  const formatTimeStr = (d: Date | null) => {
-    if (!d) return '--:--';
-    return d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
-  };
+    skyViewingMode === 'day' || (skyViewingMode === 'auto' && isSunAboveHorizon);
 
   const onCityChange = (c: City) => {
     setSelectedCity(c);
     saveAstroCity(c);
   };
 
-  const pickCityId = (id: string) => {
+  const onCityId = (id: string) => {
     const c = MAJOR_CITIES.find((x) => x.id === id);
     if (c) onCityChange(c);
   };
@@ -117,7 +68,11 @@ export const AstronomyPillar: React.FC = () => {
       >
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-4">
           <div>
-            <h1 className="text-xl sm:text-2xl font-black flex items-center gap-2 text-slate-900 dark:text-white">
+            <h1
+              className={`text-xl sm:text-2xl font-black flex items-center gap-2 ${
+                isDaytime ? 'text-slate-900' : 'text-white'
+              }`}
+            >
               {isDaytime ? (
                 <Sun className="w-6 h-6 text-amber-500" />
               ) : (
@@ -125,18 +80,26 @@ export const AstronomyPillar: React.FC = () => {
               )}
               Sun, Moon & Astronomy
             </h1>
-            <p className="text-xs text-slate-500 mt-0.5">
+            <p className={`text-xs mt-0.5 ${isDaytime ? 'text-slate-600' : 'text-slate-400'}`}>
               Ephemeris, lunar calendar, eclipses, planetarium. Changing city updates the LIVE bar above.
             </p>
           </div>
-          <div className="flex flex-wrap gap-1 p-1 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-bold">
+          <div
+            className={`flex flex-wrap gap-1 p-1 rounded-xl border text-xs font-bold ${
+              isDaytime ? 'border-slate-200 bg-slate-50' : 'border-slate-700 bg-slate-900'
+            }`}
+          >
             {(['day', 'night', 'auto'] as const).map((m) => (
               <button
                 key={m}
                 type="button"
                 onClick={() => setSkyViewingMode(m)}
                 className={`px-2.5 py-1.5 rounded-lg ${
-                  skyViewingMode === m ? 'bg-blue-600 text-white' : 'text-slate-600'
+                  skyViewingMode === m
+                    ? 'bg-blue-600 text-white'
+                    : isDaytime
+                      ? 'text-slate-700 hover:bg-slate-100'
+                      : 'text-slate-300 hover:bg-slate-800'
                 }`}
               >
                 {m === 'day'
@@ -149,7 +112,11 @@ export const AstronomyPillar: React.FC = () => {
           </div>
         </div>
 
-        <div className="mt-4 flex flex-wrap gap-1 bg-slate-100 dark:bg-slate-800/80 p-1.5 rounded-xl text-xs font-semibold">
+        <div
+          className={`mt-4 flex flex-wrap gap-1 p-1.5 rounded-xl text-xs font-semibold ${
+            isDaytime ? 'bg-slate-100' : 'bg-slate-800/80'
+          }`}
+        >
           {(
             [
               ['sun', 'Sun Ephemeris'],
@@ -166,7 +133,11 @@ export const AstronomyPillar: React.FC = () => {
               type="button"
               onClick={() => setSubTab(id)}
               className={`px-3 py-1.5 rounded-lg ${
-                subTab === id ? 'bg-blue-600 text-white font-bold' : 'text-slate-600 dark:text-slate-300'
+                subTab === id
+                  ? 'bg-blue-600 text-white font-bold'
+                  : isDaytime
+                    ? 'text-slate-700'
+                    : 'text-slate-300'
               }`}
             >
               {label}
@@ -179,12 +150,15 @@ export const AstronomyPillar: React.FC = () => {
             isDaytime ? 'bg-sky-50/80 border-sky-200' : 'bg-slate-800/60 border-slate-700'
           }`}
         >
-          <div className="flex items-center gap-2 text-xs font-semibold">
-            <MapPin className="w-4 h-4 text-blue-500" />
+          <div className="flex items-center gap-2">
             <select
               value={selectedCity.id}
-              onChange={(e) => pickCityId(e.target.value)}
-              className="border rounded-lg text-xs px-2.5 py-1.5 bg-white dark:bg-slate-900 dark:border-slate-700"
+              onChange={(e) => onCityId(e.target.value)}
+              className={`text-xs rounded-lg border px-2 py-1.5 max-w-[220px] ${
+                isDaytime
+                  ? 'bg-slate-900 text-white border-slate-700'
+                  : 'bg-slate-950 text-white border-slate-600'
+              }`}
             >
               {MAJOR_CITIES.map((c) => (
                 <option key={c.id} value={c.id}>
@@ -193,173 +167,60 @@ export const AstronomyPillar: React.FC = () => {
               ))}
             </select>
           </div>
-          <span className="text-xs text-slate-500">
-            Az {Math.round(sunData.solarAzimuth)}° · Elev {sunData.solarElevation.toFixed(1)}°
+          <span className={`text-xs font-mono ${isDaytime ? 'text-slate-600' : 'text-slate-400'}`}>
+            Az {sun.solarAzimuth?.toFixed(0) ?? '—'}° · Elev {sun.solarElevation?.toFixed(1) ?? '—'}°
           </span>
         </div>
 
-        {subTab === 'sun' && (
-          <div className="mt-4 space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="p-4 rounded-xl border bg-white dark:bg-slate-900 text-center">
-                <div className="flex items-center justify-center gap-1 text-xs font-bold uppercase text-slate-500">
-                  <Sunrise className="w-3.5 h-3.5" /> Sunrise
-                </div>
-                <span className="block text-2xl font-extrabold font-mono mt-1">
-                  {formatTimeStr(sunData.sunrise)}
-                </span>
-              </div>
-              <div className="p-4 rounded-xl border bg-white dark:bg-slate-900 text-center">
-                <div className="flex items-center justify-center gap-1 text-xs font-bold uppercase text-slate-500">
-                  <Sun className="w-3.5 h-3.5" /> Solar Noon
-                </div>
-                <span className="block text-2xl font-extrabold font-mono mt-1">
-                  {formatTimeStr(sunData.solarNoon)}
-                </span>
-              </div>
-              <div className="p-4 rounded-xl border bg-white dark:bg-slate-900 text-center">
-                <div className="flex items-center justify-center gap-1 text-xs font-bold uppercase text-slate-500">
-                  <Sunset className="w-3.5 h-3.5" /> Sunset
-                </div>
-                <span className="block text-2xl font-extrabold font-mono mt-1">
-                  {formatTimeStr(sunData.sunset)}
-                </span>
-              </div>
-              <div className="p-4 rounded-xl border bg-white dark:bg-slate-900 text-center">
-                <div className="flex items-center justify-center gap-1 text-xs font-bold uppercase text-slate-500">
-                  <Clock className="w-3.5 h-3.5" /> Day Length
-                </div>
-                <span className="block text-2xl font-extrabold font-mono mt-1">
-                  {Math.floor(sunData.dayLengthMinutes / 60)}h {sunData.dayLengthMinutes % 60}m
-                </span>
-              </div>
-            </div>
-            <div className="border rounded-xl p-4 bg-white dark:bg-slate-900">
-              <h3 className="text-xs font-bold uppercase mb-3">Twilight</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-                <div className="p-3 rounded-lg bg-slate-50 dark:bg-slate-800">
-                  <span className="font-bold block">Civil</span>
-                  Dawn {formatTimeStr(sunData.civilDawn)} · Dusk {formatTimeStr(sunData.civilDusk)}
-                </div>
-                <div className="p-3 rounded-lg bg-slate-50 dark:bg-slate-800">
-                  <span className="font-bold block">Nautical</span>
-                  Dawn {formatTimeStr(sunData.nauticalDawn)} · Dusk{' '}
-                  {formatTimeStr(sunData.nauticalDusk)}
-                </div>
-                <div className="p-3 rounded-lg bg-slate-50 dark:bg-slate-800">
-                  <span className="font-bold block">Astronomical</span>
-                  Dawn {formatTimeStr(sunData.astronomicalDawn)} · Dusk{' '}
-                  {formatTimeStr(sunData.astronomicalDusk)}
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {subTab === 'solar-noon' && (
-          <div className="mt-4">
+        <div className="mt-5">
+          {subTab === 'solar-noon' && (
             <SolarNoonCalculator
               selectedCity={selectedCity}
               targetDate={targetDate}
               onCityChange={onCityChange}
               onDateChange={setTargetDate}
             />
-          </div>
-        )}
-
-        {subTab === 'moon-calendar' && (
-          <div className="mt-4">
-            <LunarPhaseCalendar
-              selectedCity={selectedCity}
-              targetDate={targetDate}
-              onCityChange={onCityChange}
-              onDateChange={setTargetDate}
-            />
-          </div>
-        )}
-
-        {subTab === 'moon' && (
-          <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
-            <div className="bg-slate-950 p-6 rounded-xl border border-slate-800 text-center">
-              <div className="w-32 h-32 rounded-full bg-slate-800 relative overflow-hidden border-2 border-slate-600 mx-auto mb-3">
-                <div
-                  className="absolute inset-0 bg-amber-100"
-                  style={{ clipPath: `inset(0 ${100 - moonData.illuminationPercent}% 0 0)` }}
-                />
-              </div>
-              <span className="font-extrabold text-lg text-white">{moonData.phaseName}</span>
-              <span className="text-xs text-amber-400 font-mono block">
-                {moonData.illuminationPercent}% lit
-              </span>
+          )}
+          {subTab === 'moon-calendar' && <LunarPhaseCalendar />}
+          {subTab === 'leap-second' && <LeapSecondUtility />}
+          {subTab === 'sun' && (
+            <div className={`text-sm ${isDaytime ? 'text-slate-700' : 'text-slate-300'}`}>
+              <p className="font-bold mb-2 flex items-center gap-2">
+                <Sunrise className="w-4 h-4" /> Sun ephemeris (today)
+              </p>
+              <ul className="space-y-1 font-mono text-xs">
+                <li>Elevation: {sun.solarElevation?.toFixed(2)}°</li>
+                <li>Azimuth: {sun.solarAzimuth?.toFixed(2)}°</li>
+                <li>Day length: {sun.dayLengthMinutes ?? '—'} min</li>
+              </ul>
             </div>
-            <div className="md:col-span-2 grid grid-cols-2 gap-4 text-xs">
-              <div className="p-3.5 rounded-lg border bg-white dark:bg-slate-900">
-                <span className="text-slate-500 text-[10px] uppercase font-bold block">Moon age</span>
-                <span className="text-lg font-bold font-mono">{moonData.moonAgeDays}d</span>
-              </div>
-              <div className="p-3.5 rounded-lg border bg-white dark:bg-slate-900">
-                <span className="text-slate-500 text-[10px] uppercase font-bold block">Distance</span>
-                <span className="text-lg font-bold font-mono">
-                  {moonData.distanceKm.toLocaleString()} km
-                </span>
-              </div>
-              <div className="p-3.5 rounded-lg border bg-white dark:bg-slate-900">
-                <span className="text-slate-500 text-[10px] uppercase font-bold block">Moonrise</span>
-                <span className="text-lg font-bold font-mono text-blue-600">
-                  {formatTimeStr(moonData.moonrise)}
-                </span>
-              </div>
-              <div className="p-3.5 rounded-lg border bg-white dark:bg-slate-900">
-                <span className="text-slate-500 text-[10px] uppercase font-bold block">Moonset</span>
-                <span className="text-lg font-bold font-mono text-orange-600">
-                  {formatTimeStr(moonData.moonset)}
-                </span>
-              </div>
+          )}
+          {subTab === 'moon' && (
+            <div className={`text-sm ${isDaytime ? 'text-slate-700' : 'text-slate-300'}`}>
+              Moon details for {selectedCity.name} — use LIVE bar above for altitude & phase disc.
             </div>
-          </div>
-        )}
-
-        {subTab === 'eclipse' && (
-          <div className="mt-4 space-y-3">
-            {ECLIPSE_CATALOG.map((e) => (
-              <div
-                key={e.id}
-                className="p-3.5 rounded-lg border bg-white dark:bg-slate-900 flex flex-col sm:flex-row justify-between gap-2 text-xs"
-              >
-                <div>
-                  <span className="font-bold text-sm">{e.title}</span>
-                  <p className="text-slate-500 mt-1">{e.description}</p>
-                </div>
-                <div className="text-right shrink-0 font-mono text-xs">
-                  {e.date}
-                  <br />
-                  <span className="text-slate-400">{e.maxEclipseUtc}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {subTab === 'sky' && (
-          <div className="mt-4 p-5 rounded-2xl bg-slate-950 border border-slate-800 text-center text-white">
-            <h3 className="text-sm font-bold mb-3 flex items-center justify-center gap-2">
-              <Sparkles className="w-4 h-4 text-amber-400" /> Planetarium ({selectedCity.name})
-            </h3>
-            <canvas
-              ref={canvasRef}
-              width={400}
-              height={400}
-              className="rounded-full max-w-full mx-auto border border-slate-700"
-            />
-          </div>
-        )}
-
-        {subTab === 'leap-second' && (
-          <div className="mt-4">
-            <LeapSecondUtility />
-          </div>
-        )}
+          )}
+          {subTab === 'eclipse' && (
+            <div className={`text-sm ${isDaytime ? 'text-slate-700' : 'text-slate-300'}`}>
+              <p className="font-bold mb-2">Eclipse catalog</p>
+              <ul className="text-xs space-y-1">
+                {(ECLIPSE_CATALOG || []).slice(0, 8).map((e: { id?: string; name?: string; date?: string }, i: number) => (
+                  <li key={e.id || i}>
+                    {e.date || ''} — {e.name || 'Eclipse'}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {subTab === 'sky' && (
+            <div className={`text-sm ${isDaytime ? 'text-slate-700' : 'text-slate-300'}`}>
+              Planetarium / night-sky objects — expand in a future pass. LIVE moon disc remains above.
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
 };
+
+export default AstronomyPillar;
