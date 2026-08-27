@@ -1,20 +1,120 @@
-/* Mosaic-inspired Step 1 — clean slate surface (features unchanged) */
-html, body, #root {
-  background-color: #0f172a !important;
-  color: #e2e8f0 !important;
+/*
+ * F — Light + dark surfaces.
+ * Dark rules scoped to html.dark so light mode is readable.
+ * Features unchanged.
+ */
+
+/* ——— LIGHT (html without .dark) ——— */
+html:not(.dark),
+html:not(.dark) body,
+html:not(.dark) #root {
+  background-color: #f1f5f9 !important;
+  color: #0f172a !important;
 }
-#root > div {
+html:not(.dark) body {
+  background-image:
+    radial-gradient(900px 480px at 88% 8%, rgba(99, 102, 241, 0.12), transparent 55%),
+    radial-gradient(700px 400px at 8% 90%, rgba(14, 165, 233, 0.08), transparent 50%),
+    linear-gradient(180deg, #f8fafc 0%, #f1f5f9 45%, #e2e8f0 100%) !important;
+  background-attachment: fixed !important;
+}
+html:not(.dark) #root > div {
   background-image: none !important;
   background-color: transparent !important;
 }
-main {
+html:not(.dark) main {
+  color: #0f172a !important;
+}
+html:not(.dark) main a,
+html:not(.dark) main .text-blue-600 {
+  color: #4f46e5 !important;
+}
+html:not(.dark) main .text-slate-500,
+html:not(.dark) main .text-slate-400 {
+  color: #64748b !important;
+}
+html:not(.dark) main .text-slate-300,
+html:not(.dark) main .text-slate-200 {
+  color: #334155 !important;
+}
+html:not(.dark) main .text-white {
+  color: #0f172a !important;
+}
+html:not(.dark) main h1,
+html:not(.dark) main h2,
+html:not(.dark) main h3 {
+  color: #0f172a !important;
+}
+html:not(.dark) header {
+  background-color: rgba(255, 255, 255, 0.92) !important;
+  border-bottom-color: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+html:not(.dark) header input {
+  background-color: #f8fafc !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+}
+html:not(.dark) nav[aria-label="Main sections"] > button:not(.bg-indigo-500) {
+  background-color: #ffffff !important;
+  color: #334155 !important;
+  border-color: #e2e8f0 !important;
+}
+
+/* Light footer */
+html:not(.dark) .tg-site-footer {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border-top: 1px solid #e2e8f0 !important;
+}
+html:not(.dark) .tg-site-footer .tg-footer-body {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+}
+html:not(.dark) .tg-site-footer .tg-footer-title,
+html:not(.dark) .tg-site-footer .tg-footer-strong,
+html:not(.dark) .tg-site-footer .tg-footer-brand,
+html:not(.dark) .tg-site-footer .tg-footer-heading,
+html:not(.dark) .tg-site-footer .tg-footer-heading--hero {
+  color: #0f172a !important;
+}
+html:not(.dark) .tg-site-footer .tg-footer-link {
+  color: #334155 !important;
+}
+html:not(.dark) .tg-site-footer .tg-footer-link:hover {
+  color: #4f46e5 !important;
+}
+html:not(.dark) .tg-site-footer .tg-footer-muted {
+  color: #64748b !important;
+}
+html:not(.dark) .tg-site-footer .tg-footer-brand-accent {
+  color: #4f46e5 !important;
+}
+html:not(.dark) .tg-site-footer .tg-footer-svc-icon {
+  background: #eef2ff !important;
+  color: #4f46e5 !important;
+}
+
+/* ——— DARK (html.dark) ——— */
+html.dark,
+html.dark body,
+html.dark #root {
+  background-color: #0f172a !important;
   color: #e2e8f0 !important;
 }
-main a, main .text-blue-600 {
+html.dark #root > div {
+  background-image: none !important;
+  background-color: transparent !important;
+}
+html.dark main {
+  color: #e2e8f0 !important;
+}
+html.dark main a,
+html.dark main .text-blue-600 {
   color: #818cf8 !important;
 }
 
-/* Widget embed surfaces — do not inherit page colour locks */
+/* Widget embed surfaces — both modes */
 .tg-widget-surface.tg-widget-light,
 main .tg-widget-surface.tg-widget-light,
 main .tg-widget-surface.tg-widget-light * {
@@ -31,23 +131,21 @@ main .tg-widget-surface.tg-widget-dark {
   border-color: #475569 !important;
 }
 
-/*
- * Site footer — MUST override global text lock.
- */
-.tg-site-footer {
+/* Dark footer */
+html.dark .tg-site-footer {
   background-color: #0f172a !important;
   color: #e2e8f0 !important;
   border-top: 1px solid #334155 !important;
 }
-.tg-site-footer .tg-footer-body {
+html.dark .tg-site-footer .tg-footer-body {
   background-color: #0f172a !important;
   color: #e2e8f0 !important;
 }
-.tg-site-footer .tg-footer-title {
+html.dark .tg-site-footer .tg-footer-title {
   color: #f8fafc !important;
   font-weight: 700 !important;
 }
-.tg-site-footer .tg-footer-link {
+html.dark .tg-site-footer .tg-footer-link {
   color: #e2e8f0 !important;
   font-weight: 600 !important;
   background: transparent !important;
@@ -58,26 +156,22 @@ main .tg-widget-surface.tg-widget-dark {
   line-height: 1.5;
   padding: 0;
 }
-.tg-site-footer .tg-footer-link:hover {
+html.dark .tg-site-footer .tg-footer-link:hover {
   color: #a5b4fc !important;
   text-decoration: underline;
 }
-.tg-site-footer .tg-footer-muted {
+html.dark .tg-site-footer .tg-footer-muted {
   color: #94a3b8 !important;
 }
-.tg-site-footer .tg-footer-strong {
+html.dark .tg-site-footer .tg-footer-strong,
+html.dark .tg-site-footer .tg-footer-brand {
   color: #f8fafc !important;
   font-weight: 700 !important;
 }
-.tg-site-footer .tg-footer-brand {
-  color: #f8fafc !important;
-}
-.tg-site-footer .tg-footer-brand-accent {
+html.dark .tg-site-footer .tg-footer-brand-accent {
   color: #a5b4fc !important;
 }
-
-/* Footer headings + social brand buttons */
-.tg-site-footer .tg-footer-heading {
+html.dark .tg-site-footer .tg-footer-heading {
   color: #f8fafc !important;
   font-weight: 800 !important;
   font-size: 13px !important;
@@ -86,10 +180,10 @@ main .tg-widget-surface.tg-widget-dark {
   margin-bottom: 0.75rem !important;
   font-family: Inter, "Segoe UI", system-ui, sans-serif !important;
 }
-.tg-site-footer .tg-footer-heading--sub {
+html.dark .tg-site-footer .tg-footer-heading--sub {
   margin-top: 1.25rem !important;
 }
-.tg-site-footer .tg-footer-heading--hero {
+html.dark .tg-site-footer .tg-footer-heading--hero {
   font-size: 16px !important;
   letter-spacing: -0.01em !important;
   text-transform: none !important;
@@ -97,6 +191,23 @@ main .tg-widget-surface.tg-widget-dark {
   color: #f8fafc !important;
   margin-bottom: 0.5rem !important;
 }
+html.dark .tg-site-footer .tg-footer-svc-icon {
+  width: 1.35rem !important;
+  height: 1.35rem !important;
+  border-radius: 0.35rem !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: #1e293b !important;
+  color: #a5b4fc !important;
+  flex-shrink: 0 !important;
+}
+html.dark .tg-site-footer .tg-footer-link:hover .tg-footer-svc-icon {
+  background: #4338ca !important;
+  color: #eef2ff !important;
+}
+
+/* Social buttons — both modes */
 .tg-site-footer .tg-social-btn {
   width: 2.25rem !important;
   height: 2.25rem !important;
@@ -127,18 +238,17 @@ main .tg-widget-surface.tg-widget-dark {
   opacity: 0.85;
   filter: none;
 }
-.tg-site-footer .tg-footer-svc-icon {
-  width: 1.35rem !important;
-  height: 1.35rem !important;
-  border-radius: 0.35rem !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  background: #1e293b !important;
-  color: #a5b4fc !important;
-  flex-shrink: 0 !important;
+
+/* Shared footer heading utilities for light */
+html:not(.dark) .tg-site-footer .tg-footer-heading {
+  font-weight: 800 !important;
+  font-size: 13px !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+  margin-bottom: 0.75rem !important;
 }
-.tg-site-footer .tg-footer-link:hover .tg-footer-svc-icon {
-  background: #4338ca !important;
-  color: #eef2ff !important;
+html:not(.dark) .tg-site-footer .tg-footer-heading--hero {
+  font-size: 16px !important;
+  letter-spacing: -0.01em !important;
+  text-transform: none !important;
 }
