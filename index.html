@@ -15,13 +15,20 @@
     <style>
       html, body {
         font-family: Inter, "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
-        background: #05080f;
+        margin: 0;
+      }
+      /* Defaults before React hydrates — dark preferred; light when html loses .dark */
+      html.dark, html.dark body {
+        background: #0f172a;
         color: #f8fafc;
+      }
+      html:not(.dark), html:not(.dark) body {
+        background: #f1f5f9;
+        color: #0f172a;
       }
       code, kbd, .font-mono, .tabular-nums {
         font-family: "JetBrains Mono", ui-monospace, Consolas, monospace;
       }
-      /* D — display face for large clock times */
       .tg-time, .tg-time-display, .font-display {
         font-family: "Space Grotesk", Inter, system-ui, sans-serif;
         font-variant-numeric: tabular-nums;
@@ -36,7 +43,7 @@
       }
     </style>
   </head>
-  <body class="antialiased dark" style="background:#05080f;color:#f8fafc;margin:0">
+  <body class="antialiased">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
