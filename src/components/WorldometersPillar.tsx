@@ -1,6 +1,6 @@
 /**
- * Live Data — Phases A–D
- * Rate-based illustrative counters (not scraped). Sources + top countries table.
+ * Live Data — Phases A–E
+ * Rate counters, sources, top countries, progress charts + session stats.
  */
 import React, { useState, useEffect, useMemo } from 'react';
 import {
@@ -40,11 +40,9 @@ interface CountryRow {
   rank: number;
   name: string;
   base: number;
-  /** approx net people/sec for that country (illustrative share of world net) */
   netPerSec: number;
 }
 
-/** Phase C — calibration metadata */
 const CALIBRATION = {
   label: 'August 2026 illustrative calibration',
   date: '2026-08-01',
@@ -72,13 +70,12 @@ const CATEGORIES: Category[] = [
   { id: 'health', label: 'Health', icon: HeartPulse },
 ];
 
-/** Phase B — expanded counter sets closer to homepage parity */
 const RATES: Record<CategoryId, CounterDef[]> = {
   population: [
     { id: 'pop', label: 'Current world population', ratePerSec: 2.4, base: 8300000000, scope: 'stock', source: 'UN WPP-style net growth' },
     { id: 'births_today', label: 'Births today', ratePerSec: 4.3, scope: 'today', source: 'Global crude birth rate' },
     { id: 'deaths_today', label: 'Deaths today', ratePerSec: 1.9, scope: 'today', source: 'Global crude death rate' },
-    { id: 'net_today', label: 'Net population growth today', ratePerSec: 2.4, scope: 'today', source: 'Births − deaths' },
+    { id: 'net_today', label: 'Net population growth today', ratePerSec: 2.4, scope: 'today', source: 'Births minus deaths' },
     { id: 'births_year', label: 'Births this year', ratePerSec: 4.3, scope: 'year', source: 'Annualised births' },
     { id: 'deaths_year', label: 'Deaths this year', ratePerSec: 1.9, scope: 'year', source: 'Annualised deaths' },
     { id: 'net_year', label: 'Net growth this year', ratePerSec: 2.4, scope: 'year', source: 'Annualised net increase' },
@@ -134,7 +131,7 @@ const RATES: Record<CategoryId, CounterDef[]> = {
     { id: 'renew_today', label: 'From renewable sources today', ratePerSec: 450, scope: 'today', unit: 'MWh', source: 'Renewable share of mix' },
     { id: 'solar_strike', label: 'Solar energy striking Earth today', ratePerSec: 8000000, scope: 'today', unit: 'MWh', source: 'Geophysical insolation' },
     { id: 'oil_today', label: 'Crude oil pumped today', ratePerSec: 1150, scope: 'today', unit: 'barrels', source: 'Global oil production' },
-    { id: 'oil_left', label: 'Oil left (illustrative stock)', ratePerSec: -1150, base: 1500000000000, scope: 'stock', unit: 'barrels', source: 'Reserves − production (illustrative)' },
+    { id: 'oil_left', label: 'Oil left (illustrative stock)', ratePerSec: -1150, base: 1500000000000, scope: 'stock', unit: 'barrels', source: 'Reserves minus production (illustrative)' },
   ],
   health: [
     { id: 'comm_year', label: 'Communicable disease deaths this year', ratePerSec: 0.4, scope: 'year', source: 'WHO-style communicable burden' },
@@ -149,7 +146,6 @@ const RATES: Record<CategoryId, CounterDef[]> = {
   ],
 };
 
-/** Phase D — top countries by population (illustrative bases + tiny net rates) */
 const TOP_COUNTRIES: CountryRow[] = [
   { rank: 1, name: 'India', base: 1450000000, netPerSec: 0.35 },
   { rank: 2, name: 'China', base: 1412000000, netPerSec: 0.05 },
@@ -176,7 +172,7 @@ const TOP_COUNTRIES: CountryRow[] = [
 function formatValue(n: number, prefix?: string, unit?: string): string {
   const abs = Math.floor(Math.abs(n));
   const body = abs.toLocaleString('en-US');
-  const sign = n < 0 ? '−' : '';
+  const sign = n < 0 ? '-' : '';
   return `${sign}${prefix ?? ''}${body}${unit ? ` ${unit}` : ''}`;
 }
 
@@ -191,13 +187,14 @@ export const WorldometersPillar: React.FC<{ isDarkMode?: boolean }> = () => {
   const [time, setTime] = useState(() => new Date());
   const [category, setCategory] = useState<CategoryId>('population');
   const [showSources, setShowSources] = useState(false);
+  const [mountedAt] = useState(() => Date.now());
 
   useEffect(() => {
     const id = window.setInterval(() => setTime(new Date()), 250);
     return () => window.clearInterval(id);
   }, []);
 
-  const { secondsToday, secondsYear, yearPct, utcLabel } = useMemo(() => {
+  const { secondsToday, secondsYear, yearPct, dayPct, utcLabel, sessionSec } = useMemo(() => {
     const nowMs = time.getTime();
     const startOfDay = new Date(time.getFullYear(), time.getMonth(), time.getDate()).getTime();
     const startOfYear = new Date(time.getFullYear(), 0, 1).getTime();
@@ -205,6 +202,8 @@ export const WorldometersPillar: React.FC<{ isDarkMode?: boolean }> = () => {
     const secondsToday = (nowMs - startOfDay) / 1000;
     const secondsYear = (nowMs - startOfYear) / 1000;
     const yearPct = ((nowMs - startOfYear) / (endOfYear - startOfYear)) * 100;
+    const dayPct = (secondsToday / 86400) * 100;
+    const sessionSec = Math.max(0, (nowMs - mountedAt) / 1000);
     const utcLabel = time.toLocaleTimeString('en-GB', {
       hour: '2-digit',
       minute: '2-digit',
@@ -212,8 +211,8 @@ export const WorldometersPillar: React.FC<{ isDarkMode?: boolean }> = () => {
       hour12: false,
       timeZone: 'UTC',
     });
-    return { secondsToday, secondsYear, yearPct, utcLabel };
-  }, [time]);
+    return { secondsToday, secondsYear, yearPct, dayPct, utcLabel, sessionSec };
+  }, [time, mountedAt]);
 
   const counters = RATES[category];
   const activeCat = CATEGORIES.find((c) => c.id === category)!;
@@ -303,6 +302,98 @@ export const WorldometersPillar: React.FC<{ isDarkMode?: boolean }> = () => {
         </div>
       </div>
 
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+        <div className="rounded-xl border border-slate-700/60 bg-slate-900/80 p-4 shadow-md lg:col-span-2 space-y-3">
+          <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Time progress</p>
+          <div>
+            <div className="flex justify-between text-[11px] text-slate-400 mb-1">
+              <span>Day elapsed (local)</span>
+              <span className="font-mono text-indigo-300">{dayPct.toFixed(3)}%</span>
+            </div>
+            <div className="h-2.5 rounded-full bg-slate-800 overflow-hidden border border-slate-700/80">
+              <div
+                className="h-full rounded-full bg-gradient-to-r from-indigo-600 to-indigo-400 transition-[width] duration-300"
+                style={{ width: `${Math.min(100, Math.max(0, dayPct))}%` }}
+              />
+            </div>
+          </div>
+          <div>
+            <div className="flex justify-between text-[11px] text-slate-400 mb-1">
+              <span>Year elapsed</span>
+              <span className="font-mono text-indigo-300">{yearPct.toFixed(4)}%</span>
+            </div>
+            <div className="h-2.5 rounded-full bg-slate-800 overflow-hidden border border-slate-700/80">
+              <div
+                className="h-full rounded-full bg-gradient-to-r from-violet-600 to-indigo-400 transition-[width] duration-300"
+                style={{ width: `${Math.min(100, Math.max(0, yearPct))}%` }}
+              />
+            </div>
+          </div>
+          <div className="pt-2 border-t border-slate-800">
+            <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2">
+              Global flow rates (per second)
+            </p>
+            <div className="space-y-2">
+              {[
+                { label: 'Births', rate: 4.3, color: 'bg-emerald-500' },
+                { label: 'Deaths', rate: 1.9, color: 'bg-rose-500' },
+                { label: 'Net growth', rate: 2.4, color: 'bg-indigo-500' },
+              ].map((row) => {
+                const max = 4.3;
+                const pct = (row.rate / max) * 100;
+                return (
+                  <div key={row.label}>
+                    <div className="flex justify-between text-[11px] mb-0.5">
+                      <span className="text-slate-300">{row.label}</span>
+                      <span className="font-mono text-slate-400">{row.rate}/s</span>
+                    </div>
+                    <div className="h-2 rounded-full bg-slate-800 overflow-hidden">
+                      <div className={`h-full rounded-full ${row.color}`} style={{ width: `${pct}%` }} />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        <div className="rounded-xl border border-slate-700/60 bg-slate-900/80 p-4 shadow-md space-y-3">
+          <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+            <Clock className="w-3.5 h-3.5 text-indigo-300" />
+            Since you opened this page
+          </p>
+          <div className="space-y-2">
+            <div className="rounded-lg bg-slate-800/60 border border-slate-700/50 p-2.5">
+              <p className="text-[10px] text-slate-500 uppercase">Session length</p>
+              <p className="text-lg font-mono font-bold text-white tabular-nums">
+                {Math.floor(sessionSec).toLocaleString()}s
+              </p>
+            </div>
+            <div className="rounded-lg bg-slate-800/60 border border-slate-700/50 p-2.5">
+              <p className="text-[10px] text-slate-500 uppercase">Births worldwide</p>
+              <p className="text-lg font-mono font-bold text-emerald-400 tabular-nums">
+                +{Math.floor(sessionSec * 4.3).toLocaleString()}
+              </p>
+            </div>
+            <div className="rounded-lg bg-slate-800/60 border border-slate-700/50 p-2.5">
+              <p className="text-[10px] text-slate-500 uppercase">Deaths worldwide</p>
+              <p className="text-lg font-mono font-bold text-rose-400 tabular-nums">
+                +{Math.floor(sessionSec * 1.9).toLocaleString()}
+              </p>
+            </div>
+            <div className="rounded-lg bg-slate-800/60 border border-slate-700/50 p-2.5">
+              <p className="text-[10px] text-slate-500 uppercase">Net population</p>
+              <p className="text-lg font-mono font-bold text-indigo-300 tabular-nums">
+                +{Math.floor(sessionSec * 2.4).toLocaleString()}
+              </p>
+            </div>
+          </div>
+          <p className="text-[10px] text-slate-500 leading-snug">
+            Session counters reset when you reload. Same rate model as the main board.
+          </p>
+        </div>
+      </div>
+
       {showSources && (
         <div className="rounded-xl border border-indigo-500/25 bg-indigo-500/5 p-4 space-y-3">
           <div className="flex items-start gap-2">
@@ -342,7 +433,6 @@ export const WorldometersPillar: React.FC<{ isDarkMode?: boolean }> = () => {
         })}
       </div>
 
-      {/* Phase D — top countries (shown on Population) */}
       {category === 'population' && (
         <div className="rounded-xl border border-slate-700/60 bg-slate-900/80 p-4 shadow-md overflow-hidden">
           <div className="flex items-center gap-2 mb-3">
@@ -372,7 +462,7 @@ export const WorldometersPillar: React.FC<{ isDarkMode?: boolean }> = () => {
             </table>
           </div>
           <p className="mt-2 text-[10px] text-slate-500">
-            Country totals are illustrative bases plus a small net rate per second — for orientation only, not census microdata.
+            Country totals are illustrative bases plus a small net rate per second — for orientation only.
           </p>
         </div>
       )}
@@ -381,7 +471,7 @@ export const WorldometersPillar: React.FC<{ isDarkMode?: boolean }> = () => {
         <div className="rounded-xl border border-indigo-500/25 bg-indigo-500/10 p-4 flex flex-col sm:flex-row sm:items-center gap-3">
           <Clock className="w-5 h-5 text-indigo-300 shrink-0" />
           <div className="text-sm text-slate-200">
-            <span className="font-bold text-white">TimeGovern angle:</span> counters advance from rates × elapsed
+            <span className="font-bold text-white">TimeGovern angle:</span> counters advance from rates times elapsed
             seconds. Pair with World Clock for timezone context.
           </div>
         </div>
