@@ -22,7 +22,6 @@ const AnimatedSlot: React.FC<{
   amPmClassName?: string;
   showFlapCard?: boolean;
 }> = memo(({ char, index, animationStyle, digitClassName = '', colonClassName = '', amPmClassName = '', showFlapCard = false }) => {
-  // Colons and separators
   if (char === ':') {
     return (
       <span
@@ -35,12 +34,10 @@ const AnimatedSlot: React.FC<{
     );
   }
 
-  // Spaces
   if (char === ' ') {
     return <span key={`space-${index}`} className="inline-block w-[0.28em]">&nbsp;</span>;
   }
 
-  // AM / PM Indicator
   if (char === 'A' || char === 'P' || char === 'M') {
     return (
       <span
@@ -54,56 +51,46 @@ const AnimatedSlot: React.FC<{
     );
   }
 
-  // Digits (0-9)
   return (
     <span
-      className={`relative inline-flex items-center justify-center overflow-hidden h-[1.18em] align-middle tabular-nums select-none ${
-        showFlapCard
-          ? 'mx-[0.5px] px-[1px] rounded bg-slate-900/40 dark:bg-slate-950/70 border border-slate-700/40 shadow-2xs'
-          : ''
-      }`}
-      style={{ perspective: '300px' }}
+      key={`digit-${index}-${char}`}
+      className={`relative inline-flex items-center justify-center overflow-hidden h-[1.18em] align-middle tabular-nums ${
+        animationStyle === 'flip' ? 'animate-digit-flip' : 'animate-digit-slide'
+      } ${digitClassName}`}
     >
-      <span
-        key={`digit-${index}-${char}`}
-        className={`inline-block tabular-nums font-mono ${digitClassName} ${
-          animationStyle === 'flip' ? 'animate-digit-flip' : 'animate-digit-slide'
-        }`}
-      >
-        {char}
-      </span>
+      {showFlapCard ? (
+        <span className="inline-flex items-center justify-center min-w-[0.62em] px-[0.04em] rounded-[0.12em] bg-black/10 dark:bg-white/5">
+          {char}
+        </span>
+      ) : (
+        char
+      )}
     </span>
   );
 });
-
 AnimatedSlot.displayName = 'AnimatedSlot';
 
-/**
- * Animated Digital Clock Component with sub-character level CSS flip/slide animations
- */
-export const AnimatedDigitalClock: React.FC<AnimatedDigitalClockProps> = memo(({
+export const AnimatedDigitalClock: React.FC<AnimatedDigitalClockProps> = ({
   timeStr,
   animationStyle = 'flip',
   className = '',
   digitClassName = '',
   colonClassName = '',
   amPmClassName = '',
-  showFlapCard = false
+  showFlapCard = false,
 }) => {
-  if (!timeStr) return null;
-
-  const chars = timeStr.split('');
+  const chars = Array.from(timeStr || '');
 
   return (
     <span
-      className={`inline-flex items-center font-mono tabular-nums tracking-tight leading-none ${className}`}
-      aria-label={`Time: ${timeStr}`}
+      className={`inline-flex items-center tg-time tabular-nums tracking-tight leading-none ${className}`}
+      aria-label={timeStr}
     >
-      {chars.map((ch, idx) => (
+      {chars.map((char, index) => (
         <AnimatedSlot
-          key={idx}
-          char={ch}
-          index={idx}
+          key={`${index}-${char}`}
+          char={char}
+          index={index}
           animationStyle={animationStyle}
           digitClassName={digitClassName}
           colonClassName={colonClassName}
@@ -113,6 +100,6 @@ export const AnimatedDigitalClock: React.FC<AnimatedDigitalClockProps> = memo(({
       ))}
     </span>
   );
-});
+};
 
-AnimatedDigitalClock.displayName = 'AnimatedDigitalClock';
+export default AnimatedDigitalClock;
