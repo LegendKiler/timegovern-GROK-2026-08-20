@@ -1,6 +1,5 @@
 /**
- * Live Data — Phases A–E
- * Rate counters, sources, top countries, progress charts + session stats.
+ * Live Data — Phases A–E + Sources UX C+D (icon + modal)
  */
 import React, { useState, useEffect, useMemo } from 'react';
 import {
@@ -241,6 +240,15 @@ export const WorldometersPillar: React.FC<{ isDarkMode?: boolean }> = () => {
                 <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-1.5 py-0.5 rounded">
                   <span className="tg-live-dot" /> Live
                 </span>
+                <button
+                  type="button"
+                  onClick={() => setShowSources(true)}
+                  title="Sources & calculation method"
+                  aria-label="Sources and calculation method"
+                  className="inline-flex items-center justify-center h-7 w-7 rounded-full border border-slate-600 bg-slate-800 text-slate-300 hover:text-white hover:border-indigo-400/50 hover:bg-slate-700 transition-colors"
+                >
+                  <Info className="w-3.5 h-3.5 text-indigo-300" />
+                </button>
               </h2>
               <p className="text-xs text-slate-400 mt-0.5">
                 UTC {utcLabel} · Year {yearPct.toFixed(4)}% elapsed · Calibrated {CALIBRATION.date}
@@ -248,35 +256,24 @@ export const WorldometersPillar: React.FC<{ isDarkMode?: boolean }> = () => {
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row sm:items-end gap-2 shrink-0 w-full sm:w-auto">
-            <label className="flex flex-col gap-1 text-[10px] font-semibold uppercase tracking-wider text-slate-400 w-full sm:w-auto">
-              Category
-              <div className="relative">
-                <select
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value as CategoryId)}
-                  className="appearance-none w-full sm:min-w-[220px] h-10 pl-3 pr-9 rounded-lg bg-slate-800 border border-slate-600 text-sm text-white font-semibold normal-case tracking-normal cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
-                  aria-label="Live data category"
-                >
-                  {CATEGORIES.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.label}
-                    </option>
-                  ))}
-                </select>
-                <ActiveIcon className="w-4 h-4 text-indigo-300 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-              </div>
-            </label>
-            <button
-              type="button"
-              onClick={() => setShowSources((v) => !v)}
-              title="How these live numbers are calculated"
-              className="inline-flex items-center justify-center gap-1.5 h-10 px-3 rounded-lg border border-slate-600/80 bg-slate-800/80 text-xs font-semibold text-slate-300 hover:text-white hover:border-indigo-400/40 whitespace-nowrap"
-            >
-              <BookOpen className="w-3.5 h-3.5 text-indigo-300 shrink-0" />
-              {showSources ? 'Hide sources' : 'Sources'}
-            </button>
-          </div>
+          <label className="flex flex-col gap-1 text-[10px] font-semibold uppercase tracking-wider text-slate-400 w-full sm:w-auto shrink-0">
+            Category
+            <div className="relative">
+              <select
+                value={category}
+                onChange={(e) => setCategory(e.target.value as CategoryId)}
+                className="appearance-none w-full sm:min-w-[220px] h-10 pl-3 pr-9 rounded-lg bg-slate-800 border border-slate-600 text-sm text-white font-semibold normal-case tracking-normal cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
+                aria-label="Live data category"
+              >
+                {CATEGORIES.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.label}
+                  </option>
+                ))}
+              </select>
+              <ActiveIcon className="w-4 h-4 text-indigo-300 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            </div>
+          </label>
         </div>
 
         <div className="mt-3 flex flex-wrap gap-1.5">
@@ -312,10 +309,7 @@ export const WorldometersPillar: React.FC<{ isDarkMode?: boolean }> = () => {
               <span className="font-mono text-indigo-300">{dayPct.toFixed(3)}%</span>
             </div>
             <div className="h-2.5 rounded-full bg-slate-800 overflow-hidden border border-slate-700/80">
-              <div
-                className="h-full rounded-full bg-gradient-to-r from-indigo-600 to-indigo-400 transition-[width] duration-300"
-                style={{ width: `${Math.min(100, Math.max(0, dayPct))}%` }}
-              />
+              <div className="h-full rounded-full bg-gradient-to-r from-indigo-600 to-indigo-400 transition-[width] duration-300" style={{ width: `${Math.min(100, Math.max(0, dayPct))}%` }} />
             </div>
           </div>
           <div>
@@ -324,10 +318,7 @@ export const WorldometersPillar: React.FC<{ isDarkMode?: boolean }> = () => {
               <span className="font-mono text-indigo-300">{yearPct.toFixed(4)}%</span>
             </div>
             <div className="h-2.5 rounded-full bg-slate-800 overflow-hidden border border-slate-700/80">
-              <div
-                className="h-full rounded-full bg-gradient-to-r from-violet-600 to-indigo-400 transition-[width] duration-300"
-                style={{ width: `${Math.min(100, Math.max(0, yearPct))}%` }}
-              />
+              <div className="h-full rounded-full bg-gradient-to-r from-violet-600 to-indigo-400 transition-[width] duration-300" style={{ width: `${Math.min(100, Math.max(0, yearPct))}%` }} />
             </div>
           </div>
           <div className="pt-2 border-t border-slate-800">
@@ -337,20 +328,17 @@ export const WorldometersPillar: React.FC<{ isDarkMode?: boolean }> = () => {
                 { label: 'Births', rate: 4.3, color: 'bg-emerald-500' },
                 { label: 'Deaths', rate: 1.9, color: 'bg-rose-500' },
                 { label: 'Net growth', rate: 2.4, color: 'bg-indigo-500' },
-              ].map((row) => {
-                const pct = (row.rate / 4.3) * 100;
-                return (
-                  <div key={row.label}>
-                    <div className="flex justify-between text-[11px] mb-0.5">
-                      <span className="text-slate-300">{row.label}</span>
-                      <span className="font-mono text-slate-400">{row.rate}/s</span>
-                    </div>
-                    <div className="h-2 rounded-full bg-slate-800 overflow-hidden">
-                      <div className={`h-full rounded-full ${row.color}`} style={{ width: `${pct}%` }} />
-                    </div>
+              ].map((row) => (
+                <div key={row.label}>
+                  <div className="flex justify-between text-[11px] mb-0.5">
+                    <span className="text-slate-300">{row.label}</span>
+                    <span className="font-mono text-slate-400">{row.rate}/s</span>
                   </div>
-                );
-              })}
+                  <div className="h-2 rounded-full bg-slate-800 overflow-hidden">
+                    <div className={`h-full rounded-full ${row.color}`} style={{ width: `${(row.rate / 4.3) * 100}%` }} />
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </div>
@@ -378,28 +366,55 @@ export const WorldometersPillar: React.FC<{ isDarkMode?: boolean }> = () => {
               <p className="text-lg font-mono font-bold text-indigo-300 tabular-nums">+{Math.floor(sessionSec * 2.4).toLocaleString()}</p>
             </div>
           </div>
-          <p className="text-[10px] text-slate-500 leading-snug">Session counters reset when you reload.</p>
         </div>
       </div>
 
       {showSources && (
-        <div className="rounded-xl border border-indigo-500/25 bg-indigo-500/5 p-4 space-y-3">
-          <div className="flex items-start gap-2">
-            <BookOpen className="w-4 h-4 text-indigo-300 shrink-0 mt-0.5" />
-            <div>
-              <p className="text-sm font-bold text-white">{CALIBRATION.label}</p>
-              <p className="text-xs text-slate-400 mt-1">{CALIBRATION.method}</p>
-              <p className="text-[11px] text-slate-500 mt-1">Last calibrated: {CALIBRATION.date}</p>
+        <div
+          className="fixed inset-0 z-[80] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="tg-live-sources-title"
+          onClick={() => setShowSources(false)}
+        >
+          <div
+            className="w-full max-w-lg rounded-xl border border-slate-600 bg-slate-900 shadow-2xl p-5 space-y-3 max-h-[85vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-start gap-2 min-w-0">
+                <BookOpen className="w-4 h-4 text-indigo-300 shrink-0 mt-0.5" />
+                <div>
+                  <p id="tg-live-sources-title" className="text-sm font-bold text-white">{CALIBRATION.label}</p>
+                  <p className="text-xs text-slate-400 mt-1">{CALIBRATION.method}</p>
+                  <p className="text-[11px] text-slate-500 mt-1">Last calibrated: {CALIBRATION.date}</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowSources(false)}
+                className="shrink-0 h-8 w-8 rounded-lg border border-slate-600 text-slate-300 hover:text-white hover:bg-slate-800 text-lg leading-none"
+                aria-label="Close sources"
+              >
+                ×
+              </button>
             </div>
+            <ul className="grid sm:grid-cols-2 gap-2 text-xs text-slate-300">
+              {SOURCE_LIST.map((s) => (
+                <li key={s.domain} className="rounded-lg border border-slate-700/60 bg-slate-950/80 p-2.5">
+                  <span className="font-semibold text-indigo-200">{s.domain}</span>
+                  <span className="block text-slate-400 mt-0.5">{s.refs}</span>
+                </li>
+              ))}
+            </ul>
+            <button
+              type="button"
+              onClick={() => setShowSources(false)}
+              className="w-full h-10 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold"
+            >
+              Close
+            </button>
           </div>
-          <ul className="grid sm:grid-cols-2 gap-2 text-xs text-slate-300">
-            {SOURCE_LIST.map((s) => (
-              <li key={s.domain} className="rounded-lg border border-slate-700/60 bg-slate-900/50 p-2.5">
-                <span className="font-semibold text-indigo-200">{s.domain}</span>
-                <span className="block text-slate-400 mt-0.5">{s.refs}</span>
-              </li>
-            ))}
-          </ul>
         </div>
       )}
 
@@ -442,7 +457,6 @@ export const WorldometersPillar: React.FC<{ isDarkMode?: boolean }> = () => {
               </tbody>
             </table>
           </div>
-          <p className="mt-2 text-[10px] text-slate-500">Country totals are illustrative bases plus a small net rate per second.</p>
         </div>
       )}
 
@@ -451,10 +465,10 @@ export const WorldometersPillar: React.FC<{ isDarkMode?: boolean }> = () => {
         <div>
           <p className="font-semibold text-amber-200/90 mb-1">About these numbers</p>
           <p>
-            Illustrative live estimates from published annual or industry rates, interpolated through the day and year.
-            Not official real-time government feeds and not scraped from third-party websites. Open{' '}
-            <button type="button" className="text-indigo-300 underline font-semibold" onClick={() => setShowSources(true)}>Sources</button>
-            {' '}for method and calibration date ({CALIBRATION.date}).
+            Illustrative live estimates from published rates, interpolated through the day and year. Not official live feeds.
+            {' '}
+            <button type="button" className="text-indigo-300 underline font-semibold" onClick={() => setShowSources(true)}>Open sources</button>
+            {' '}({CALIBRATION.date}).
           </p>
         </div>
       </div>
