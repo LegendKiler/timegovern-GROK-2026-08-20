@@ -1,5 +1,6 @@
 /**
  * LIVE strip — altitude/azimuth, countdown, polar badge (AS4), follows city (AS5).
+ * C — sun day-arc graphic.
  */
 import React from 'react';
 import { Sun, Moon, Radio, ArrowUpRight, AlertTriangle } from 'lucide-react';
@@ -12,6 +13,7 @@ import {
   polarBadgeLabel,
 } from '../../lib/liveAstronomy';
 import { getMemberEntitlements, formatMemberTime } from '../../lib/memberEntitlements';
+import { SunDayArc } from './SunDayArc';
 
 interface LiveSunMoonBarProps {
   city: City;
@@ -70,6 +72,14 @@ export const LiveSunMoonBar: React.FC<LiveSunMoonBarProps> = ({ city, now, synce
           {polarNote}
         </p>
       )}
+
+      <SunDayArc
+        now={now}
+        sunrise={sun.sunrise}
+        sunset={sun.sunset}
+        solarElevation={elev}
+        className="max-w-md mx-auto text-slate-400"
+      />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className="rounded-xl border border-amber-200/80 dark:border-amber-800/40 bg-white/70 dark:bg-slate-950/50 p-3">
