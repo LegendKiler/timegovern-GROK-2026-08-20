@@ -50,15 +50,7 @@ body {
     var(--tf-bg) !important;
 }
 
-/* Cards / panels */
-.tg-panel {
-  background: var(--tf-panel);
-  border: 1px solid var(--tf-border);
-  border-radius: 1rem;
-  box-shadow: var(--tf-shadow);
-}
-
-/* LIVE pulse dot */
+/* LIVE pulse */
 .tg-live-dot {
   width: 0.4rem;
   height: 0.4rem;
@@ -75,12 +67,9 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .tg-live-dot {
-    animation: none;
-  }
+  .tg-live-dot { animation: none; }
 }
 
-/* Main content readability helpers */
 main h1, main h2, main h3 {
   letter-spacing: -0.02em;
 }
@@ -102,10 +91,6 @@ main .text-cyan-300 {
 main .bg-cyan-500,
 main .bg-cyan-600 {
   background-color: #4f46e5 !important;
-}
-
-main h2, main h3 {
-  letter-spacing: -0.02em;
 }
 
 main .text-emerald-400 {
@@ -147,13 +132,6 @@ main textarea:focus {
   line-height: 1.2;
 }
 
-/* Tighter micro labels on tools */
-main .text-\[10px\],
-main .text-\[9px\] {
-  letter-spacing: 0.04em;
-}
-
-/* Large digital times default weight */
 .tg-time-xl {
   font-family: var(--font-display) !important;
   font-variant-numeric: tabular-nums;
