@@ -24,6 +24,7 @@ const SLOT_META: Record<
     height: number;
     houseSponsor: string;
     houseTitle: string;
+    houseSub: string;
     houseCta: string;
     adFormat: 'auto' | 'rectangle' | 'horizontal' | 'vertical';
   }
@@ -34,8 +35,9 @@ const SLOT_META: Record<
     width: 728,
     height: 90,
     houseSponsor: 'TimeGovern Media',
-    houseTitle: 'Reach decision-makers who check world time, calendars & pay tools daily.',
-    houseCta: 'Advertise here',
+    houseTitle: 'Be the first brand professionals see before they plan the day.',
+    houseSub: 'Sitewide leaderboard · world clocks, calendars & pay tools',
+    houseCta: 'Book header',
     adFormat: 'horizontal',
   },
   tg_rail_sticky: {
@@ -44,7 +46,8 @@ const SLOT_META: Record<
     width: 300,
     height: 600,
     houseSponsor: 'TimeGovern Media',
-    houseTitle: 'Highest view-time slot — users stay on clocks & planners for minutes.',
+    houseTitle: 'Premium sticky — in view while users work the clocks.',
+    houseSub: 'Long sessions on World Clock & Meeting Planner',
     houseCta: 'Book sticky rail',
     adFormat: 'vertical',
   },
@@ -54,7 +57,8 @@ const SLOT_META: Record<
     width: 300,
     height: 250,
     houseSponsor: 'TimeGovern Media',
-    houseTitle: 'Native placement between tools — high engagement, brand-safe context.',
+    houseTitle: 'Native between tools — calm, brand-safe, high intent.',
+    houseSub: 'Seen with calculators, live data & planning workflows',
     houseCta: 'Request rates',
     adFormat: 'rectangle',
   },
@@ -64,8 +68,9 @@ const SLOT_META: Record<
     width: 728,
     height: 90,
     houseSponsor: 'TimeGovern Media',
-    houseTitle: 'Always-on footer inventory across all pillars.',
-    houseCta: 'Advertise',
+    houseTitle: 'Always-on footer reach across every pillar.',
+    houseSub: 'Efficient run-of-site visibility',
+    houseCta: 'Advertise here',
     adFormat: 'horizontal',
   },
   tg_mobile_anchor: {
@@ -74,8 +79,9 @@ const SLOT_META: Record<
     width: 320,
     height: 100,
     houseSponsor: 'TimeGovern Media',
-    houseTitle: 'Sticky mobile unit — limited to one for UX quality.',
-    houseCta: 'Advertise',
+    houseTitle: 'One mobile sticky — we protect UX so your brand stands alone.',
+    houseSub: 'Limited inventory · user-dismissible',
+    houseCta: 'Book mobile',
     adFormat: 'horizontal',
   },
   tg_rectangle: {
@@ -84,8 +90,9 @@ const SLOT_META: Record<
     width: 300,
     height: 250,
     houseSponsor: 'TimeGovern Media',
-    houseTitle: 'Classic MREC for calculators, news & company pages.',
-    houseCta: 'Advertise',
+    houseTitle: 'MREC beside calculators, news and company pages.',
+    houseSub: 'Classic IAB unit for direct or network fill',
+    houseCta: 'Advertise here',
     adFormat: 'rectangle',
   },
 };
@@ -101,7 +108,6 @@ export const AdSlot: React.FC<AdSlotProps> = ({ slotId, className = '', persiste
     window.dispatchEvent(new CustomEvent('tg-open-advertise'));
   };
 
-  // ——— Live AdSense path (env-gated) ———
   if (canRenderLiveAd(slotId)) {
     if (slotId === 'tg_rail_sticky') {
       return (
@@ -132,7 +138,6 @@ export const AdSlot: React.FC<AdSlotProps> = ({ slotId, className = '', persiste
     );
   }
 
-  // ——— House placeholders (default / lab) ———
   if (slotId === 'tg_rail_sticky') {
     return (
       <aside
@@ -141,32 +146,30 @@ export const AdSlot: React.FC<AdSlotProps> = ({ slotId, className = '', persiste
         aria-label={`Advertisement ${meta.sizeLabel}`}
       >
         <div
-          className="sticky top-20 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/90 shadow-sm overflow-hidden flex flex-col"
+          className="sticky top-20 rounded-2xl border border-indigo-500/30 bg-slate-900 shadow-md overflow-hidden flex flex-col"
           style={{ width: 300, minHeight: 600 }}
         >
-          <div className="flex items-center justify-between px-3 py-1.5 border-b border-slate-200 dark:border-slate-800 bg-slate-100/80 dark:bg-slate-950/80">
-            <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Advertisement</span>
-            <span className="text-[9px] font-mono text-slate-400">{meta.sizeLabel}</span>
+          <div className="flex items-center justify-between px-3 py-1.5 border-b border-slate-700 bg-slate-950/80">
+            <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400">Advertisement</span>
+            <span className="text-[9px] font-mono text-slate-500">{meta.sizeLabel}</span>
           </div>
           <div className="flex-1 flex flex-col items-center justify-center p-5 text-center gap-3">
-            <div className="w-14 h-14 rounded-2xl bg-blue-600/10 border border-blue-500/30 flex items-center justify-center">
-              <Megaphone className="w-7 h-7 text-blue-600 dark:text-cyan-400" />
+            <div className="w-14 h-14 rounded-2xl bg-indigo-500/20 border border-indigo-400/30 flex items-center justify-center">
+              <Megaphone className="w-7 h-7 text-indigo-300" />
             </div>
-            <p className="text-[10px] font-bold uppercase tracking-wide text-blue-600 dark:text-cyan-400">{meta.houseSponsor}</p>
-            <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 leading-snug">{meta.houseTitle}</p>
-            <p className="text-[11px] text-slate-500">
-              Slot ID: <code className="font-mono">{slotId}</code>
-            </p>
+            <p className="text-[10px] font-bold uppercase tracking-wide text-indigo-300">{meta.houseSponsor}</p>
+            <p className="text-sm font-semibold text-white leading-snug">{meta.houseTitle}</p>
+            <p className="text-[11px] text-slate-400 leading-snug max-w-[220px]">{meta.houseSub}</p>
             <button
               type="button"
               onClick={goAdvertise}
-              className="mt-2 w-full max-w-[220px] px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold flex items-center justify-center gap-1.5"
+              className="mt-2 w-full max-w-[220px] px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold flex items-center justify-center gap-1.5"
             >
               {meta.houseCta} <ExternalLink className="w-3.5 h-3.5" />
             </button>
           </div>
-          <div className="px-3 py-2 border-t border-slate-200 dark:border-slate-800 text-[9px] text-slate-400 text-center">
-            House ad · Set VITE_ADS_ENABLED=true for AdSense
+          <div className="px-3 py-2 border-t border-slate-700 text-[9px] text-slate-500 text-center">
+            Premium inventory · Melbourne HQ
           </div>
         </div>
       </aside>
@@ -176,40 +179,24 @@ export const AdSlot: React.FC<AdSlotProps> = ({ slotId, className = '', persiste
   if (slotId === 'tg_header' || slotId === 'tg_footer') {
     return (
       <div className={`w-full max-w-7xl mx-auto ${className}`} data-ad-slot={slotId} aria-label={`Advertisement ${meta.sizeLabel}`}>
-        <div
-          className="relative rounded-xl border border-slate-200 dark:border-slate-700 bg-gradient-to-r from-slate-50 via-white to-slate-50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-950 overflow-hidden shadow-sm"
-          style={{ minHeight: meta.height }}
-        >
-          <div className="absolute top-1.5 left-2 flex items-center gap-2 z-10">
-            <span className="text-[8px] font-bold uppercase tracking-wider bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-1.5 py-0.5 rounded">
-              Advertisement
-            </span>
-            <span className="text-[8px] font-mono text-slate-400 hidden sm:inline">
-              {meta.sizeLabel} · {slotId}
-            </span>
-          </div>
-          {!persistent && (
-            <button type="button" onClick={() => setDismissed(true)} className="absolute top-1.5 right-2 text-slate-400 hover:text-slate-600 p-1 z-10" title="Hide ad">
-              <EyeOff className="w-3.5 h-3.5" />
-            </button>
-          )}
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 sm:px-6 py-4 pt-7 sm:pt-5">
-            <div className="flex items-center gap-3 min-w-0">
-              <div className="w-10 h-10 rounded-xl bg-blue-600/10 border border-blue-500/20 flex items-center justify-center shrink-0">
-                <Building2 className="w-5 h-5 text-blue-600 dark:text-cyan-400" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-xs font-bold text-slate-900 dark:text-white">{meta.houseSponsor}</p>
-                <p className="text-xs text-slate-600 dark:text-slate-300 line-clamp-2">{meta.houseTitle}</p>
-              </div>
+        <div className="rounded-xl border border-indigo-500/25 bg-gradient-to-r from-slate-900 to-indigo-950 overflow-hidden">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-4 py-3">
+            <div className="min-w-0">
+              <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400">Advertisement</span>
+              <p className="text-xs font-bold text-indigo-300 mt-0.5">{meta.houseSponsor}</p>
+              <p className="text-sm font-semibold text-white">{meta.houseTitle}</p>
+              <p className="text-[10px] text-slate-400 mt-0.5">{meta.houseSub}</p>
             </div>
-            <button
-              type="button"
-              onClick={goAdvertise}
-              className="shrink-0 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold flex items-center gap-1.5"
-            >
-              {meta.houseCta} <ExternalLink className="w-3.5 h-3.5" />
-            </button>
+            <div className="flex items-center gap-1 shrink-0">
+              <button type="button" onClick={goAdvertise} className="px-3 py-1.5 rounded-lg bg-indigo-600 text-white text-[10px] font-bold">
+                {meta.houseCta}
+              </button>
+              {!persistent && (
+                <button type="button" onClick={() => setDismissed(true)} className="p-1 text-slate-400" aria-label="Hide ad">
+                  <EyeOff className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -219,25 +206,18 @@ export const AdSlot: React.FC<AdSlotProps> = ({ slotId, className = '', persiste
   if (slotId === 'tg_mobile_anchor') {
     return (
       <div
-        className={`fixed bottom-0 inset-x-0 z-40 md:hidden border-t border-slate-200 dark:border-slate-700 bg-white/95 dark:bg-slate-950/95 backdrop-blur-md shadow-lg ${className}`}
+        className={`fixed bottom-0 inset-x-0 z-40 md:hidden border-t border-slate-700 bg-slate-950/95 backdrop-blur-md ${className}`}
         data-ad-slot={slotId}
         aria-label="Advertisement mobile anchor"
       >
-        <div className="max-w-lg mx-auto flex items-center justify-between gap-2 px-3 py-2" style={{ minHeight: 50 }}>
+        <div className="max-w-lg mx-auto px-3 py-2 flex items-center justify-between gap-2">
           <div className="min-w-0">
-            <span className="text-[8px] font-bold uppercase text-slate-400">Ad</span>
-            <p className="text-[11px] font-semibold text-slate-800 dark:text-slate-100 line-clamp-1">{meta.houseTitle}</p>
+            <p className="text-[10px] font-bold text-indigo-300">{meta.houseSponsor}</p>
+            <p className="text-xs text-white truncate">{meta.houseTitle}</p>
           </div>
-          <div className="flex items-center gap-1 shrink-0">
-            <button type="button" onClick={goAdvertise} className="px-3 py-1.5 rounded-lg bg-blue-600 text-white text-[10px] font-bold">
-              {meta.houseCta}
-            </button>
-            {!persistent && (
-              <button type="button" onClick={() => setDismissed(true)} className="p-1 text-slate-400">
-                <EyeOff className="w-3.5 h-3.5" />
-              </button>
-            )}
-          </div>
+          <button type="button" onClick={goAdvertise} className="px-3 py-1.5 rounded-lg bg-indigo-600 text-white text-[10px] font-bold shrink-0">
+            {meta.houseCta}
+          </button>
         </div>
       </div>
     );
@@ -245,21 +225,24 @@ export const AdSlot: React.FC<AdSlotProps> = ({ slotId, className = '', persiste
 
   return (
     <div className={`my-4 ${className}`} data-ad-slot={slotId} aria-label={`Advertisement ${meta.sizeLabel}`}>
-      <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/80 overflow-hidden shadow-sm" style={{ minHeight: Math.min(meta.height, 200) }}>
-        <div className="flex items-center justify-between px-3 py-1 border-b border-slate-200 dark:border-slate-800">
-          <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Advertisement</span>
-          <span className="text-[9px] font-mono text-slate-400">{meta.sizeLabel}</span>
+      <div className="rounded-xl border border-indigo-500/25 bg-gradient-to-br from-slate-900 via-slate-900 to-indigo-950 overflow-hidden shadow-md">
+        <div className="flex items-center justify-between px-3 py-1.5 border-b border-slate-700/80 bg-slate-950/50">
+          <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400">Advertisement</span>
+          <span className="text-[9px] font-mono text-slate-500">{meta.sizeLabel}</span>
         </div>
-        <div className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div>
-            <p className="text-xs font-bold text-blue-600 dark:text-cyan-400">{meta.houseSponsor}</p>
-            <p className="text-sm font-medium text-slate-800 dark:text-slate-100 mt-0.5">{meta.houseTitle}</p>
-            <p className="text-[10px] text-slate-400 mt-1 font-mono">{slotId}</p>
+        <div className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-indigo-500/20 border border-indigo-400/30 flex items-center justify-center shrink-0">
+            <Megaphone className="w-6 h-6 text-indigo-300" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-[11px] font-bold uppercase tracking-wide text-indigo-300">{meta.houseSponsor}</p>
+            <p className="text-sm sm:text-base font-semibold text-white mt-0.5 leading-snug">{meta.houseTitle}</p>
+            <p className="text-[11px] text-slate-400 mt-1 leading-snug">{meta.houseSub}</p>
           </div>
           <button
             type="button"
             onClick={goAdvertise}
-            className="shrink-0 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold flex items-center gap-1.5"
+            className="shrink-0 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold flex items-center justify-center gap-1.5 shadow-lg shadow-indigo-500/20"
           >
             {meta.houseCta} <ExternalLink className="w-3.5 h-3.5" />
           </button>
