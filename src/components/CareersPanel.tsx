@@ -11,28 +11,33 @@ import {
   Building2,
   Sparkles,
   CheckCircle2,
+  HelpCircle,
+  ListChecks,
 } from 'lucide-react';
 import { careersContent, type CareerJob } from '../content/careersContent';
 
 function applyMailto(job: CareerJob): string {
   const subject = encodeURIComponent(`${careersContent.applySubjectPrefix}: ${job.title} (${job.id})`);
+  const q = job.employerQuestions.map((x, i) => `${i + 1}. ${x}\n[Your answer]`).join('\n\n');
   const body = encodeURIComponent(
     [
       `Hello TimeGovern hiring team,`,
       ``,
       `I am applying for: ${job.title} (${job.id})`,
-      `Department: ${job.department}`,
+      `Category: ${job.category}`,
       `Preferred location: ${job.location} / ${job.remote}`,
       ``,
-      `Attached / linked: CV (PDF)`,
+      `Attached: CV (PDF)`,
       ``,
       `Cover note:`,
-      `[Why TimeGovern and this role — 4–8 sentences]`,
+      `[Why TimeGovern and this role]`,
+      ``,
+      `Employer questions:`,
+      q,
       ``,
       `Full name:`,
       `Phone:`,
       `LinkedIn / portfolio:`,
-      `Work rights in Australia: Yes / No / Visa type`,
       ``,
       `Thank you,`,
       `[Your name]`,
@@ -64,6 +69,7 @@ const JobCard: React.FC<{ job: CareerJob; open: boolean; onToggle: () => void }>
               {job.type}
             </span>
           </div>
+          <p className="text-[11px] text-slate-500">{job.category}</p>
           <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">{job.summary}</p>
           <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-slate-400">
             <span className="inline-flex items-center gap-1">
@@ -86,25 +92,34 @@ const JobCard: React.FC<{ job: CareerJob; open: boolean; onToggle: () => void }>
       </button>
 
       {open && (
-        <div className="px-4 sm:px-5 pb-5 border-t border-slate-800 space-y-4 pt-4">
-          <div>
-            <h4 className="text-[11px] font-extrabold uppercase tracking-wider text-cyan-400 mb-1.5">About the role</h4>
-            <p className="text-sm text-slate-300 leading-relaxed">{job.aboutRole}</p>
-          </div>
+        <div className="px-4 sm:px-5 pb-5 border-t border-slate-800 space-y-5 pt-4 text-sm">
+          <section>
+            <h4 className="text-[11px] font-extrabold uppercase tracking-wider text-cyan-400 mb-1.5">About us</h4>
+            <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">{job.aboutUs}</p>
+          </section>
+
+          <section>
+            <h4 className="text-[11px] font-extrabold uppercase tracking-wider text-cyan-400 mb-1.5">The role</h4>
+            <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">{job.aboutRole}</p>
+          </section>
+
+          <section>
+            <h4 className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 mb-1.5 flex items-center gap-1.5">
+              <ListChecks className="w-3.5 h-3.5" /> What you'll do
+            </h4>
+            <ul className="space-y-1.5 text-xs text-slate-300">
+              {job.responsibilities.map((r) => (
+                <li key={r} className="flex gap-2">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
+                  <span>{r}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+
           <div className="grid sm:grid-cols-2 gap-4">
-            <div>
-              <h4 className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 mb-1.5">Responsibilities</h4>
-              <ul className="space-y-1.5 text-xs text-slate-300">
-                {job.responsibilities.map((r) => (
-                  <li key={r} className="flex gap-2">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
-                    <span>{r}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div>
-              <h4 className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 mb-1.5">Requirements</h4>
+            <section>
+              <h4 className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 mb-1.5">What you'll need</h4>
               <ul className="space-y-1.5 text-xs text-slate-300">
                 {job.requirements.map((r) => (
                   <li key={r} className="flex gap-2">
@@ -113,18 +128,34 @@ const JobCard: React.FC<{ job: CareerJob; open: boolean; onToggle: () => void }>
                   </li>
                 ))}
               </ul>
-              {job.niceToHave.length > 0 && (
-                <>
-                  <h4 className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 mt-3 mb-1.5">Nice to have</h4>
-                  <ul className="space-y-1 text-xs text-slate-400">
-                    {job.niceToHave.map((r) => (
-                      <li key={r}>• {r}</li>
-                    ))}
-                  </ul>
-                </>
-              )}
-            </div>
+            </section>
+            <section>
+              <h4 className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 mb-1.5">Preferred skills & experience</h4>
+              <ul className="space-y-1.5 text-xs text-slate-400">
+                {(job.preferred || []).map((r) => (
+                  <li key={r}>• {r}</li>
+                ))}
+              </ul>
+            </section>
           </div>
+
+          <section>
+            <h4 className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 mb-1.5">How to apply</h4>
+            <p className="text-xs text-slate-300 leading-relaxed">{job.howToApply}</p>
+          </section>
+
+          <section className="rounded-xl border border-slate-700 bg-slate-950/60 p-3">
+            <h4 className="text-[11px] font-extrabold uppercase tracking-wider text-amber-400/90 mb-2 flex items-center gap-1.5">
+              <HelpCircle className="w-3.5 h-3.5" /> Employer questions
+            </h4>
+            <p className="text-[11px] text-slate-500 mb-2">Your application should address:</p>
+            <ol className="list-decimal pl-4 space-y-1 text-xs text-slate-300">
+              {job.employerQuestions.map((q) => (
+                <li key={q}>{q}</li>
+              ))}
+            </ol>
+          </section>
+
           <div className="flex flex-wrap items-center gap-2 pt-1">
             <a
               href={applyMailto(job)}
@@ -162,7 +193,6 @@ export const CareersPanel: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Hero */}
       <div className="relative overflow-hidden rounded-2xl border border-cyan-500/30 bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950/80 p-5 sm:p-7">
         <div className="absolute -right-10 -top-10 w-40 h-40 rounded-full bg-cyan-500/10 blur-3xl pointer-events-none" />
         <div className="relative flex flex-col sm:flex-row sm:items-start gap-4">
@@ -190,7 +220,6 @@ export const CareersPanel: React.FC = () => {
         </div>
       </div>
 
-      {/* About company */}
       <div className="rounded-2xl border border-slate-700 bg-slate-950/80 p-5 space-y-3">
         <h3 className="text-sm font-extrabold text-white flex items-center gap-2">
           <Building2 className="w-4 h-4 text-cyan-400" />
@@ -214,7 +243,6 @@ export const CareersPanel: React.FC = () => {
         </ul>
       </div>
 
-      {/* Filters + jobs */}
       <div className="flex flex-wrap items-center gap-2">
         <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wide">Department</span>
         {departments.map((d) => (
@@ -242,12 +270,8 @@ export const CareersPanel: React.FC = () => {
             onToggle={() => setOpenId((id) => (id === job.id ? null : job.id))}
           />
         ))}
-        {filtered.length === 0 && (
-          <p className="text-sm text-slate-500 text-center py-8">No roles in this department right now.</p>
-        )}
       </div>
 
-      {/* Apply process */}
       <div className="rounded-2xl border border-slate-700 bg-slate-900/50 p-5 space-y-2">
         <h3 className="text-sm font-extrabold text-white">How to apply</h3>
         <p className="text-xs text-slate-300 leading-relaxed">{careersContent.howToApply}</p>
