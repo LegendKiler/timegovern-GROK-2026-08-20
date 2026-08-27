@@ -11,10 +11,11 @@ import { Globe, Eye, EyeOff, Heart, Keyboard } from 'lucide-react';
 import { companyContent } from './content/companyContent';
 import { PillarErrorBoundary } from './components/PillarErrorBoundary';
 import { SiteFooter } from './components/SiteFooter';
+import { PillarChrome } from './components/PillarChrome';
 
 const WorldClockPillar = lazy(() => import('./components/WorldClockPillar').then(m => ({ default: m.WorldClockPillar })));
 const CalendarPillar = lazy(() => import('./components/CalendarPillar').then(m => ({ default: m.CalendarPillar })));
-const AstronomyPillar = lazy(() => import('./components/AstronomyPillarLive').then(m => ({ default: m.AstronomyPillarLive })));
+const AstronomyPillar = lazy(() => import('./components/AstronomyPillarLive').then(m => ({ default: m.AstronomyPillarLive || m.default })));
 const WeatherPillar = lazy(() => import('./components/WeatherPillar').then(m => ({ default: m.WeatherPillar })));
 const TimersPillar = lazy(() => import('./components/TimersPillar').then(m => ({ default: m.TimersPillar })));
 const WorldometersPillar = lazy(() => import('./components/WorldometersPillar').then(m => ({ default: m.WorldometersPillar })));
@@ -31,113 +32,92 @@ const SecurityTrustModal = lazy(() => import('./components/SecurityTrustModal').
 const KeyboardShortcutsModal = lazy(() => import('./components/KeyboardShortcutsModal').then(m => ({ default: m.KeyboardShortcutsModal })));
 
 export default function App() {
-  const [activePillar, setActivePillar] = useState<number>(1);
-  const [selectedCityFromSearch, setSelectedCityFromSearch] = useState<City | undefined>(undefined);
-  const [primaryCity, setPrimaryCity] = useState<City | undefined>(undefined);
+  const [activePillar, setActivePillar] = useState(1);
   const [isDarkMode, setIsDarkMode] = useState(true);
-  const [showAds, setShowAds] = useState(false);
-  const [isArchModalOpen, setIsArchModalOpen] = useState(false);
-  const [isQrModalOpen, setIsQrModalOpen] = useState(false);
-  const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
-  const [accountModalPanel, setAccountModalPanel] = useState<'account' | 'supporter'>('account');
-  const [isSecurityModalOpen, setIsSecurityModalOpen] = useState(false);
-  const [isShortcutsModalOpen, setIsShortcutsModalOpen] = useState(false);
+  const [showAds, setShowAds] = useState(true);
+  const [primaryCity, setPrimaryCity] = useState<City | undefined>();
+  const [selectedCityFromSearch, setSelectedCityFromSearch] = useState<City | undefined>();
+  const [showArchModal, setShowArchModal] = useState(false);
+  const [showQrModal, setShowQrModal] = useState(false);
+  const [showAccountModal, setShowAccountModal] = useState(false);
+  const [accountModalPanel, setAccountModalPanel] = useState<'account' | 'supporter' | undefined>();
+  const [showSecurityModal, setShowSecurityModal] = useState(false);
+  const [showShortcutsModal, setShowShortcutsModal] = useState(false);
+  const [shortcutToast, setShortcutToast] = useState<string | null>(null);
 
   useEffect(() => {
     try {
       const stored = localStorage.getItem('tg_dark');
       if (stored === '0') setIsDarkMode(false);
       if (stored === '1') setIsDarkMode(true);
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
   }, []);
 
   useEffect(() => {
+    document.documentElement.classList.toggle('dark', isDarkMode);
     try {
       localStorage.setItem('tg_dark', isDarkMode ? '1' : '0');
-      document.documentElement.classList.toggle('dark', isDarkMode);
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
   }, [isDarkMode]);
 
   useEffect(() => {
     fetchBillingStatus().catch(() => undefined);
   }, []);
 
-  const { lastFeedback: shortcutFeedback, isMac } = useGlobalShortcuts({
-    onSelectPillar: (pillarIndex: number) => setActivePillar(pillarIndex),
-    onFocusSearch: () => {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      const input = document.querySelector('input[placeholder*="Search global city"]') as HTMLInputElement;
-      input?.focus();
-    },
-    onToggleDarkMode: () => setIsDarkMode((prev) => !prev),
-    onCycleTheme: () => {},
-    onOpenShortcutsModal: () => setIsShortcutsModalOpen(true),
-    onOpenSecurityModal: () => setIsSecurityModalOpen(true),
-    onOpenQrModal: () => setIsQrModalOpen(true),
-    onOpenAccountModal: () => { setAccountModalPanel('account'); setIsAccountModalOpen(true); },
-    onOpenArchModal: () => setIsArchModalOpen(true),
-    onToggleAds: () => setShowAds((prev) => !prev),
-    onCloseModals: () => {
-      setIsArchModalOpen(false);
-      setIsQrModalOpen(false);
-      setIsAccountModalOpen(false);
-      setIsSecurityModalOpen(false);
-      setIsShortcutsModalOpen(false);
-    },
+  useGlobalShortcuts({
+    setActivePillar,
+    setIsDarkMode,
+    setShowAds,
+    onOpenShortcuts: () => setShowShortcutsModal(true),
+    onToast: setShortcutToast,
   });
 
-  const handleSelectCity = (city: City) => {
-    setSelectedCityFromSearch(city);
-    setPrimaryCity(city);
-    setActivePillar(1);
-  };
-
   return (
-    <div
-      className={`min-h-screen flex flex-col transition-colors duration-300 ${isDarkMode ? 'dark' : ''}`}
-      style={{
-        minHeight: '100vh',
-        background: isDarkMode ? '#0b1120' : '#e8eef5',
-      }}
-    >
+    <div className="min-h-screen flex flex-col bg-transparent text-slate-100">
       <AdSenseLoader />
       <Header
         activePillar={activePillar}
         setActivePillar={setActivePillar}
-        onSelectCity={handleSelectCity}
+        onSelectCity={(c) => {
+          setSelectedCityFromSearch(c);
+          setPrimaryCity(c);
+          setActivePillar(1);
+        }}
         primaryCity={primaryCity}
-        onOpenArchModal={() => setIsArchModalOpen(true)}
-        onOpenQrModal={() => setIsQrModalOpen(true)}
-        onOpenAccountModal={() => { setAccountModalPanel('account'); setIsAccountModalOpen(true); }}
-        onOpenSecurityModal={() => setIsSecurityModalOpen(true)}
-        onOpenShortcutsModal={() => setIsShortcutsModalOpen(true)}
+        onOpenArchModal={() => setShowArchModal(true)}
+        onOpenQrModal={() => setShowQrModal(true)}
+        onOpenAccountModal={() => {
+          setAccountModalPanel('account');
+          setShowAccountModal(true);
+        }}
+        onOpenSecurityModal={() => setShowSecurityModal(true)}
+        onOpenShortcutsModal={() => setShowShortcutsModal(true)}
         isDarkMode={isDarkMode}
         setIsDarkMode={setIsDarkMode}
       />
 
-      <div
-        className={`${
-          isDarkMode
-            ? 'bg-[#0b101f]/95 border-slate-800/80 text-slate-200'
-            : 'bg-white border-slate-200 text-slate-700 shadow-sm'
-        } border-b text-xs py-2 px-4`}
-      >
-        <div className="max-w-[1920px] mx-auto flex items-center justify-between gap-3 flex-wrap">
-          <p className="text-[11px] opacity-80">
-            {companyContent.brandName}.com · Precision time tools · Melbourne HQ
-          </p>
+      <div className="border-b border-slate-800/80 bg-slate-950/40">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 py-1.5 flex items-center justify-between gap-2 text-[11px] text-slate-400">
+          <span className="flex items-center gap-1.5 truncate">
+            <Globe className="w-3 h-3 text-indigo-400" />
+            {(companyContent as { tagline?: string })?.tagline || 'Global time, calendars & tools'}
+          </span>
           <button
             type="button"
             onClick={() => setShowAds((p) => !p)}
             className="inline-flex items-center gap-1.5 font-semibold hover:underline"
           >
-            {showAds ? <EyeOff className="w-3.5 h-3.5 text-amber-500" /> : <Eye className="w-3.5 h-3.5 text-emerald-600" />}
+            {showAds ? <EyeOff className="w-3.5 h-3.5 text-amber-500" /> : <Eye className="w-3.5 h-3.5 text-emerald-500" />}
             {showAds ? 'Hide ads' : 'Show ads'}
           </button>
         </div>
       </div>
 
-      {showAds && <AdBanner type="leaderboard-top" />}
+      {showAds && <AdBanner type="leaderboard" />}
 
       <main className="flex-1 w-full max-w-[1920px] mx-auto px-3 sm:px-4 py-4 flex gap-3">
         {showAds && <AdBanner type="skyscraper-left" />}
@@ -145,23 +125,63 @@ export default function App() {
           <PillarErrorBoundary>
             <Suspense fallback={<PillarLoader pillarNumber={activePillar} isDarkMode={isDarkMode} />}>
               {activePillar === 1 && (
-                <WorldClockPillar
-                  isDarkMode={isDarkMode}
-                  primaryCity={primaryCity}
-                  selectedCityFromSearch={selectedCityFromSearch}
-                  onPrimaryCityChange={setPrimaryCity}
-                />
+                <PillarChrome pillarId={1}>
+                  <WorldClockPillar
+                    selectedCityFromSearch={selectedCityFromSearch}
+                    onPrimaryCityChange={setPrimaryCity}
+                  />
+                </PillarChrome>
               )}
-              {activePillar === 2 && <CalendarPillar isDarkMode={isDarkMode} />}
-              {activePillar === 3 && <AstronomyPillar isDarkMode={isDarkMode} primaryCity={primaryCity} />}
-              {activePillar === 4 && <WeatherPillar isDarkMode={isDarkMode} primaryCity={primaryCity} />}
-              {activePillar === 5 && <TimersPillar isDarkMode={isDarkMode} />}
-              {activePillar === 6 && <WorldometersPillar isDarkMode={isDarkMode} />}
-              {activePillar === 7 && <WidgetsPillar isDarkMode={isDarkMode} />}
-              {activePillar === 8 && <EnterpriseServicesPillar />}
-              {activePillar === 9 && <NewsPillar isDarkMode={isDarkMode} />}
-              {activePillar === 10 && <CalculatorsPillar isDarkMode={isDarkMode} />}
-              {activePillar === 11 && <CompanyPillar onNavigatePillar={setActivePillar} />}
+              {activePillar === 2 && (
+                <PillarChrome pillarId={2}>
+                  <CalendarPillar isDarkMode={isDarkMode} />
+                </PillarChrome>
+              )}
+              {activePillar === 3 && (
+                <PillarChrome pillarId={3}>
+                  <AstronomyPillar isDarkMode={isDarkMode} primaryCity={primaryCity} />
+                </PillarChrome>
+              )}
+              {activePillar === 4 && (
+                <PillarChrome pillarId={4}>
+                  <WeatherPillar isDarkMode={isDarkMode} primaryCity={primaryCity} />
+                </PillarChrome>
+              )}
+              {activePillar === 5 && (
+                <PillarChrome pillarId={5}>
+                  <TimersPillar isDarkMode={isDarkMode} />
+                </PillarChrome>
+              )}
+              {activePillar === 6 && (
+                <PillarChrome pillarId={6}>
+                  <WorldometersPillar isDarkMode={isDarkMode} />
+                </PillarChrome>
+              )}
+              {activePillar === 7 && (
+                <PillarChrome pillarId={7}>
+                  <WidgetsPillar isDarkMode={isDarkMode} />
+                </PillarChrome>
+              )}
+              {activePillar === 8 && (
+                <PillarChrome pillarId={8}>
+                  <EnterpriseServicesPillar />
+                </PillarChrome>
+              )}
+              {activePillar === 9 && (
+                <PillarChrome pillarId={9}>
+                  <NewsPillar isDarkMode={isDarkMode} />
+                </PillarChrome>
+              )}
+              {activePillar === 10 && (
+                <PillarChrome pillarId={10}>
+                  <CalculatorsPillar isDarkMode={isDarkMode} />
+                </PillarChrome>
+              )}
+              {activePillar === 11 && (
+                <PillarChrome pillarId={11}>
+                  <CompanyPillar onNavigatePillar={setActivePillar} />
+                </PillarChrome>
+              )}
             </Suspense>
           </PillarErrorBoundary>
         </div>
@@ -172,50 +192,28 @@ export default function App() {
         onNavigatePillar={setActivePillar}
         onOpenSupporter={() => {
           setAccountModalPanel('supporter');
-          setIsAccountModalOpen(true);
+          setShowAccountModal(true);
         }}
-        onOpenAccount={() => {
-          setAccountModalPanel('account');
-          setIsAccountModalOpen(true);
-        }}
-        onOpenSecurity={() => setIsSecurityModalOpen(true)}
       />
 
       <Suspense fallback={null}>
-        {isArchModalOpen && <ArchitectureModal isOpen={isArchModalOpen} onClose={() => setIsArchModalOpen(false)} />}
-        {isQrModalOpen && <QrModal isOpen={isQrModalOpen} onClose={() => setIsQrModalOpen(false)} />}
-        {isAccountModalOpen && (
+        {showArchModal && <ArchitectureModal onClose={() => setShowArchModal(false)} />}
+        {showQrModal && <QrModal onClose={() => setShowQrModal(false)} />}
+        {showAccountModal && (
           <UserAccountModal
-            isOpen={isAccountModalOpen}
-            onClose={() => setIsAccountModalOpen(false)}
+            onClose={() => setShowAccountModal(false)}
             initialPanel={accountModalPanel}
           />
         )}
-        {isSecurityModalOpen && <SecurityTrustModal isOpen={isSecurityModalOpen} onClose={() => setIsSecurityModalOpen(false)} />}
-        {isShortcutsModalOpen && (
-          <KeyboardShortcutsModal
-            isOpen={isShortcutsModalOpen}
-            onClose={() => setIsShortcutsModalOpen(false)}
-            onSelectPillar={(p) => {
-              setActivePillar(p);
-              setIsShortcutsModalOpen(false);
-            }}
-            onFocusSearch={() => {}}
-            onToggleDarkMode={() => setIsDarkMode((p) => !p)}
-            onCycleTheme={() => {}}
-            onOpenSecurityModal={() => setIsSecurityModalOpen(true)}
-            onOpenQrModal={() => setIsQrModalOpen(true)}
-            onOpenAccountModal={() => { setAccountModalPanel('account'); setIsAccountModalOpen(true); }}
-            onOpenArchModal={() => setIsArchModalOpen(true)}
-            onToggleAds={() => setShowAds((p) => !p)}
-            isMac={isMac}
-            activePillar={activePillar}
-          />
+        {showSecurityModal && <SecurityTrustModal onClose={() => setShowSecurityModal(false)} />}
+        {showShortcutsModal && (
+          <KeyboardShortcutsModal onClose={() => setShowShortcutsModal(false)} />
         )}
       </Suspense>
 
-      <ShortcutToast feedback={shortcutFeedback} />
-      {showAds && <AdBanner type="anchor-bottom" />}
+      {shortcutToast && (
+        <ShortcutToast message={shortcutToast} onDone={() => setShortcutToast(null)} />
+      )}
     </div>
   );
 }
