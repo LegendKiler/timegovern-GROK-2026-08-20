@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import {
-  Sun, Clock, Compass, MapPin, Calendar, ArrowRight, Info, Layers, RotateCcw,
-  Sparkles, Sliders, CheckCircle2, TrendingUp, Globe, Share2, Check, Copy
+  Sun, Clock, Compass, MapPin, Calendar, Globe, Check, Copy
 } from 'lucide-react';
 import { City, SolarNoonDetails } from '../types';
 import { calculateSolarNoonDetails } from '../lib/astronomyEngine';
@@ -9,7 +8,7 @@ import { MAJOR_CITIES } from '../lib/citiesData';
 
 interface SolarNoonCalculatorProps {
   selectedCity: City;
-  targetDate: Date;
+  targetDate?: Date | null;
   onCityChange?: (city: City) => void;
   onDateChange?: (date: Date) => void;
 }
@@ -17,8 +16,18 @@ interface SolarNoonCalculatorProps {
 const PRESET_BTN =
   'inline-flex items-center justify-center min-h-[32px] px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-800 transition-colors cursor-pointer whitespace-nowrap';
 
-/** Capitals / majors for comparison table — must match citiesData ids */
 const COMPARE_CITY_IDS = ['nyc', 'lon', 'tyo', 'par', 'syd', 'cai', 'bom', 'sin', 'dxb', 'del'] as const;
+
+function safeDate(d?: Date | null): Date {
+  if (d instanceof Date && !Number.isNaN(d.getTime())) return d;
+  return new Date();
+}
+
+function toDateInputValue(d: Date): string {
+  const x = safeDate(d);
+  const pad = (n: number) => n.toString().padStart(2, '0');
+  return `${x.getFullYear()}-${pad(x.getMonth() + 1)}-${pad(x.getDate())}`;
+}
 
 export const SolarNoonCalculator: React.FC<SolarNoonCalculatorProps> = ({
   selectedCity,
@@ -26,17 +35,15 @@ export const SolarNoonCalculator: React.FC<SolarNoonCalculatorProps> = ({
   onCityChange,
   onDateChange
 }) => {
-  const [customDateStr, setCustomDateStr] = useState<string>(() => {
-    const pad = (n: number) => n.toString().padStart(2, '0');
-    return `${targetDate.getFullYear()}-${pad(targetDate.getMonth() + 1)}-${pad(targetDate.getDate())}`;
-  });
-  const [customLng, setCustomLng] = useState<number>(selectedCity.lng);
-  const [currentTime, setCurrentTime] = useState<Date>(new Date());
+  const city = selectedCity || MAJOR_CITIES[0];
+  const [customDateStr, setCustomDateStr] = useState<string>(() => toDateInputValue(safeDate(targetDate)));
+  const [customLng, setCustomLng] = useState<number>(() => city?.lng ?? 0);
+  const [currentTime, setCurrentTime] = useState<Date>(() => new Date());
   const [copiedSummary, setCopiedSummary] = useState(false);
 
   useEffect(() => {
-    setCustomLng(selectedCity.lng);
-  }, [selectedCity]);
+    if (city?.lng != null) setCustomLng(city.lng);
+  }, [city?.id, city?.lng]);
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -44,40 +51,50 @@ export const SolarNoonCalculator: React.FC<SolarNoonCalculatorProps> = ({
   }, []);
 
   const activeDate = useMemo(() => {
-    if (!customDateStr) return targetDate;
+    if (!customDateStr || !/^\d{4}-\d{2}-\d{2}$/.test(customDateStr)) return safeDate(targetDate);
     const [y, m, d] = customDateStr.split('-').map(Number);
+    if (!y || !m || !d) return safeDate(targetDate);
     return new Date(y, m - 1, d);
   }, [customDateStr, targetDate]);
 
-  const solarNoonData: SolarNoonDetails = useMemo(() => {
-    return calculateSolarNoonDetails(selectedCity.lat, customLng, activeDate, selectedCity.timezone);
-  }, [selectedCity.lat, customLng, activeDate, selectedCity.timezone]);
+  const solarNoonData: SolarNoonDetails | null = useMemo(() => {
+    try {
+      return calculateSolarNoonDetails(city.lat, customLng, activeDate, city.timezone || 'UTC');
+    } catch {
+      return null;
+    }
+  }, [city.lat, city.lng, customLng, activeDate, city.timezone]);
 
   const globalComparisons = useMemo(() => {
     return COMPARE_CITY_IDS.map((id) => MAJOR_CITIES.find((c) => c.id === id))
       .filter((c): c is City => Boolean(c))
-      .map((c) => ({
-        city: c,
-        noon: calculateSolarNoonDetails(c.lat, c.lng, activeDate, c.timezone),
-      }));
+      .map((c) => {
+        try {
+          return {
+            city: c,
+            noon: calculateSolarNoonDetails(c.lat, c.lng, activeDate, c.timezone || 'UTC'),
+          };
+        } catch {
+          return null;
+        }
+      })
+      .filter(Boolean) as { city: City; noon: SolarNoonDetails }[];
   }, [activeDate]);
 
   const setPresetDate = (type: 'today' | 'vernal' | 'summer' | 'winter') => {
     const curYear = new Date().getFullYear();
-    const pad = (n: number) => n.toString().padStart(2, '0');
     let dateObj = new Date();
-    if (type === 'today') dateObj = new Date();
-    else if (type === 'vernal') dateObj = new Date(curYear, 2, 20);
+    if (type === 'vernal') dateObj = new Date(curYear, 2, 20);
     else if (type === 'summer') dateObj = new Date(curYear, 5, 21);
     else if (type === 'winter') dateObj = new Date(curYear, 11, 21);
-    const str = `${dateObj.getFullYear()}-${pad(dateObj.getMonth() + 1)}-${pad(dateObj.getDate())}`;
-    setCustomDateStr(str);
+    setCustomDateStr(toDateInputValue(dateObj));
     onDateChange?.(dateObj);
   };
 
   const handleCopySummary = () => {
+    if (!solarNoonData) return;
     const summary =
-      `Exact Solar Noon for ${selectedCity.name}, ${selectedCity.country}:\n` +
+      `Exact Solar Noon for ${city.name}, ${city.country}:\n` +
       `• Date: ${activeDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}\n` +
       `• Solar noon (local): ${solarNoonData.solarNoonLocalStr}\n` +
       `• Peak altitude: ${solarNoonData.maxSolarElevationDeg}°\n` +
@@ -88,9 +105,12 @@ export const SolarNoonCalculator: React.FC<SolarNoonCalculatorProps> = ({
     });
   };
 
+  if (!city) {
+    return <p className="text-sm text-slate-500 p-4">No city selected.</p>;
+  }
+
   return (
     <div className="space-y-6">
-      {/* Hero — always dark-on-light readable (no dark:text-white clash) */}
       <div className="bg-gradient-to-br from-amber-500/10 via-blue-500/10 to-indigo-500/10 border border-amber-300 rounded-2xl p-5 sm:p-6 shadow-sm">
         <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4">
           <div className="space-y-1 min-w-0">
@@ -104,11 +124,11 @@ export const SolarNoonCalculator: React.FC<SolarNoonCalculatorProps> = ({
             </div>
             <h2 className="text-xl sm:text-2xl font-black text-slate-900 flex items-center gap-2.5">
               <Sun className="w-6 h-6 text-amber-500 shrink-0" />
-              <span>Exact Solar Noon for {selectedCity.name}</span>
+              <span>Exact Solar Noon for {city.name}</span>
             </h2>
             <p className="text-xs sm:text-sm text-slate-600 max-w-xl">
-              Calculated from local longitude ({customLng.toFixed(2)}°), Earth's axial tilt, orbital
-              eccentricity, and Equation of Time.
+              Calculated from local longitude ({Number(customLng).toFixed(2)}°), Earth's axial tilt,
+              orbital eccentricity, and Equation of Time.
             </p>
           </div>
 
@@ -150,7 +170,7 @@ export const SolarNoonCalculator: React.FC<SolarNoonCalculatorProps> = ({
               <MapPin className="w-3 h-3" /> Selected city
             </label>
             <select
-              value={selectedCity.id}
+              value={city.id}
               onChange={(e) => {
                 const c = MAJOR_CITIES.find((x) => x.id === e.target.value);
                 if (c) onCityChange?.(c);
@@ -178,7 +198,7 @@ export const SolarNoonCalculator: React.FC<SolarNoonCalculatorProps> = ({
               />
               <button
                 type="button"
-                onClick={() => setCustomLng(selectedCity.lng)}
+                onClick={() => setCustomLng(city.lng)}
                 className="text-[10px] font-bold px-2 rounded-lg border border-slate-300 bg-white text-slate-700 whitespace-nowrap"
               >
                 Reset
@@ -188,7 +208,6 @@ export const SolarNoonCalculator: React.FC<SolarNoonCalculatorProps> = ({
         </div>
       </div>
 
-      {/* Metrics HUD — intentional dark panel */}
       <div className="bg-slate-950 text-white rounded-2xl border border-slate-800 p-5 sm:p-6 shadow-xl space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h3 className="text-sm font-bold flex items-center gap-2">
@@ -197,40 +216,48 @@ export const SolarNoonCalculator: React.FC<SolarNoonCalculatorProps> = ({
           <button
             type="button"
             onClick={handleCopySummary}
-            className="text-[10px] font-bold px-2.5 py-1 rounded-lg bg-slate-800 border border-slate-700 hover:bg-slate-700 inline-flex items-center gap-1"
+            disabled={!solarNoonData}
+            className="text-[10px] font-bold px-2.5 py-1 rounded-lg bg-slate-800 border border-slate-700 hover:bg-slate-700 inline-flex items-center gap-1 disabled:opacity-50"
           >
             {copiedSummary ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
             {copiedSummary ? 'Copied' : 'Copy summary'}
           </button>
         </div>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 text-center">
-          <div className="rounded-xl bg-slate-900/80 border border-slate-800 p-3">
-            <p className="text-[10px] uppercase text-slate-400 font-bold">Local solar noon</p>
-            <p className="text-lg font-black font-mono text-amber-300">{solarNoonData.solarNoonLocalStr}</p>
-          </div>
-          <div className="rounded-xl bg-slate-900/80 border border-slate-800 p-3">
-            <p className="text-[10px] uppercase text-slate-400 font-bold">vs 12:00 clock</p>
-            <p className="text-lg font-black font-mono">
-              {solarNoonData.clockNoonDifferenceMinutes >= 0 ? '+' : ''}
-              {solarNoonData.clockNoonDifferenceMinutes}m
+        {solarNoonData ? (
+          <>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 text-center">
+              <div className="rounded-xl bg-slate-900/80 border border-slate-800 p-3">
+                <p className="text-[10px] uppercase text-slate-400 font-bold">Local solar noon</p>
+                <p className="text-lg font-black font-mono text-amber-300">{solarNoonData.solarNoonLocalStr}</p>
+              </div>
+              <div className="rounded-xl bg-slate-900/80 border border-slate-800 p-3">
+                <p className="text-[10px] uppercase text-slate-400 font-bold">vs 12:00 clock</p>
+                <p className="text-lg font-black font-mono">
+                  {solarNoonData.clockNoonDifferenceMinutes >= 0 ? '+' : ''}
+                  {solarNoonData.clockNoonDifferenceMinutes}m
+                </p>
+              </div>
+              <div className="rounded-xl bg-slate-900/80 border border-slate-800 p-3">
+                <p className="text-[10px] uppercase text-slate-400 font-bold">Peak altitude</p>
+                <p className="text-lg font-black font-mono text-emerald-400">
+                  {solarNoonData.maxSolarElevationDeg}°
+                </p>
+              </div>
+              <div className="rounded-xl bg-slate-900/80 border border-slate-800 p-3">
+                <p className="text-[10px] uppercase text-slate-400 font-bold">Culmination</p>
+                <p className="text-sm font-bold">{solarNoonData.culminationDirection}</p>
+              </div>
+            </div>
+            <p className="text-[11px] text-slate-400">
+              EoT {solarNoonData.equationOfTimeFormatted} · Day {solarNoonData.dayOfYear ?? '—'} of{' '}
+              {activeDate.getFullYear()} · UTC {solarNoonData.solarNoonUtcStr}
             </p>
-          </div>
-          <div className="rounded-xl bg-slate-900/80 border border-slate-800 p-3">
-            <p className="text-[10px] uppercase text-slate-400 font-bold">Peak altitude</p>
-            <p className="text-lg font-black font-mono text-emerald-400">{solarNoonData.maxSolarElevationDeg}°</p>
-          </div>
-          <div className="rounded-xl bg-slate-900/80 border border-slate-800 p-3">
-            <p className="text-[10px] uppercase text-slate-400 font-bold">Culmination</p>
-            <p className="text-sm font-bold">{solarNoonData.culminationDirection}</p>
-          </div>
-        </div>
-        <p className="text-[11px] text-slate-400">
-          EoT {solarNoonData.equationOfTimeFormatted} · Day {solarNoonData.dayOfYear} of{' '}
-          {activeDate.getFullYear()} · UTC {solarNoonData.solarNoonUtcStr}
-        </p>
+          </>
+        ) : (
+          <p className="text-sm text-slate-400">Unable to compute solar noon for this location/date.</p>
+        )}
       </div>
 
-      {/* Global capital comparison — populated via real city ids */}
       <div className="rounded-2xl border border-slate-700 bg-slate-900/80 p-4 sm:p-5">
         <h3 className="text-sm font-bold text-white flex items-center gap-2 mb-3">
           <Globe className="w-4 h-4 text-emerald-400" />
@@ -253,16 +280,16 @@ export const SolarNoonCalculator: React.FC<SolarNoonCalculatorProps> = ({
               {globalComparisons.length === 0 && (
                 <tr>
                   <td colSpan={6} className="py-6 text-center text-slate-500">
-                    No comparison cities found in database.
+                    No comparison cities found.
                   </td>
                 </tr>
               )}
-              {globalComparisons.map(({ city, noon }) => {
-                const isCurrent = city.id === selectedCity.id;
+              {globalComparisons.map(({ city: c, noon }) => {
+                const isCurrent = c.id === city.id;
                 return (
                   <tr
-                    key={city.id}
-                    onClick={() => onCityChange?.(city)}
+                    key={c.id}
+                    onClick={() => onCityChange?.(c)}
                     className={`cursor-pointer transition-colors ${
                       isCurrent
                         ? 'bg-amber-950/40 text-amber-100'
@@ -270,8 +297,8 @@ export const SolarNoonCalculator: React.FC<SolarNoonCalculatorProps> = ({
                     }`}
                   >
                     <td className="py-2.5 font-sans">
-                      <span className="font-semibold">{city.name}</span>
-                      <span className="text-[10px] text-slate-500 ml-1">({city.countryCode})</span>
+                      <span className="font-semibold">{c.name}</span>
+                      <span className="text-[10px] text-slate-500 ml-1">({c.countryCode})</span>
                       {isCurrent && (
                         <span className="ml-1 text-[9px] bg-amber-500 text-white font-bold px-1.5 rounded-full">
                           Active
@@ -279,7 +306,7 @@ export const SolarNoonCalculator: React.FC<SolarNoonCalculatorProps> = ({
                       )}
                     </td>
                     <td className="py-2.5 text-slate-400">
-                      {city.lng >= 0 ? `${city.lng.toFixed(1)}°E` : `${Math.abs(city.lng).toFixed(1)}°W`}
+                      {c.lng >= 0 ? `${c.lng.toFixed(1)}°E` : `${Math.abs(c.lng).toFixed(1)}°W`}
                     </td>
                     <td className="py-2.5 font-bold text-blue-400">{noon.solarNoonLocalStr}</td>
                     <td className="py-2.5">
