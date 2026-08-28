@@ -26,8 +26,8 @@ const CalculatorsPillar = lazy(() => import('./components/CalculatorsPillar').th
 const CompanyPillar = lazy(() => import('./components/CompanyPillar').then(m => ({ default: m.CompanyPillar })));
 
 const ArchitectureModal = lazy(() => import('./components/ArchitectureModal').then(m => ({ default: m.ArchitectureModal })));
-const QrModal = lazy(() => import('./components/QrModal').then(m => ({ default: m.QrModal })));
-const UserAccountModal = lazy(() => import('./components/UserAccountModal').then(m => ({ default: m.UserAccountModal })));
+const QrModal = lazy(() => import('./components/QrModal').then(m => ({ default: m.QrModal || m.default })));
+const UserAccountModal = lazy(() => import('./components/UserAccountModal').then(m => ({ default: m.UserAccountModal || m.default })));
 const SecurityTrustModal = lazy(() => import('./components/SecurityTrustModal').then(m => ({ default: m.SecurityTrustModal })));
 const KeyboardShortcutsModal = lazy(() => import('./components/KeyboardShortcutsModal').then(m => ({ default: m.KeyboardShortcutsModal })));
 
@@ -109,7 +109,6 @@ export default function App() {
               {activePillar === 1 && (
                 <PillarChrome pillarId={1}>
                   <WorldClockPillar
-                    isDarkMode={isDarkMode}
                     selectedCityFromSearch={selectedCityFromSearch}
                     onPrimaryCityChange={setPrimaryCity}
                   />
@@ -180,17 +179,25 @@ export default function App() {
       />
 
       <Suspense fallback={null}>
-        {showArchModal && <ArchitectureModal onClose={() => setShowArchModal(false)} />}
-        {showQrModal && <QrModal onClose={() => setShowQrModal(false)} />}
+        {showArchModal && (
+          <ArchitectureModal isOpen={showArchModal} onClose={() => setShowArchModal(false)} />
+        )}
+        {showQrModal && <QrModal isOpen={showQrModal} onClose={() => setShowQrModal(false)} />}
         {showAccountModal && (
           <UserAccountModal
+            isOpen={showAccountModal}
             onClose={() => setShowAccountModal(false)}
             initialPanel={accountModalPanel}
           />
         )}
-        {showSecurityModal && <SecurityTrustModal onClose={() => setShowSecurityModal(false)} />}
+        {showSecurityModal && (
+          <SecurityTrustModal isOpen={showSecurityModal} onClose={() => setShowSecurityModal(false)} />
+        )}
         {showShortcutsModal && (
-          <KeyboardShortcutsModal onClose={() => setShowShortcutsModal(false)} />
+          <KeyboardShortcutsModal
+            isOpen={showShortcutsModal}
+            onClose={() => setShowShortcutsModal(false)}
+          />
         )}
       </Suspense>
 
