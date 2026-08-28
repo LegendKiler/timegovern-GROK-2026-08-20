@@ -1,19 +1,21 @@
 /*
- * Unified light mode — same surfaces on every pillar.
- * Soft page + white cards + dark text. No mixed dark cards in light theme.
+ * Soft light mode — not pure white glare.
+ * Cool slate page + tinted cards + readable dark text.
+ * Dark mode unchanged below.
  */
 
 /* ——— LIGHT (html without .dark) ——— */
 html:not(.dark),
 html:not(.dark) body,
 html:not(.dark) #root {
-  background-color: #eef2f7 !important;
+  background-color: #d8e0ea !important;
   color: #0f172a !important;
 }
 html:not(.dark) body {
   background-image:
-    radial-gradient(900px 480px at 88% 8%, rgba(99, 102, 241, 0.08), transparent 55%),
-    linear-gradient(180deg, #f1f5f9 0%, #e8eef5 100%) !important;
+    radial-gradient(900px 480px at 88% 8%, rgba(79, 70, 229, 0.10), transparent 55%),
+    radial-gradient(700px 400px at 12% 88%, rgba(14, 165, 233, 0.07), transparent 50%),
+    linear-gradient(180deg, #e4eaf2 0%, #d5dee9 55%, #cfd8e6 100%) !important;
   background-attachment: fixed !important;
 }
 html:not(.dark) #root > div {
@@ -28,46 +30,46 @@ html:not(.dark) main .text-blue-600 {
   color: #4338ca !important;
 }
 
-/* —— Unify slate dark-looking panels into light cards —— */
+/* Cards = soft slate, NOT pure white */
 html:not(.dark) main .bg-slate-950,
 html:not(.dark) main .bg-slate-900,
 html:not(.dark) main .bg-slate-800,
 html:not(.dark) main [class*="bg-slate-950"],
 html:not(.dark) main [class*="bg-slate-900"],
 html:not(.dark) main [class*="bg-slate-800"] {
-  background-color: #ffffff !important;
+  background-color: #eef2f7 !important;
   color: #0f172a !important;
 }
 html:not(.dark) main .bg-slate-700,
 html:not(.dark) main [class*="bg-slate-700"] {
-  background-color: #f1f5f9 !important;
+  background-color: #e4eaf2 !important;
   color: #0f172a !important;
 }
 html:not(.dark) main .bg-white {
-  background-color: #ffffff !important;
+  background-color: #eef2f7 !important;
   color: #0f172a !important;
 }
 html:not(.dark) main .bg-slate-50,
 html:not(.dark) main .bg-slate-100 {
-  background-color: #f8fafc !important;
+  background-color: #e4eaf2 !important;
   color: #0f172a !important;
 }
 
-/* Borders */
+/* Borders — slightly stronger so panels don’t float as white blobs */
 html:not(.dark) main .border-slate-800,
 html:not(.dark) main .border-slate-700,
 html:not(.dark) main .border-slate-600,
 html:not(.dark) main [class*="border-slate-8"],
 html:not(.dark) main [class*="border-slate-7"],
 html:not(.dark) main [class*="border-slate-6"] {
-  border-color: #e2e8f0 !important;
+  border-color: #b8c4d4 !important;
 }
 html:not(.dark) main .border-slate-200,
 html:not(.dark) main .border-slate-300 {
-  border-color: #e2e8f0 !important;
+  border-color: #c5d0de !important;
 }
 
-/* Text hierarchy — readable on white cards */
+/* Text hierarchy */
 html:not(.dark) main .text-white {
   color: #0f172a !important;
 }
@@ -78,7 +80,7 @@ html:not(.dark) main .text-slate-300 {
 }
 html:not(.dark) main .text-slate-400,
 html:not(.dark) main .text-slate-500 {
-  color: #64748b !important;
+  color: #475569 !important;
 }
 html:not(.dark) main h1,
 html:not(.dark) main h2,
@@ -87,7 +89,7 @@ html:not(.dark) main h4 {
   color: #0f172a !important;
 }
 
-/* Accent chips readable in light */
+/* Accents */
 html:not(.dark) main .text-violet-200,
 html:not(.dark) main .text-violet-300 {
   color: #5b21b6 !important;
@@ -106,7 +108,7 @@ html:not(.dark) main .text-amber-300 {
   color: #b45309 !important;
 }
 html:not(.dark) main [class*="bg-violet-500"] {
-  background-color: #ede9fe !important;
+  background-color: #e9e5ff !important;
   color: #5b21b6 !important;
   border-color: #c4b5fd !important;
 }
@@ -115,23 +117,32 @@ html:not(.dark) main .bg-indigo-500 {
   background-color: #4f46e5 !important;
   color: #ffffff !important;
 }
+html:not(.dark) main .bg-cyan-50,
+html:not(.dark) main [class*="bg-cyan-50"] {
+  background-color: #cffafe !important;
+}
+html:not(.dark) main .bg-cyan-100,
+html:not(.dark) main [class*="bg-cyan-100"] {
+  background-color: #a5f3fc !important;
+  color: #155e75 !important;
+}
 
 /* Tables */
 html:not(.dark) main table,
 html:not(.dark) main th,
 html:not(.dark) main td {
   color: #0f172a !important;
-  border-color: #e2e8f0 !important;
+  border-color: #c5d0de !important;
 }
 html:not(.dark) main th {
-  background-color: #f1f5f9 !important;
+  background-color: #dce4ef !important;
   color: #1e293b !important;
 }
 
-/* Header */
+/* Header — soft, not pure white */
 html:not(.dark) header {
-  background-color: rgba(255, 255, 255, 0.96) !important;
-  border-bottom-color: #e2e8f0 !important;
+  background-color: rgba(232, 238, 247, 0.96) !important;
+  border-bottom-color: #b8c4d4 !important;
   color: #0f172a !important;
 }
 html:not(.dark) header .text-white {
@@ -143,32 +154,32 @@ html:not(.dark) header .text-slate-500 {
   color: #475569 !important;
 }
 html:not(.dark) header input {
-  background-color: #f8fafc !important;
-  border-color: #cbd5e1 !important;
+  background-color: #e4eaf2 !important;
+  border-color: #b8c4d4 !important;
   color: #0f172a !important;
 }
 html:not(.dark) header input::placeholder {
   color: #64748b !important;
 }
 html:not(.dark) nav[aria-label="Main sections"] > button:not(.bg-indigo-500) {
-  background-color: #ffffff !important;
+  background-color: #eef2f7 !important;
   color: #334155 !important;
-  border-color: #e2e8f0 !important;
+  border-color: #c5d0de !important;
 }
 html:not(.dark) header button.inline-flex {
-  background-color: #ffffff !important;
-  border-color: #e2e8f0 !important;
+  background-color: #eef2f7 !important;
+  border-color: #c5d0de !important;
   color: #334155 !important;
 }
 
-/* Light footer */
+/* Footer — soft */
 html:not(.dark) .tg-site-footer {
-  background-color: #ffffff !important;
+  background-color: #e4eaf2 !important;
   color: #0f172a !important;
-  border-top: 1px solid #e2e8f0 !important;
+  border-top: 1px solid #b8c4d4 !important;
 }
 html:not(.dark) .tg-site-footer .tg-footer-body {
-  background-color: #ffffff !important;
+  background-color: #e4eaf2 !important;
   color: #0f172a !important;
 }
 html:not(.dark) .tg-site-footer .tg-footer-title,
@@ -191,11 +202,11 @@ html:not(.dark) .tg-site-footer .tg-footer-brand-accent {
   color: #4f46e5 !important;
 }
 html:not(.dark) .tg-site-footer .tg-footer-svc-icon {
-  background: #eef2ff !important;
+  background: #dde4f5 !important;
   color: #4f46e5 !important;
 }
 
-/* Keep intentional dark hero bands (gradients) readable */
+/* Hero gradients keep light text */
 html:not(.dark) main [class*="from-sky-900"],
 html:not(.dark) main [class*="from-slate-950"],
 html:not(.dark) main [class*="from-indigo-950"],
