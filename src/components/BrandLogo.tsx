@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 /**
  * TimeGovern live brand mark — graphic dial + hands driven by the user's
  * local PC clock. Larger professional size + Space Grotesk wordmark.
+ * Second hand tip stays inside the dial (not past the tick ring).
  */
 
 function useLocalClock(enabled: boolean) {
@@ -117,42 +118,47 @@ export const LogoMarkLive: React.FC<{
       })}
 
       <g style={{ transformOrigin: '36px 36px' }}>
+        {/* Hour — short */}
         <line
           x1="36"
           y1="36"
           x2="36"
-          y2="22"
+          y2="23"
           stroke="#e2e8f0"
           strokeWidth="3.2"
           strokeLinecap="round"
           transform={`rotate(${hour} 36 36)`}
         />
+        {/* Minute — medium, inside ticks */}
         <line
           x1="36"
           y1="36"
           x2="36"
-          y2="16"
+          y2="18"
           stroke="#7dd3fc"
           strokeWidth="2.2"
           strokeLinecap="round"
           transform={`rotate(${minute} 36 36)`}
         />
+        {/* Second — tip + pink dot stay inside dial (radius ~18.5, ticks start ~25) */}
         <line
           x1="36"
-          y1="40"
+          y1="39"
           x2="36"
-          y2="13"
+          y2="17.5"
           stroke="#f472b6"
-          strokeWidth="1.15"
+          strokeWidth="1.2"
           strokeLinecap="round"
           transform={`rotate(${second} 36 36)`}
           filter="url(#tg-glow)"
         />
         <circle
           cx="36"
-          cy="13"
-          r="1.6"
+          cy="17.5"
+          r="1.45"
           fill="#f9a8d4"
+          stroke="#831843"
+          strokeWidth="0.35"
           transform={`rotate(${second} 36 36)`}
           style={{ transformOrigin: '36px 36px' }}
         />
@@ -180,12 +186,7 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
   <span className="inline-flex items-center gap-3 select-none">
     <LogoMarkLive className={className} live={live} />
     {showWordmark && (
-      <span
-        className={
-          wordmarkClassName ||
-          'flex flex-col justify-center leading-none'
-        }
-      >
+      <span className={wordmarkClassName || 'flex flex-col justify-center leading-none'}>
         <span
           className="font-display text-[1.2rem] sm:text-[1.4rem] font-bold tracking-tight text-slate-800 dark:text-white"
           style={{ fontFamily: '"Space Grotesk", Inter, system-ui, sans-serif' }}
