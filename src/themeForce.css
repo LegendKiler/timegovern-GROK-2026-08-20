@@ -1,21 +1,21 @@
 /*
- * F — Light + dark surfaces.
- * Dark rules scoped to html.dark so light mode is readable.
- * Features unchanged.
+ * F — Light + dark surfaces (light-mode readability pass Aug 2026).
+ * Soft slate page (not pure white glare). Header wordmark dark in light mode.
+ * Dark panels keep light text; light panels use dark text.
  */
 
 /* ——— LIGHT (html without .dark) ——— */
 html:not(.dark),
 html:not(.dark) body,
 html:not(.dark) #root {
-  background-color: #f1f5f9 !important;
+  background-color: #e8eef5 !important;
   color: #0f172a !important;
 }
 html:not(.dark) body {
   background-image:
-    radial-gradient(900px 480px at 88% 8%, rgba(99, 102, 241, 0.12), transparent 55%),
-    radial-gradient(700px 400px at 8% 90%, rgba(14, 165, 233, 0.08), transparent 50%),
-    linear-gradient(180deg, #f8fafc 0%, #f1f5f9 45%, #e2e8f0 100%) !important;
+    radial-gradient(900px 480px at 88% 8%, rgba(99, 102, 241, 0.10), transparent 55%),
+    radial-gradient(700px 400px at 8% 90%, rgba(14, 165, 233, 0.07), transparent 50%),
+    linear-gradient(180deg, #eef2f7 0%, #e2e8f0 50%, #dbe3ee 100%) !important;
   background-attachment: fixed !important;
 }
 html:not(.dark) #root > div {
@@ -27,11 +27,11 @@ html:not(.dark) main {
 }
 html:not(.dark) main a,
 html:not(.dark) main .text-blue-600 {
-  color: #4f46e5 !important;
+  color: #4338ca !important;
 }
 html:not(.dark) main .text-slate-500,
 html:not(.dark) main .text-slate-400 {
-  color: #64748b !important;
+  color: #475569 !important;
 }
 html:not(.dark) main .text-slate-300,
 html:not(.dark) main .text-slate-200 {
@@ -45,30 +45,101 @@ html:not(.dark) main h2,
 html:not(.dark) main h3 {
   color: #0f172a !important;
 }
-html:not(.dark) header {
-  background-color: rgba(255, 255, 255, 0.92) !important;
-  border-bottom-color: #e2e8f0 !important;
+
+/* Dark-styled cards: restore light text (override blanket .text-white rule) */
+html:not(.dark) main .bg-slate-950 .text-white,
+html:not(.dark) main .bg-slate-900 .text-white,
+html:not(.dark) main .bg-slate-800 .text-white,
+html:not(.dark) main [class*="bg-slate-950"] .text-white,
+html:not(.dark) main [class*="bg-slate-900"] .text-white,
+html:not(.dark) main [class*="from-slate-950"] .text-white,
+html:not(.dark) main [class*="from-slate-900"] .text-white,
+html:not(.dark) main [class*="to-indigo-950"] .text-white,
+html:not(.dark) main [class*="to-violet-950"] .text-white,
+html:not(.dark) main [class*="via-slate-900"] .text-white {
+  color: #f8fafc !important;
+}
+html:not(.dark) main .bg-slate-950 .text-slate-200,
+html:not(.dark) main .bg-slate-900 .text-slate-200,
+html:not(.dark) main .bg-slate-950 .text-slate-300,
+html:not(.dark) main .bg-slate-900 .text-slate-300,
+html:not(.dark) main .bg-slate-800 .text-slate-300,
+html:not(.dark) main .bg-slate-950 .text-slate-400,
+html:not(.dark) main .bg-slate-900 .text-slate-400 {
+  color: #cbd5e1 !important;
+}
+html:not(.dark) main .bg-slate-950 h1,
+html:not(.dark) main .bg-slate-950 h2,
+html:not(.dark) main .bg-slate-950 h3,
+html:not(.dark) main .bg-slate-900 h1,
+html:not(.dark) main .bg-slate-900 h2,
+html:not(.dark) main .bg-slate-900 h3 {
+  color: #f8fafc !important;
+}
+
+/* Soften pure white cards */
+html:not(.dark) main .bg-white {
+  background-color: #f1f5f9 !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+}
+html:not(.dark) main .bg-slate-50 {
+  background-color: #eef2f7 !important;
   color: #0f172a !important;
 }
+
+html:not(.dark) main table,
+html:not(.dark) main th,
+html:not(.dark) main td {
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+}
+html:not(.dark) main th {
+  background-color: #e2e8f0 !important;
+  color: #1e293b !important;
+}
+
+/* Header: readable brand on light bar */
+html:not(.dark) header {
+  background-color: rgba(241, 245, 249, 0.97) !important;
+  border-bottom-color: #cbd5e1 !important;
+  color: #0f172a !important;
+}
+html:not(.dark) header .text-white {
+  color: #0f172a !important;
+}
+html:not(.dark) header .text-slate-300,
+html:not(.dark) header .text-slate-400,
+html:not(.dark) header .text-slate-500 {
+  color: #475569 !important;
+}
 html:not(.dark) header input {
-  background-color: #f8fafc !important;
+  background-color: #ffffff !important;
   border-color: #cbd5e1 !important;
   color: #0f172a !important;
+}
+html:not(.dark) header input::placeholder {
+  color: #64748b !important;
 }
 html:not(.dark) nav[aria-label="Main sections"] > button:not(.bg-indigo-500) {
   background-color: #ffffff !important;
   color: #334155 !important;
-  border-color: #e2e8f0 !important;
+  border-color: #cbd5e1 !important;
+}
+html:not(.dark) header button.inline-flex {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  color: #334155 !important;
 }
 
 /* Light footer */
 html:not(.dark) .tg-site-footer {
-  background-color: #ffffff !important;
+  background-color: #f1f5f9 !important;
   color: #0f172a !important;
-  border-top: 1px solid #e2e8f0 !important;
+  border-top: 1px solid #cbd5e1 !important;
 }
 html:not(.dark) .tg-site-footer .tg-footer-body {
-  background-color: #ffffff !important;
+  background-color: #f1f5f9 !important;
   color: #0f172a !important;
 }
 html:not(.dark) .tg-site-footer .tg-footer-title,
@@ -163,22 +234,25 @@ html.dark .tg-site-footer .tg-footer-link:hover {
 html.dark .tg-site-footer .tg-footer-muted {
   color: #94a3b8 !important;
 }
-html.dark .tg-site-footer .tg-footer-strong,
+html.dark .tg-site-footer .tg-footer-strong {
+  color: #f1f5f9 !important;
+  font-weight: 600 !important;
+}
 html.dark .tg-site-footer .tg-footer-brand {
   color: #f8fafc !important;
-  font-weight: 700 !important;
+  font-weight: 800 !important;
 }
 html.dark .tg-site-footer .tg-footer-brand-accent {
   color: #a5b4fc !important;
 }
 html.dark .tg-site-footer .tg-footer-heading {
-  color: #f8fafc !important;
+  color: #e2e8f0 !important;
   font-weight: 800 !important;
   font-size: 13px !important;
   letter-spacing: 0.08em !important;
   text-transform: uppercase !important;
   margin-bottom: 0.75rem !important;
-  font-family: Inter, "Segoe UI", system-ui, sans-serif !important;
+  font-family: Inter, system-ui, sans-serif !important;
 }
 html.dark .tg-site-footer .tg-footer-heading--sub {
   margin-top: 1.25rem !important;
