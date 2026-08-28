@@ -8,6 +8,7 @@ import { legalContent } from '../content/legalContent';
 import { buildNewsletterEmail } from '../content/emailTemplates';
 import { ExperienceFeedbackPanel } from './ExperienceFeedbackPanel';
 import { CareersPanel } from './CareersPanel';
+import { PodcastPanel } from './PodcastPanel';
 import { SiteMapPanel } from './SiteMapPanel';
 
 interface CompanyPillarProps {
@@ -21,11 +22,6 @@ export const CompanyPillar: React.FC<CompanyPillarProps> = ({ onNavigatePillar }
   const c = companyContent;
   const L = legalContent;
   const [tab, setTab] = useState<HubTab>('about');
-  const [contactView, setContactView] = useState<'form' | 'details'>('form');
-  const [contactName, setContactName] = useState('');
-  const [contactEmail, setContactEmail] = useState('');
-  const [contactMsg, setContactMsg] = useState('');
-  const [contactSent, setContactSent] = useState(false);
   const [legalSection, setLegalSection] = useState<LegalSection>('privacy');
   const [nlEmail, setNlEmail] = useState('');
   const [nlCadence, setNlCadence] = useState<'weekly' | 'monthly' | 'yearly'>('weekly');
@@ -35,10 +31,9 @@ export const CompanyPillar: React.FC<CompanyPillarProps> = ({ onNavigatePillar }
       const h = (window.location.hash || '').replace(/^#/, '').toLowerCase();
       if (!h) return;
       const map: Record<string, HubTab> = {
-        about: 'about', company: 'about', contact: 'contact', 'contact-details': 'contact',
-        newsletter: 'newsletter', podcast: 'podcast', legal: 'legal', trust: 'trust',
-        privacy: 'legal', terms: 'legal', careers: 'careers', jobs: 'careers', sitemap: 'sitemap',
-        feedback: 'feedback', experience: 'feedback',
+        about: 'about', company: 'about', contact: 'contact', newsletter: 'newsletter',
+        podcast: 'podcast', legal: 'legal', trust: 'trust', privacy: 'legal', terms: 'legal',
+        careers: 'careers', jobs: 'careers', sitemap: 'sitemap', feedback: 'feedback',
       };
       const next = map[h];
       if (next) setTab(next);
@@ -127,9 +122,6 @@ export const CompanyPillar: React.FC<CompanyPillarProps> = ({ onNavigatePillar }
             {' · '}Phone: {c.hq.phoneDisplay}
           </p>
           <p className="text-[11px] text-slate-500">{c.hq.hours}</p>
-          <button type="button" className="text-xs font-bold text-cyan-400 underline" onClick={() => setTab('careers')}>
-            View open roles
-          </button>
         </div>
       )}
 
@@ -167,12 +159,7 @@ export const CompanyPillar: React.FC<CompanyPillarProps> = ({ onNavigatePillar }
         </div>
       )}
 
-      {tab === 'podcast' && (
-        <div className="rounded-2xl border border-slate-700 bg-slate-950/80 p-5 space-y-2 text-sm text-slate-200">
-          <h3 className="text-lg font-bold text-white flex items-center gap-2"><Mic2 className="w-5 h-5 text-cyan-400" /> Podcast</h3>
-          <p className="text-xs text-slate-400">Weekly and monthly shows on time, calendars and the sky — scripts published on this page; audio hosting can be linked when ready.</p>
-        </div>
-      )}
+      {tab === 'podcast' && <PodcastPanel />}
 
       {tab === 'careers' && <CareersPanel />}
 
