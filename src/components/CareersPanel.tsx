@@ -13,6 +13,7 @@ import {
   CheckCircle2,
   HelpCircle,
   ListChecks,
+  ShieldCheck,
 } from 'lucide-react';
 import { careersContent, type CareerJob } from '../content/careersContent';
 
@@ -32,7 +33,7 @@ function applyMailto(job: CareerJob): string {
       `Cover note:`,
       `[Why TimeGovern and this role]`,
       ``,
-      `Employer questions:`,
+      `Employer questions (including work rights):`,
       q,
       ``,
       `Full name:`,
@@ -67,6 +68,9 @@ const JobCard: React.FC<{ job: CareerJob; open: boolean; onToggle: () => void }>
             </span>
             <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-600">
               {job.type}
+            </span>
+            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-200/90 border border-amber-500/30">
+              AU work rights required
             </span>
           </div>
           <p className="text-[11px] text-slate-500">{job.category}</p>
@@ -132,12 +136,26 @@ const JobCard: React.FC<{ job: CareerJob; open: boolean; onToggle: () => void }>
             <section>
               <h4 className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 mb-1.5">Preferred skills & experience</h4>
               <ul className="space-y-1.5 text-xs text-slate-400">
-                {(job.preferred || []).map((r) => (
+                {job.preferred.map((r) => (
                   <li key={r}>• {r}</li>
                 ))}
               </ul>
             </section>
           </div>
+
+          <section className="rounded-xl border border-amber-500/30 bg-amber-950/20 p-3 space-y-2">
+            <h4 className="text-[11px] font-extrabold uppercase tracking-wider text-amber-300 flex items-center gap-1.5">
+              <ShieldCheck className="w-3.5 h-3.5" /> Right to work in Australia
+            </h4>
+            <ul className="space-y-1.5 text-[11px] text-slate-300 leading-relaxed">
+              {job.workRightsEligibility.map((p) => (
+                <li key={p.slice(0, 48)} className="flex gap-2">
+                  <span className="text-amber-400/80 shrink-0">•</span>
+                  <span>{p}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
 
           <section>
             <h4 className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 mb-1.5">How to apply</h4>
@@ -183,6 +201,7 @@ export const CareersPanel: React.FC = () => {
   const jobs = careersContent.jobs;
   const [openId, setOpenId] = useState<string | null>(jobs[0]?.id ?? null);
   const [dept, setDept] = useState<string>('All');
+  const wr = careersContent.workRightsNotice;
 
   const departments = useMemo(() => {
     const s = new Set(jobs.map((j) => j.department));
@@ -213,11 +232,43 @@ export const CareersPanel: React.FC = () => {
               </a>
               <span className="inline-flex items-center gap-1.5 text-[11px] text-slate-400 px-2">
                 <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                {jobs.length} open roles
+                {jobs.length} open roles · AU work rights required
               </span>
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Global work rights notice */}
+      <div className="rounded-2xl border border-amber-500/35 bg-amber-950/25 p-5 space-y-3">
+        <h3 className="text-sm font-extrabold text-amber-200 flex items-center gap-2">
+          <ShieldCheck className="w-4 h-4" />
+          {wr.title}
+        </h3>
+        <p className="text-xs text-slate-300 leading-relaxed">{wr.intro}</p>
+        <ul className="space-y-1.5 text-[11px] text-slate-300 leading-relaxed">
+          {wr.points.map((p) => (
+            <li key={p.slice(0, 40)} className="flex gap-2">
+              <span className="text-amber-400 shrink-0">•</span>
+              <span>{p}</span>
+            </li>
+          ))}
+        </ul>
+        <div className="flex flex-wrap gap-2 pt-1">
+          {wr.officialLinks.map((l) => (
+            <a
+              key={l.href}
+              href={l.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[11px] font-semibold text-cyan-400 hover:underline inline-flex items-center gap-1"
+            >
+              <ExternalLink className="w-3 h-3" />
+              {l.label}
+            </a>
+          ))}
+        </div>
+        <p className="text-[10px] text-slate-500">{wr.disclaimer}</p>
       </div>
 
       <div className="rounded-2xl border border-slate-700 bg-slate-950/80 p-5 space-y-3">
