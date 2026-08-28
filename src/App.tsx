@@ -40,28 +40,13 @@ export default function App() {
   const [showArchModal, setShowArchModal] = useState(false);
   const [showQrModal, setShowQrModal] = useState(false);
   const [showAccountModal, setShowAccountModal] = useState(false);
-  const [accountModalPanel, setAccountModalPanel] = useState<'account' | 'supporter' | undefined>();
+  const [accountModalPanel, setAccountModalPanel] = useState<'account' | 'supporter'>('account');
   const [showSecurityModal, setShowSecurityModal] = useState(false);
   const [showShortcutsModal, setShowShortcutsModal] = useState(false);
   const [shortcutToast, setShortcutToast] = useState<string | null>(null);
 
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem('tg_dark');
-      if (stored === '0') setIsDarkMode(false);
-      if (stored === '1') setIsDarkMode(true);
-    } catch {
-      /* ignore */
-    }
-  }, []);
-
-  useEffect(() => {
     document.documentElement.classList.toggle('dark', isDarkMode);
-    try {
-      localStorage.setItem('tg_dark', isDarkMode ? '1' : '0');
-    } catch {
-      /* ignore */
-    }
   }, [isDarkMode]);
 
   useEffect(() => {
@@ -70,14 +55,12 @@ export default function App() {
 
   useGlobalShortcuts({
     setActivePillar,
-    setIsDarkMode,
-    setShowAds,
-    onOpenShortcuts: () => setShowShortcutsModal(true),
+    setShowShortcutsModal,
     onToast: setShortcutToast,
   });
 
   return (
-    <div className="min-h-screen flex flex-col bg-transparent text-slate-100">
+    <div className="min-h-screen flex flex-col">
       <AdSenseLoader />
       <Header
         activePillar={activePillar}
@@ -85,7 +68,6 @@ export default function App() {
         onSelectCity={(c) => {
           setSelectedCityFromSearch(c);
           setPrimaryCity(c);
-          setActivePillar(1);
         }}
         primaryCity={primaryCity}
         onOpenArchModal={() => setShowArchModal(true)}
@@ -100,16 +82,16 @@ export default function App() {
         setIsDarkMode={setIsDarkMode}
       />
 
-      <div className="border-b border-slate-800/80 bg-slate-950/40">
-        <div className="max-w-7xl mx-auto px-3 sm:px-4 py-1.5 flex items-center justify-between gap-2 text-[11px] text-slate-400">
+      <div className="border-b border-slate-200 dark:border-slate-800/80 bg-slate-100/90 dark:bg-slate-950/40">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 py-1.5 flex items-center justify-between gap-2 text-[11px] text-slate-600 dark:text-slate-400">
           <span className="flex items-center gap-1.5 truncate">
-            <Globe className="w-3 h-3 text-indigo-400" />
+            <Globe className="w-3 h-3 text-indigo-500 dark:text-indigo-400" />
             {(companyContent as { tagline?: string })?.tagline || 'Global time, calendars & tools'}
           </span>
           <button
             type="button"
             onClick={() => setShowAds((p) => !p)}
-            className="inline-flex items-center gap-1.5 font-semibold hover:underline"
+            className="inline-flex items-center gap-1.5 font-semibold hover:underline text-slate-700 dark:text-slate-300"
           >
             {showAds ? <EyeOff className="w-3.5 h-3.5 text-amber-500" /> : <Eye className="w-3.5 h-3.5 text-emerald-500" />}
             {showAds ? 'Hide ads' : 'Show ads'}
@@ -119,14 +101,15 @@ export default function App() {
 
       {showAds && <AdBanner type="leaderboard" />}
 
-      <main className="flex-1 w-full max-w-[1920px] mx-auto px-3 sm:px-4 py-4 flex gap-3">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-4 py-4 flex gap-3">
         {showAds && <AdBanner type="skyscraper-left" />}
         <div className="flex-1 min-w-0">
           <PillarErrorBoundary>
-            <Suspense fallback={<PillarLoader pillarNumber={activePillar} isDarkMode={isDarkMode} />}>
+            <Suspense fallback={<PillarLoader />}>
               {activePillar === 1 && (
                 <PillarChrome pillarId={1}>
                   <WorldClockPillar
+                    isDarkMode={isDarkMode}
                     selectedCityFromSearch={selectedCityFromSearch}
                     onPrimaryCityChange={setPrimaryCity}
                   />
