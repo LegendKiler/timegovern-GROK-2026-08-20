@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import { City } from '../types';
 import { searchCities } from '../lib/citiesData';
+import { BrandLogo, LogoVariantSwitcher } from './BrandLogo';
 import { getPinnedCities, isCityPinned, togglePinCity } from '../lib/pinnedCitiesStorage';
 
 interface HeaderProps {
@@ -83,11 +84,9 @@ export const Header: React.FC<HeaderProps> = ({
           className="flex items-center gap-2 mr-1 shrink-0"
           aria-label="TimeGovern home"
         >
-          <span className="h-8 w-8 rounded-xl bg-gradient-to-br from-indigo-500 to-cyan-400 flex items-center justify-center shadow-lg shadow-indigo-500/30">
-            <Globe2 className="w-4 h-4 text-white" />
-          </span>
-          <span className="font-black tracking-tight text-white hidden xs:inline sm:inline">TimeGovern</span>
+          <BrandLogo className="h-8 w-8 drop-shadow-lg" showWordmark wordmarkClassName="font-black tracking-tight text-white hidden xs:inline sm:inline" />
         </button>
+        <LogoVariantSwitcher />
 
         <div className="relative flex-1 min-w-[160px] max-w-md" ref={boxRef}>
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-500" />
@@ -95,48 +94,50 @@ export const Header: React.FC<HeaderProps> = ({
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onFocus={() => query && setOpen(true)}
-            placeholder="Search city or timezone…"
-            className="w-full pl-8 pr-3 py-1.5 text-xs rounded-xl border border-slate-700 bg-slate-900/80 text-slate-100 placeholder:text-slate-500"
-            aria-label="Search cities"
+            placeholder="Search city…"
+            className="w-full h-8 pl-8 pr-3 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-indigo-400/60"
           />
           {open && results.length > 0 && (
-            <div className="absolute z-50 left-0 right-0 top-full mt-1 rounded-xl border border-slate-700 bg-slate-900 shadow-xl max-h-64 overflow-auto">
-              {results.map((c) => {
-                const isPinned = isCityPinned(c.id);
-                return (
-                  <div key={c.id} className="flex items-center gap-1 border-b border-slate-800 last:border-0">
-                    <button
-                      type="button"
-                      className="flex-1 text-left px-3 py-2 text-xs hover:bg-slate-800"
-                      onClick={() => {
-                        onSelectCity?.(c);
-                        setQuery('');
-                        setOpen(false);
-                        setActivePillar(1);
-                      }}
-                    >
-                      <span className="font-semibold text-white">{c.name}</span>
+            <ul className="absolute z-50 mt-1 w-full max-h-64 overflow-auto rounded-xl border border-slate-700 bg-slate-900 shadow-xl">
+              {results.map((c) => (
+                <li key={`${c.name}-${c.country}-${c.timezone}`}>
+                  <button
+                    type="button"
+                    className="w-full text-left px-3 py-2 text-xs text-slate-200 hover:bg-slate-800 flex justify-between gap-2"
+                    onClick={() => {
+                      onSelectCity?.(c);
+                      setQuery('');
+                      setOpen(false);
+                    }}
+                  >
+                    <span>
+                      {c.name}
                       <span className="text-slate-500"> · {c.country}</span>
-                    </button>
-                    <button
-                      type="button"
-                      className="p-1 rounded hover:bg-slate-700 mr-1"
-                      onClick={() => {
-                        togglePinCity(c);
-                        setPinned(getPinnedCities());
-                      }}
-                      aria-label={isPinned ? 'Unpin' : 'Pin'}
-                    >
-                      <Star className={`w-3.5 h-3.5 ${isPinned ? 'text-amber-400 fill-amber-400' : 'text-slate-500'}`} />
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
+                    </span>
+                    <span className="text-slate-500 tabular-nums">{c.timezone}</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
           )}
         </div>
 
         <div className="flex items-center gap-1 ml-auto">
+          {primaryCity && (
+            <button
+              type="button"
+              className={iconBtn}
+              title={isCityPinned(primaryCity) ? 'Unpin city' : 'Pin city'}
+              onClick={() => {
+                togglePinCity(primaryCity);
+                setPinned(getPinnedCities());
+              }}
+            >
+              <Star
+                className={`w-3.5 h-3.5 ${isCityPinned(primaryCity) ? 'fill-amber-400 text-amber-400' : ''}`}
+              />
+            </button>
+          )}
           {setIsDarkMode && (
             <button
               type="button"
