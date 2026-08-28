@@ -8,24 +8,24 @@ const EpisodeCard: React.FC<{ ep: PodcastEpisode; open: boolean; onToggle: () =>
   onToggle,
 }) => {
   return (
-    <article className="rounded-xl border border-slate-700/80 bg-slate-900/60 overflow-hidden">
+    <article className="rounded-xl border border-slate-200 dark:border-slate-700/80 bg-white dark:bg-slate-900/60 overflow-hidden shadow-sm">
       <button
         type="button"
         onClick={onToggle}
         className="w-full text-left p-4 flex gap-3 items-start"
         aria-expanded={open}
       >
-        <span className="shrink-0 h-10 w-10 rounded-xl bg-violet-500/20 border border-violet-400/40 flex items-center justify-center text-xs font-black text-violet-200">
+        <span className="shrink-0 h-10 w-10 rounded-xl bg-violet-100 dark:bg-violet-500/20 border border-violet-300 dark:border-violet-400/40 flex items-center justify-center text-xs font-black text-violet-800 dark:text-violet-200">
           {String(ep.number).padStart(2, '0')}
         </span>
         <div className="min-w-0 flex-1 space-y-1">
           <div className="flex flex-wrap items-center gap-2">
-            <h3 className="text-sm font-bold text-white leading-snug">{ep.title}</h3>
-            <span className="text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-600">
+            <h3 className="text-sm font-bold text-slate-900 dark:text-white leading-snug">{ep.title}</h3>
+            <span className="text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-600">
               {ep.cadence}
             </span>
           </div>
-          <p className="text-xs text-slate-400 line-clamp-2">{ep.summary}</p>
+          <p className="text-xs text-slate-600 dark:text-slate-400 line-clamp-2">{ep.summary}</p>
           <div className="flex flex-wrap gap-3 text-[11px] text-slate-500">
             <span className="inline-flex items-center gap-1">
               <Calendar className="w-3 h-3" /> {ep.published}
@@ -40,12 +40,12 @@ const EpisodeCard: React.FC<{ ep: PodcastEpisode; open: boolean; onToggle: () =>
         </span>
       </button>
       {open && (
-        <div className="px-4 pb-4 border-t border-slate-800 pt-3 space-y-3 text-xs text-slate-300">
+        <div className="px-4 pb-4 border-t border-slate-200 dark:border-slate-800 pt-3 space-y-3 text-xs text-slate-700 dark:text-slate-300">
           <div className="flex flex-wrap gap-1.5">
             {ep.topics.map((t) => (
               <span
                 key={t}
-                className="px-2 py-0.5 rounded-full bg-violet-500/10 text-violet-200 border border-violet-500/30 text-[10px] font-semibold"
+                className="px-2 py-0.5 rounded-full bg-violet-50 dark:bg-violet-500/10 text-violet-800 dark:text-violet-200 border border-violet-200 dark:border-violet-500/30 text-[10px] font-semibold"
               >
                 {t}
               </span>
@@ -61,7 +61,7 @@ const EpisodeCard: React.FC<{ ep: PodcastEpisode; open: boolean; onToggle: () =>
           </div>
           <div>
             <h4 className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 mb-1">Takeaways</h4>
-            <ul className="space-y-1 list-disc pl-4 text-slate-400">
+            <ul className="space-y-1 list-disc pl-4 text-slate-600 dark:text-slate-400">
               {ep.takeaways.map((n) => (
                 <li key={n}>{n}</li>
               ))}
@@ -70,7 +70,7 @@ const EpisodeCard: React.FC<{ ep: PodcastEpisode; open: boolean; onToggle: () =>
           {ep.audioUrl ? (
             <a
               href={ep.audioUrl}
-              className="inline-flex items-center gap-1.5 text-cyan-400 font-semibold hover:underline"
+              className="inline-flex items-center gap-1.5 text-cyan-700 dark:text-cyan-400 font-semibold hover:underline"
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -123,8 +123,8 @@ export const PodcastPanel: React.FC = () => {
             onClick={() => setFilter(f)}
             className={`px-2.5 py-1.5 rounded-lg text-[11px] font-semibold border capitalize ${
               filter === f
-                ? 'bg-violet-500/20 border-violet-400 text-violet-200'
-                : 'border-slate-700 text-slate-400 hover:border-slate-500'
+                ? 'bg-violet-100 dark:bg-violet-500/20 border-violet-400 text-violet-900 dark:text-violet-200'
+                : 'border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-slate-400 dark:hover:border-slate-500 bg-white dark:bg-transparent'
             }`}
           >
             {f}
