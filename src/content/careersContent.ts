@@ -1,11 +1,18 @@
 /**
- * TimeGovern careers — full SEEK-style job ads.
+ * TimeGovern careers — uniform SEEK-style ads + Australian work-rights eligibility.
  * Applications: careers@timegovern.com
+ *
+ * Work rights (summary for candidates; not legal advice):
+ * - Home Affairs: legal work if Australian citizen OR valid visa with permission to work.
+ * - Employers must verify right to work (citizenship docs or VEVO for non-citizens).
+ * - Fair Work protections apply regardless of migration status once lawfully employed.
+ * Sources: immi.homeaffairs.gov.au; fairwork.gov.au; Migration Act 1958 (Cth).
  */
 
 export type JobLevel = 'Internship' | 'Junior' | 'Mid' | 'Senior' | 'Lead';
 export type JobType = 'Full-time' | 'Part-time' | 'Contract' | 'Internship';
 
+/** Every role uses this same shape */
 export interface CareerJob {
   id: string;
   title: string;
@@ -17,7 +24,7 @@ export interface CareerJob {
   remote: string;
   salaryAud: string;
   posted: string;
-  applicationVolume?: string;
+  applicationVolume: string;
   summary: string;
   aboutUs: string;
   aboutRole: string;
@@ -27,10 +34,37 @@ export interface CareerJob {
   benefits: string[];
   howToApply: string;
   employerQuestions: string[];
+  /** Same eligibility text on every role */
+  workRightsEligibility: string[];
 }
 
-const ABOUT_US_BASE =
-  'TimeGovern Pty Ltd operates timegovern.com from Level 12, 120 Collins Street, Melbourne VIC 3000. We build global world clocks, meeting planners, calendars, sun & moon tools, calculators and related services for a worldwide audience. Essential tools stay free; optional Supporter plans help fund the platform. We value accurate civil time, clear communication and respectful customer service.';
+const ABOUT_US =
+  'TimeGovern Pty Ltd operates timegovern.com from Level 12, 120 Collins Street, Melbourne VIC 3000, Australia. We build global world clocks, meeting planners, calendars, sun & moon tools, calculators and related services for a worldwide audience. Essential tools stay free; optional Supporter plans help fund the platform. We value accurate civil time, clear communication and respectful service.';
+
+/** Shared on every advertisement — Australian work rights */
+const WORK_RIGHTS_ELIGIBILITY = [
+  'You must have an unrestricted legal right to work in Australia for the full duration of employment (or internship period).',
+  'Eligible: Australian citizens; Australian permanent residents; New Zealand citizens holding a Special Category visa (subclass 444); or holders of another valid Australian visa that expressly permits the type and hours of work required for this role.',
+  'Offers of employment are conditional on successful right-to-work verification before your start date, in line with the Migration Act 1958 (Cth).',
+  'Australian citizens / permanent residents: we will ask you to declare your status and may sight evidence such as an Australian passport, or an Australian birth certificate or citizenship certificate together with photo ID (as guided by official employer guidance). Medicare cards, TFNs or driver licences alone are not accepted as proof of citizenship.',
+  'Visa holders: we require your consent to check work entitlements through the Department of Home Affairs Visa Entitlement Verification Online (VEVO) system, and a copy of your passport/ImmiCard as required. Work must not breach any visa condition.',
+  'TimeGovern does not provide immigration advice. Visa decisions are made only by the Department of Home Affairs (immi.homeaffairs.gov.au / 131 881).',
+  'These roles are not open to candidates who cannot lawfully work in Australia. We are not offering visa sponsorship for the roles listed on this page unless a future advertisement expressly states otherwise.',
+];
+
+const WORK_RIGHTS_QUESTIONS = [
+  'Which statement best describes your right to work in Australia? (Australian citizen / Australian permanent resident / New Zealand citizen with SCV 444 / valid visa with work rights — please specify subclass if known / none of the above)',
+  'If you hold a visa, does it allow the full-time or part-time hours required for this role without breach of conditions?',
+  'Are you able to provide evidence of work rights before a start date (citizenship documents or VEVO check with consent)?',
+];
+
+function stdHowToApply(title: string): string {
+  return `Email ${'careers@timegovern.com'} with subject “Application — ${title}”. Attach a PDF curriculum vitae and a brief cover letter addressing the employer questions, including your right to work in Australia. Incomplete applications may not be considered. We aim to respond to complete applications within 10 business days.`;
+}
+
+function withWorkRights(baseQuestions: string[]): string[] {
+  return [...baseQuestions, ...WORK_RIGHTS_QUESTIONS];
+}
 
 export const careersContent = {
   careersEmail: 'careers@timegovern.com',
@@ -40,18 +74,18 @@ export const careersContent = {
   hero: {
     title: 'Careers at TimeGovern',
     subtitle:
-      'Melbourne-based · remote-friendly Australia. Open roles across technology, design, content, growth, support, finance, operations and commercial — build tools people use every day around the world.',
+      'Melbourne-based · remote-friendly Australia where stated. All roles require a lawful right to work in Australia (citizen, permanent resident, NZ Special Category visa, or valid visa with suitable work rights — verified before commencement).',
   },
 
   aboutCompany: {
     title: 'About TimeGovern',
     paragraphs: [
-      ABOUT_US_BASE,
-      'We hire for craft, curiosity and reliability. Whether you are in engineering, member support or commercial roles, you will help visitors plan meetings, check local times and understand the sky — with honest limits on what any web tool can claim.',
-      'We comply with Australian workplace and privacy expectations and welcome applications from all backgrounds.',
+      ABOUT_US,
+      'We hire for craft, curiosity and reliability across technology, design, content, growth, support, finance, operations and commercial roles.',
+      'We comply with Australian workplace laws (including the Fair Work Act 2009) and immigration compliance expectations under the Migration Act 1958. National workplace protections apply to workers regardless of migration status once they are lawfully employed.',
     ],
     perks: [
-      'Hybrid Collins Street HQ + remote Australia where role allows',
+      'Hybrid Collins Street HQ + remote Australia where the role allows',
       'Superannuation in line with Australian law',
       'Equipment stipend for permanent roles',
       'Learning budget for courses and conferences',
@@ -60,11 +94,26 @@ export const careersContent = {
     ],
   },
 
+  /** Page-level work rights notice (shown above job list) */
+  workRightsNotice: {
+    title: 'Right to work in Australia (all roles)',
+    intro:
+      'Under Australian law, a person may work in Australia if they are an Australian citizen or hold a valid visa with permission to work. TimeGovern must not employ someone who is an unlawful non-citizen or who would work in breach of visa conditions. We verify work rights before employment starts.',
+    points: WORK_RIGHTS_ELIGIBILITY,
+    officialLinks: [
+      { label: 'Department of Home Affairs — Hiring someone in Australia', href: 'https://immi.homeaffairs.gov.au/visas/employing-and-sponsoring-someone/hire-someone-in-australia' },
+      { label: 'VEVO (Visa Entitlement Verification Online)', href: 'https://immi.homeaffairs.gov.au/visas/already-have-a-visa/check-visa-details-and-conditions/check-conditions-online' },
+      { label: 'Fair Work Ombudsman — Workplace rights', href: 'https://www.fairwork.gov.au/' },
+    ],
+    disclaimer:
+      'This notice is general information for applicants, not immigration or legal advice. Always check your own visa conditions with Home Affairs.',
+  },
+
   howToApply:
-    'Click Apply by email on the role. Attach a PDF CV and a short cover letter answering the employer questions. We aim to respond to complete applications within 10 business days.',
+    'Open a role below, expand the full advertisement, then use Apply by email. Attach a PDF CV and answer the employer questions, including work-rights questions. Primary inbox: careers@timegovern.com.',
 
   equalOpportunity:
-    'TimeGovern is an equal opportunity employer. We welcome applications from all backgrounds and do not discriminate on the basis of age, gender, race, religion, disability, sexual orientation or any other attribute protected under Australian law.',
+    'TimeGovern is an equal opportunity employer. We welcome applications from all backgrounds and do not discriminate on the basis of age, gender, race, religion, disability, sexual orientation or any other attribute protected under Australian law. Eligibility to work in Australia is a lawful condition of employment, not a substitute for discrimination.',
 
   jobs: [
     {
@@ -80,8 +129,8 @@ export const careersContent = {
       posted: '2026-08',
       applicationVolume: 'Standard volume',
       summary:
-        'Level 1–2 support for staff and selected systems: hardware, software, identity, endpoints and clear documentation.',
-      aboutUs: ABOUT_US_BASE,
+        'Level 1–2 support for staff systems: hardware, software, identity, endpoints and clear documentation.',
+      aboutUs: ABOUT_US,
       aboutRole:
         'The IT Technical Support Specialist provides technical assistance to end-users and supports efficient operation of technology within TimeGovern. The role focuses on Level 1 and Level 2 support with solid expertise in hardware, software, network-related issues, system administration, reporting, integration, documentation, troubleshooting and training. You are a primary contact for internal IT support and work with the broader technology team to meet business requirements and keep operations smooth.',
       responsibilities: [
@@ -90,7 +139,7 @@ export const careersContent = {
         'Support mobile devices (Android/iOS) and basic MDM tasks',
         'Assist with identity basics (directory, MFA enrolments) under senior guidance',
         'Maintain technical notes, runbooks and ticket hygiene',
-        'Collaborate across teams to prioritise outages and change windows',
+        'Collaborate across teams on outages and change windows',
         'Escalate complex issues with clear reproduction steps',
       ],
       requirements: [
@@ -102,7 +151,7 @@ export const careersContent = {
         'Basic networking concepts (TCP/IP, DNS, DHCP)',
         'Excellent communication and customer service skills',
         'Ability to work independently and as part of a team',
-        'Right to work in Australia',
+        'Must meet TimeGovern work-rights eligibility (see Right to work section)',
       ],
       preferred: [
         'ITIL-style tools (ServiceNow, Jira Service Management, ManageEngine)',
@@ -111,21 +160,17 @@ export const careersContent = {
         'Mobile device management (MDM)',
         'Cybersecurity hygiene awareness',
         'CompTIA A+, Network+, or Microsoft Modern Desktop Administrator',
-        'Enthusiasm for continuous learning',
       ],
       benefits: ['Hybrid Melbourne', 'Superannuation', 'Equipment support'],
-      howToApply:
-        'Email careers@timegovern.com with subject “Application — IT Technical Support Specialist”. Attach CV (PDF) and a brief cover letter showing how your skills deliver reliable support outcomes for internal users.',
-      employerQuestions: [
+      howToApply: stdHowToApply('IT Technical Support Specialist'),
+      employerQuestions: withWorkRights([
         'Have you completed a qualification in ICT?',
         'How many years’ experience do you have as an IT support specialist?',
-        'Do you have experience in system or helpdesk administration?',
-        'Which statement best describes your right to work in Australia?',
         'Do you have customer service experience?',
-        'Do you have technical writing or runbook experience?',
         'How much notice are you required to give your current employer?',
         'Which issue/ticket tools have you used (e.g. Jira, ServiceNow)?',
-      ],
+      ]),
+      workRightsEligibility: WORK_RIGHTS_ELIGIBILITY,
     },
     {
       id: 'fe-senior',
@@ -138,9 +183,10 @@ export const careersContent = {
       remote: 'Hybrid / remote Australia considered',
       salaryAud: 'A$140,000 – A$175,000 + super',
       posted: '2026-08',
+      applicationVolume: 'Standard volume',
       summary:
         'Lead React/TypeScript delivery for world clocks, astronomy and calendar experiences used globally.',
-      aboutUs: ABOUT_US_BASE,
+      aboutUs: ABOUT_US,
       aboutRole:
         'You own frontend quality for high-traffic product pillars: live clocks, planners, astronomy and company surfaces. You set standards for performance, accessibility and maintainable component design, and mentor others through review.',
       responsibilities: [
@@ -156,19 +202,18 @@ export const careersContent = {
         'Strong CSS/Tailwind and responsive layout skill',
         'Proven performance and accessibility work on production sites',
         'Fluent written English for design/engineering collaboration',
-        'Right to work in Australia',
+        'Must meet TimeGovern work-rights eligibility (see Right to work section)',
       ],
       preferred: ['Cloudflare Pages', 'date-fns / Intl time zones', 'Design systems', 'Playwright or similar'],
       benefits: ['Hybrid HQ', 'Learning budget', 'Superannuation'],
-      howToApply:
-        'Email careers@timegovern.com with CV, GitHub or portfolio link, and a short note on a performance or accessibility win you led.',
-      employerQuestions: [
+      howToApply: stdHowToApply('Senior Frontend Engineer'),
+      employerQuestions: withWorkRights([
         'How many years’ commercial React experience do you have?',
         'Have you shipped WCAG-oriented UI in production?',
         'Are you comfortable with TypeScript strict mode?',
         'What is your notice period?',
-        'Right to work in Australia?',
-      ],
+      ]),
+      workRightsEligibility: WORK_RIGHTS_ELIGIBILITY,
     },
     {
       id: 'design-product',
@@ -181,9 +226,10 @@ export const careersContent = {
       remote: 'Hybrid',
       salaryAud: 'A$110,000 – A$140,000 + super',
       posted: '2026-08',
+      applicationVolume: 'Standard volume',
       summary:
         'Craft a premium, trustworthy interface for global time tools across web and PWA surfaces.',
-      aboutUs: ABOUT_US_BASE,
+      aboutUs: ABOUT_US,
       aboutRole:
         'You own end-to-end design for key journeys: finding a city time, planning a meeting, reading astronomy tables and company flows. Deliver research insights, wireframes, high-fidelity UI and clear handoff.',
       responsibilities: [
@@ -198,19 +244,18 @@ export const careersContent = {
         'Advanced Figma skills',
         'Strong visual and interaction design',
         'Ability to explain design decisions in plain English',
-        'Right to work in Australia',
+        'Must meet TimeGovern work-rights eligibility (see Right to work section)',
       ],
       preferred: ['Motion design', 'Design systems', 'B2B or utility products', 'Basic HTML/CSS literacy'],
       benefits: ['Hybrid Melbourne', 'Equipment stipend', 'Superannuation'],
-      howToApply:
-        'Email careers@timegovern.com with portfolio PDF/link and 1–2 case studies relevant to data-heavy or utility UI.',
-      employerQuestions: [
+      howToApply: stdHowToApply('Product Designer (UI/UX)'),
+      employerQuestions: withWorkRights([
         'Link to your portfolio?',
         'Have you designed both light and dark themes?',
         'Years of product design experience?',
         'Notice period?',
-        'Right to work in Australia?',
-      ],
+      ]),
+      workRightsEligibility: WORK_RIGHTS_ELIGIBILITY,
     },
     {
       id: 'content-editor',
@@ -223,9 +268,10 @@ export const careersContent = {
       remote: 'Fully remote (AU time zones preferred)',
       salaryAud: 'A$45 – A$65 per hour',
       posted: '2026-08',
+      applicationVolume: 'Standard volume',
       summary:
         'Write and edit accurate explainers on civil time, DST, calendars and sky events.',
-      aboutUs: ABOUT_US_BASE,
+      aboutUs: ABOUT_US,
       aboutRole:
         'You produce trustworthy educational content and in-product microcopy. You fact-check against public sources and never overstate precision. You support newsletter outlines and work with product on clarity.',
       responsibilities: [
@@ -240,18 +286,17 @@ export const careersContent = {
         'Demonstrated interest in science, astronomy or timekeeping',
         'Ability to cite and verify sources',
         'Reliable remote work habits',
-        'Right to work in Australia',
+        'Must meet TimeGovern work-rights eligibility (see Right to work section)',
       ],
       preferred: ['Science journalism', 'SEO fundamentals', 'Education or museum writing', 'CMS experience'],
       benefits: ['Flexible hours', 'Fully remote AU'],
-      howToApply:
-        'Email two writing samples (links or PDF) and a short note on a time or astronomy topic you would improve on our site.',
-      employerQuestions: [
+      howToApply: stdHowToApply('Content & Astronomy Editor'),
+      employerQuestions: withWorkRights([
         'Do you have published writing samples?',
         'Have you written for a non-specialist audience?',
         'Hours available per week?',
-        'Right to work in Australia?',
-      ],
+      ]),
+      workRightsEligibility: WORK_RIGHTS_ELIGIBILITY,
     },
     {
       id: 'growth',
@@ -264,9 +309,10 @@ export const careersContent = {
       remote: 'Hybrid',
       salaryAud: 'A$100,000 – A$130,000 + super',
       posted: '2026-08',
+      applicationVolume: 'Standard volume',
       summary:
         'Grow ethical organic and partner acquisition for a utility brand people trust with their time.',
-      aboutUs: ABOUT_US_BASE,
+      aboutUs: ABOUT_US,
       aboutRole:
         'You plan SEO, content distribution and measurement for timegovern.com. No dark patterns: clear value, clear privacy, measurable experiments.',
       responsibilities: [
@@ -279,18 +325,17 @@ export const careersContent = {
         '3+ years growth, digital marketing or similar',
         'Practical SEO experience',
         'Comfort with analytics and experimentation',
-        'Right to work in Australia',
+        'Must meet TimeGovern work-rights eligibility (see Right to work section)',
       ],
       preferred: ['SaaS or media', 'Basic HTML', 'Email lifecycle tools', 'Partnership development'],
       benefits: ['Hybrid', 'Superannuation', 'Bonus eligible'],
-      howToApply:
-        'Email CV plus a one-page outline of how you would grow organic traffic to a free utility site in 90 days.',
-      employerQuestions: [
+      howToApply: stdHowToApply('Growth Marketing Manager'),
+      employerQuestions: withWorkRights([
         'Years in growth/marketing?',
         'Have you owned SEO for a content-heavy site?',
         'Notice period?',
-        'Right to work in Australia?',
-      ],
+      ]),
+      workRightsEligibility: WORK_RIGHTS_ELIGIBILITY,
     },
     {
       id: 'support',
@@ -303,9 +348,10 @@ export const careersContent = {
       remote: 'Hybrid',
       salaryAud: 'A$65,000 – A$80,000 + super',
       posted: '2026-08',
+      applicationVolume: 'Standard volume',
       summary:
         'Email-first support for accounts, billing questions and product guidance with calm, precise writing.',
-      aboutUs: ABOUT_US_BASE,
+      aboutUs: ABOUT_US,
       aboutRole:
         'You are the friendly voice of TimeGovern for support inboxes. You resolve routine issues, escalate bugs with clear steps and help improve FAQs.',
       responsibilities: [
@@ -318,18 +364,17 @@ export const careersContent = {
         'Excellent written communication',
         'Patience with non-technical customers',
         'Basic comfort with web applications and email tools',
-        'Right to work in Australia',
+        'Must meet TimeGovern work-rights eligibility (see Right to work section)',
       ],
       preferred: ['Zendesk, Intercom or similar', 'Bilingual skills valued in AU communities', 'Prior SaaS support'],
       benefits: ['Hybrid HQ', 'Superannuation', 'Path into ops or CS leadership'],
-      howToApply:
-        'Email CV and a short sample reply (fictional) to a user confused about time zones.',
-      employerQuestions: [
+      howToApply: stdHowToApply('Customer Support Specialist'),
+      employerQuestions: withWorkRights([
         'Do you have customer service experience?',
         'Are you comfortable with written-only support?',
         'Notice period?',
-        'Right to work in Australia?',
-      ],
+      ]),
+      workRightsEligibility: WORK_RIGHTS_ELIGIBILITY,
     },
     {
       id: 'finance',
@@ -342,9 +387,10 @@ export const careersContent = {
       remote: 'Hybrid',
       salaryAud: 'A$85,000 – A$105,000 + super',
       posted: '2026-08',
+      applicationVolume: 'Standard volume',
       summary:
         'Accounts, superannuation administration support, supplier payments and basic management reporting.',
-      aboutUs: ABOUT_US_BASE,
+      aboutUs: ABOUT_US,
       aboutRole:
         'You keep books tidy, support payroll/super processes with advisors, reconcile subscription payouts and prepare clear monthly packs for directors.',
       responsibilities: [
@@ -359,18 +405,17 @@ export const careersContent = {
         '2+ years in a similar officer role',
         'Familiarity with Australian BAS/super concepts',
         'High accuracy and discretion',
-        'Right to work in Australia',
+        'Must meet TimeGovern work-rights eligibility (see Right to work section)',
       ],
       preferred: ['Xero or similar', 'Stripe or SaaS billing exposure', 'Payroll certification'],
       benefits: ['Hybrid', 'Superannuation', 'Professional development support'],
-      howToApply:
-        'Email CV and a short note on systems you have used (Xero, MYOB, etc.).',
-      employerQuestions: [
+      howToApply: stdHowToApply('Finance & Payroll Officer'),
+      employerQuestions: withWorkRights([
         'Which accounting systems have you used?',
         'Do you have experience with superannuation administration?',
         'Years in finance/bookkeeping roles?',
-        'Right to work in Australia?',
-      ],
+      ]),
+      workRightsEligibility: WORK_RIGHTS_ELIGIBILITY,
     },
     {
       id: 'ops',
@@ -383,9 +428,10 @@ export const careersContent = {
       remote: 'On-site / hybrid',
       salaryAud: 'A$70,000 – A$85,000 + super',
       posted: '2026-08',
+      applicationVolume: 'Standard volume',
       summary:
         'Keep the Melbourne office and vendor relationships running so product teams can focus on shipping.',
-      aboutUs: ABOUT_US_BASE,
+      aboutUs: ABOUT_US,
       aboutRole:
         'You coordinate facilities, suppliers, travel basics, meeting logistics and operational checklists. You are organised, proactive and calm under time pressure.',
       responsibilities: [
@@ -399,18 +445,17 @@ export const careersContent = {
         'Strong administration and calendar management',
         'Professional written and verbal communication',
         'Proficiency with Google Workspace or Microsoft 365',
-        'Right to work in Australia',
+        'Must meet TimeGovern work-rights eligibility (see Right to work section)',
       ],
       preferred: ['Prior EA or office coordinator experience', 'Event logistics', 'Basic procurement'],
       benefits: ['CBD office', 'Superannuation', 'Hybrid flexibility after probation'],
-      howToApply:
-        'Email CV highlighting administration systems you have run.',
-      employerQuestions: [
+      howToApply: stdHowToApply('Operations Coordinator'),
+      employerQuestions: withWorkRights([
         'Do you have office administration experience?',
         'Are you available for hybrid CBD work?',
         'Notice period?',
-        'Right to work in Australia?',
-      ],
+      ]),
+      workRightsEligibility: WORK_RIGHTS_ELIGIBILITY,
     },
     {
       id: 'advertise-sales',
@@ -423,9 +468,10 @@ export const careersContent = {
       remote: 'Hybrid',
       salaryAud: 'A$90,000 – A$120,000 + super + commission',
       posted: '2026-08',
+      applicationVolume: 'Standard volume',
       summary:
         'Sell and manage brand-safe site inventory (header, in-feed, sponsor) to agencies and direct advertisers.',
-      aboutUs: ABOUT_US_BASE,
+      aboutUs: ABOUT_US,
       aboutRole:
         'You own outreach against our media kit, run proposals, and ensure campaigns meet advertising standards. You balance revenue with user experience — no formats that break tools.',
       responsibilities: [
@@ -439,18 +485,17 @@ export const careersContent = {
         '2+ years digital media sales or account management',
         'Confident presenter and writer',
         'Comfort with rate cards and insertion-order basics',
-        'Right to work in Australia',
+        'Must meet TimeGovern work-rights eligibility (see Right to work section)',
       ],
       preferred: ['Publisher or ad-tech background', 'Programmatic literacy', 'Existing agency relationships'],
       benefits: ['Hybrid', 'Commission', 'Superannuation'],
-      howToApply:
-        'Email CV and a short note on categories you have sold into (finance, travel, tech, education, etc.).',
-      employerQuestions: [
+      howToApply: stdHowToApply('Advertising Partnerships Executive'),
+      employerQuestions: withWorkRights([
         'Years in media/digital sales?',
         'Have you sold site sponsorships or display packages?',
         'Notice period?',
-        'Right to work in Australia?',
-      ],
+      ]),
+      workRightsEligibility: WORK_RIGHTS_ELIGIBILITY,
     },
     {
       id: 'intern-swe',
@@ -463,9 +508,10 @@ export const careersContent = {
       remote: 'On-site preferred / hybrid',
       salaryAud: 'Award / A$30 – A$40 per hour',
       posted: '2026-08',
+      applicationVolume: 'Standard volume',
       summary:
         '12-week internship shipping a real feature on a production global time platform with mentorship.',
-      aboutUs: ABOUT_US_BASE,
+      aboutUs: ABOUT_US,
       aboutRole:
         'You work with senior engineers on a scoped feature (UI component, calculator improvement or data QA script). You learn code review, testing habits and how production releases work.',
       responsibilities: [
@@ -478,18 +524,17 @@ export const careersContent = {
         'Currently enrolled in a relevant degree in Australia',
         'Basic JavaScript or TypeScript',
         'Curiosity about how the web works',
-        'Right to work / study work rights in Australia',
+        'Must meet TimeGovern work-rights eligibility for the internship period (citizen, PR, NZ SCV, or visa allowing the required work hours)',
       ],
       preferred: ['React coursework', 'Personal projects on GitHub', 'Interest in time zones or astronomy'],
       benefits: ['Mentorship', 'Possible graduate pathway', 'Melbourne office exposure'],
-      howToApply:
-        'Email CV, transcript summary and GitHub (if any). Tell us one TimeGovern feature you would improve.',
-      employerQuestions: [
+      howToApply: stdHowToApply('Software Engineering Intern'),
+      employerQuestions: withWorkRights([
         'What is your current course and year?',
         'When can you start a 12-week block?',
         'Do you have an active GitHub or portfolio?',
-        'Work rights / visa type?',
-      ],
+      ]),
+      workRightsEligibility: WORK_RIGHTS_ELIGIBILITY,
     },
   ] as CareerJob[],
 };
