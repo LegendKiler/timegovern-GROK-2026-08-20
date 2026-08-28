@@ -9,7 +9,6 @@ export function getStoredLogoVariant(): LogoVariant {
   try {
     const v = localStorage.getItem(STORAGE_KEY);
     if (v === 'orbital' || v === 'chronosphere' || v === 'aurora') return v;
-    // migrate old keys
     if (v === 'meridian' || v === 'monogram' || v === 'ring') return 'orbital';
   } catch {
     /* ignore */
@@ -25,8 +24,7 @@ export function setStoredLogoVariant(v: LogoVariant) {
   }
 }
 
-/** Graphic 1 — Orbital globe + time ring + glow */
-export const LogoOrbital: React.FC<{ className?: string }> = ({ className = 'h-9 w-9' }) => (
+export const LogoOrbital: React.FC<{ className?: string }> = ({ className = 'h-12 w-12' }) => (
   <svg className={className} viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
     <defs>
       <radialGradient id="orb-glow" cx="50%" cy="40%" r="55%">
@@ -48,36 +46,19 @@ export const LogoOrbital: React.FC<{ className?: string }> = ({ className = 'h-9
         <feGaussianBlur stdDeviation="1.2" />
       </filter>
     </defs>
-    {/* soft outer glow */}
     <circle cx="24" cy="24" r="22" fill="url(#orb-glow)" />
-    {/* tilted orbital ring */}
-    <ellipse
-      cx="24"
-      cy="24"
-      rx="20"
-      ry="9"
-      stroke="url(#orb-ring)"
-      strokeWidth="2.2"
-      fill="none"
-      transform="rotate(-28 24 24)"
-      opacity="0.95"
-    />
-    {/* sphere */}
+    <ellipse cx="24" cy="24" rx="20" ry="9" stroke="url(#orb-ring)" strokeWidth="2.2" fill="none" transform="rotate(-28 24 24)" opacity="0.95" />
     <circle cx="24" cy="24" r="13" fill="url(#orb-sphere)" />
-    {/* latitude / meridian lines */}
     <ellipse cx="24" cy="24" rx="13" ry="5" stroke="#e0f2fe" strokeWidth="0.9" opacity="0.45" fill="none" />
     <path d="M24 11c3.5 4 3.5 18 0 26M24 11c-3.5 4-3.5 18 0 26" stroke="#e0f2fe" strokeWidth="0.85" opacity="0.4" />
     <path d="M11 24h26" stroke="#e0f2fe" strokeWidth="0.8" opacity="0.35" />
-    {/* highlight */}
     <ellipse cx="19" cy="18" rx="4.5" ry="3" fill="#fff" opacity="0.28" filter="url(#orb-blur)" />
-    {/* satellite “now” bead on ring */}
     <circle cx="40" cy="16" r="3.2" fill="#22d3ee" stroke="#ecfeff" strokeWidth="1.2" />
     <circle cx="40" cy="16" r="1.2" fill="#0f172a" />
   </svg>
 );
 
-/** Graphic 2 — Chronosphere: deep glass clock disc */
-export const LogoChronosphere: React.FC<{ className?: string }> = ({ className = 'h-9 w-9' }) => (
+export const LogoChronosphere: React.FC<{ className?: string }> = ({ className = 'h-12 w-12' }) => (
   <svg className={className} viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
     <defs>
       <linearGradient id="chr-bg" x1="6" y1="4" x2="42" y2="44" gradientUnits="userSpaceOnUse">
@@ -95,9 +76,7 @@ export const LogoChronosphere: React.FC<{ className?: string }> = ({ className =
       </radialGradient>
     </defs>
     <rect width="48" height="48" rx="14" fill="url(#chr-bg)" />
-    {/* outer bevel ring */}
     <circle cx="24" cy="24" r="18" stroke="url(#chr-rim)" strokeWidth="3" fill="url(#chr-face)" />
-    {/* hour ticks */}
     {[0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330].map((deg) => {
       const r1 = 14.2;
       const r2 = deg % 90 === 0 ? 11.2 : 12.5;
@@ -119,19 +98,16 @@ export const LogoChronosphere: React.FC<{ className?: string }> = ({ className =
         />
       );
     })}
-    {/* hands — fixed graphic 10:10 style */}
     <path d="M24 24 L24 13" stroke="#f8fafc" strokeWidth="2.4" strokeLinecap="round" />
     <path d="M24 24 L32 18" stroke="#22d3ee" strokeWidth="2.2" strokeLinecap="round" />
     <circle cx="24" cy="24" r="2.4" fill="#f8fafc" />
     <circle cx="24" cy="24" r="1.1" fill="#6366f1" />
-    {/* sparkles */}
     <circle cx="38" cy="12" r="1.4" fill="#a5f3fc" />
     <circle cx="10" cy="36" r="1.1" fill="#c4b5fd" opacity="0.9" />
   </svg>
 );
 
-/** Graphic 3 — Aurora: bold sun–moon eclipse mark */
-export const LogoAurora: React.FC<{ className?: string }> = ({ className = 'h-9 w-9' }) => (
+export const LogoAurora: React.FC<{ className?: string }> = ({ className = 'h-12 w-12' }) => (
   <svg className={className} viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
     <defs>
       <linearGradient id="au-sky" x1="4" y1="4" x2="44" y2="44" gradientUnits="userSpaceOnUse">
@@ -156,25 +132,14 @@ export const LogoAurora: React.FC<{ className?: string }> = ({ className = 'h-9 
       </linearGradient>
     </defs>
     <rect width="48" height="48" rx="14" fill="url(#au-sky)" />
-    {/* stars */}
     <circle cx="10" cy="11" r="1.2" fill="#e0f2fe" />
     <circle cx="40" cy="14" r="1" fill="#c4b5fd" />
     <circle cx="36" cy="8" r="0.8" fill="#fef9c3" />
     <circle cx="8" cy="28" r="0.9" fill="#a5f3fc" />
-    {/* sun disc */}
     <circle cx="22" cy="23" r="11" fill="url(#au-sun)" />
-    {/* moon eclipse cut */}
     <circle cx="28" cy="21" r="9.5" fill="url(#au-moon)" />
     <circle cx="31" cy="19" r="8.2" fill="url(#au-sky)" />
-    {/* horizon aurora band */}
-    <path
-      d="M6 36c6-6 12-4 18-2s12 2 18-2"
-      stroke="url(#au-band)"
-      strokeWidth="3"
-      strokeLinecap="round"
-      fill="none"
-    />
-    {/* tiny live pip */}
+    <path d="M6 36c6-6 12-4 18-2s12 2 18-2" stroke="url(#au-band)" strokeWidth="3" strokeLinecap="round" fill="none" />
     <circle cx="39" cy="33" r="2.2" fill="#22d3ee" stroke="#ecfeff" strokeWidth="1" />
   </svg>
 );
@@ -192,9 +157,9 @@ export const BrandLogo: React.FC<{
   wordmarkClassName?: string;
 }> = ({
   variant: variantProp,
-  className = 'h-9 w-9',
+  className = 'h-12 w-12',
   showWordmark = true,
-  wordmarkClassName = 'font-black tracking-tight text-white hidden xs:inline sm:inline',
+  wordmarkClassName = 'text-lg sm:text-xl font-black tracking-tight text-white leading-none',
 }) => {
   const [variant, setVariant] = useState<LogoVariant>(variantProp ?? 'orbital');
 
@@ -216,11 +181,18 @@ export const BrandLogo: React.FC<{
   const Icon = map[variant] || LogoOrbital;
 
   return (
-    <span className="inline-flex items-center gap-2.5">
-      <span className="relative inline-flex shrink-0 rounded-2xl shadow-lg shadow-cyan-500/20 ring-1 ring-white/10">
+    <span className="inline-flex items-center gap-3 min-w-0">
+      <span className="relative inline-flex shrink-0 rounded-2xl shadow-xl shadow-cyan-500/25 ring-1 ring-white/15">
         <Icon className={className} />
       </span>
-      {showWordmark && <span className={wordmarkClassName}>TimeGovern</span>}
+      {showWordmark && (
+        <span className="flex flex-col min-w-0 text-left">
+          <span className={wordmarkClassName}>TimeGovern</span>
+          <span className="text-[10px] sm:text-[11px] font-semibold tracking-[0.08em] uppercase text-cyan-400/90 mt-0.5 hidden sm:block">
+            Global time platform
+          </span>
+        </span>
+      )}
     </span>
   );
 };
@@ -257,9 +229,7 @@ export const LogoVariantSwitcher: React.FC = () => {
           type="button"
           onClick={() => pick(o.id)}
           className={`px-1.5 py-1 rounded-md text-[10px] font-bold transition-colors ${
-            v === o.id
-              ? 'bg-cyan-500/25 text-cyan-200'
-              : 'text-slate-500 hover:text-slate-300'
+            v === o.id ? 'bg-cyan-500/25 text-cyan-200' : 'text-slate-500 hover:text-slate-300'
           }`}
         >
           {o.label}
