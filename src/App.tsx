@@ -176,6 +176,11 @@ export default function App() {
           setAccountModalPanel('supporter');
           setShowAccountModal(true);
         }}
+        onOpenAccount={() => {
+          setAccountModalPanel('account');
+          setShowAccountModal(true);
+        }}
+        onOpenSecurity={() => setShowSecurityModal(true)}
       />
 
       <Suspense fallback={null}>
