@@ -77,14 +77,14 @@ export const Header: React.FC<HeaderProps> = ({
 
   return (
     <header className="sticky top-0 z-40 border-b border-slate-800/80 bg-slate-950/90 backdrop-blur-md">
-      <div className="max-w-7xl mx-auto px-3 sm:px-4 py-2.5 flex flex-wrap items-center gap-2">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 py-3 flex flex-wrap items-center gap-2.5">
         <button
           type="button"
           onClick={() => setActivePillar(1)}
           className="flex items-center gap-2 mr-1 shrink-0"
           aria-label="TimeGovern home"
         >
-          <BrandLogo className="h-8 w-8 drop-shadow-lg" showWordmark wordmarkClassName="font-black tracking-tight text-white hidden xs:inline sm:inline" />
+          <BrandLogo className="h-11 w-11 sm:h-12 sm:w-12 drop-shadow-xl" showWordmark />
         </button>
         <LogoVariantSwitcher />
 
@@ -95,7 +95,7 @@ export const Header: React.FC<HeaderProps> = ({
             onChange={(e) => setQuery(e.target.value)}
             onFocus={() => query && setOpen(true)}
             placeholder="Search city…"
-            className="w-full h-8 pl-8 pr-3 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-indigo-400/60"
+            className="w-full h-9 pl-8 pr-3 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-indigo-400/60"
           />
           {open && results.length > 0 && (
             <ul className="absolute z-50 mt-1 w-full max-h-64 overflow-auto rounded-xl border border-slate-700 bg-slate-900 shadow-xl">
