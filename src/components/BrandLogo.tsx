@@ -2,8 +2,7 @@ import React, { useEffect, useState } from 'react';
 
 /**
  * TimeGovern live brand mark — graphic dial + hands driven by the user's
- * local PC clock (hour / minute / second). Updates every 250ms for a smooth
- * second sweep; full “tick” feel on the second hand.
+ * local PC clock. Larger professional size + Space Grotesk wordmark.
  */
 
 function useLocalClock(enabled: boolean) {
@@ -25,16 +24,16 @@ function handAngles(d: Date) {
   const m = d.getMinutes() + s / 60;
   const h = (d.getHours() % 12) + m / 60;
   return {
-    second: s * 6, // 360/60
+    second: s * 6,
     minute: m * 6,
-    hour: h * 30, // 360/12
+    hour: h * 30,
   };
 }
 
 export const LogoMarkLive: React.FC<{
   className?: string;
   live?: boolean;
-}> = ({ className = 'h-12 w-12', live = true }) => {
+}> = ({ className = 'h-14 w-14', live = true }) => {
   const now = useLocalClock(live);
   const { hour, minute, second } = handAngles(now);
 
@@ -59,12 +58,6 @@ export const LogoMarkLive: React.FC<{
           <stop offset="0.7" stopColor="#a855f7" />
           <stop offset="1" stopColor="#22d3ee" />
         </linearGradient>
-        <linearGradient id="tg-arc" x1="12" y1="20" x2="60" y2="36" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#22d3ee" />
-          <stop offset="0.4" stopColor="#38bdf8" />
-          <stop offset="0.7" stopColor="#818cf8" />
-          <stop offset="1" stopColor="#c084fc" />
-        </linearGradient>
         <filter id="tg-glow" x="-30%" y="-30%" width="160%" height="160%">
           <feGaussianBlur stdDeviation="1.4" result="b" />
           <feMerge>
@@ -77,17 +70,11 @@ export const LogoMarkLive: React.FC<{
         </filter>
       </defs>
 
-      {/* Outer glow ring */}
       <circle cx="36" cy="36" r="33" fill="url(#tg-bezel)" opacity="0.35" filter="url(#tg-soft)" />
-
-      {/* Bezel */}
       <circle cx="36" cy="36" r="31.5" stroke="url(#tg-bezel)" strokeWidth="2.5" fill="url(#tg-dial)" />
       <circle cx="36" cy="36" r="28.5" stroke="#334155" strokeWidth="1" fill="url(#tg-dial)" />
-
-      {/* Inner glass highlight */}
       <ellipse cx="30" cy="26" rx="14" ry="8" fill="#67e8f9" opacity="0.12" />
 
-      {/* Seconds ring — 60 ticks */}
       {Array.from({ length: 60 }).map((_, i) => {
         const a = (i / 60) * Math.PI * 2 - Math.PI / 2;
         const major = i % 5 === 0;
@@ -108,12 +95,7 @@ export const LogoMarkLive: React.FC<{
         );
       })}
 
-      {/* Meridian arc bars (graphic accent) */}
-      {(
-        [
-          -100, -70, -40, -10, 20, 50, 80,
-        ] as const
-      ).map((deg, i) => {
+      {([-100, -70, -40, -10, 20, 50, 80] as const).map((deg, i) => {
         const colors = ['#22d3ee', '#2dd4bf', '#38bdf8', '#60a5fa', '#818cf8', '#a78bfa', '#c084fc'];
         const rad = (deg * Math.PI) / 180;
         const cx = 36 + 18.5 * Math.cos(rad);
@@ -134,9 +116,7 @@ export const LogoMarkLive: React.FC<{
         );
       })}
 
-      {/* Hands group — rotated from center */}
       <g style={{ transformOrigin: '36px 36px' }}>
-        {/* Hour */}
         <line
           x1="36"
           y1="36"
@@ -147,7 +127,6 @@ export const LogoMarkLive: React.FC<{
           strokeLinecap="round"
           transform={`rotate(${hour} 36 36)`}
         />
-        {/* Minute */}
         <line
           x1="36"
           y1="36"
@@ -158,7 +137,6 @@ export const LogoMarkLive: React.FC<{
           strokeLinecap="round"
           transform={`rotate(${minute} 36 36)`}
         />
-        {/* Second — vivid “tick” hand */}
         <line
           x1="36"
           y1="40"
@@ -180,7 +158,6 @@ export const LogoMarkLive: React.FC<{
         />
       </g>
 
-      {/* Hub */}
       <circle cx="36" cy="36" r="4" fill="#0ea5e9" stroke="#e0f2fe" strokeWidth="1.5" />
       <circle cx="36" cy="36" r="1.6" fill="#f8fafc" />
     </svg>
@@ -191,25 +168,35 @@ export type BrandLogoProps = {
   className?: string;
   showWordmark?: boolean;
   wordmarkClassName?: string;
-  /** Drive hands from local PC time (default true) */
   live?: boolean;
 };
 
 export const BrandLogo: React.FC<BrandLogoProps> = ({
-  className = 'h-11 w-11 sm:h-12 sm:w-12',
+  className = 'h-12 w-12 sm:h-14 sm:w-14',
   showWordmark = true,
-  wordmarkClassName =
-    'text-lg sm:text-xl font-extrabold tracking-tight text-slate-800 dark:text-white leading-none',
+  wordmarkClassName,
   live = true,
 }) => (
-  <span className="inline-flex items-center gap-2.5 select-none">
+  <span className="inline-flex items-center gap-3 select-none">
     <LogoMarkLive className={className} live={live} />
     {showWordmark && (
-      <span className={`flex flex-col ${wordmarkClassName}`}>
-        <span>
-          Time<span className="text-indigo-600 dark:text-cyan-300">Govern</span>
+      <span
+        className={
+          wordmarkClassName ||
+          'flex flex-col justify-center leading-none'
+        }
+      >
+        <span
+          className="font-display text-[1.2rem] sm:text-[1.4rem] font-bold tracking-tight text-slate-800 dark:text-white"
+          style={{ fontFamily: '"Space Grotesk", Inter, system-ui, sans-serif' }}
+        >
+          Time
+          <span className="text-indigo-600 dark:text-cyan-300">Govern</span>
         </span>
-        <span className="text-[9px] sm:text-[10px] font-semibold tracking-[0.18em] uppercase text-slate-500 dark:text-slate-400">
+        <span
+          className="mt-0.5 text-[9px] sm:text-[10px] font-semibold tracking-[0.2em] uppercase text-slate-500 dark:text-slate-400"
+          style={{ fontFamily: 'Inter, system-ui, sans-serif' }}
+        >
           Live local time
         </span>
       </span>
