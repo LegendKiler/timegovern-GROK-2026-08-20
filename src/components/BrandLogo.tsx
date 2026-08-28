@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from 'react';
 
 /**
- * TimeGovern live brand mark — graphic dial + hands driven by the user's
- * local PC clock. Larger professional size + Space Grotesk wordmark.
- * Second hand tip stays inside the dial (not past the tick ring).
+ * Live logo dial — hands from local PC time.
+ * Second tip is clipped inside the face (cannot draw outside the circle).
  */
 
 function useLocalClock(enabled: boolean) {
@@ -24,17 +23,13 @@ function handAngles(d: Date) {
   const s = d.getSeconds() + d.getMilliseconds() / 1000;
   const m = d.getMinutes() + s / 60;
   const h = (d.getHours() % 12) + m / 60;
-  return {
-    second: s * 6,
-    minute: m * 6,
-    hour: h * 30,
-  };
+  return { second: s * 6, minute: m * 6, hour: h * 30 };
 }
 
-export const LogoMarkLive: React.FC<{
-  className?: string;
-  live?: boolean;
-}> = ({ className = 'h-14 w-14', live = true }) => {
+export const LogoMarkLive: React.FC<{ className?: string; live?: boolean }> = ({
+  className = 'h-14 w-14',
+  live = true,
+}) => {
   const now = useLocalClock(live);
   const { hour, minute, second } = handAngles(now);
 
@@ -59,113 +54,93 @@ export const LogoMarkLive: React.FC<{
           <stop offset="0.7" stopColor="#a855f7" />
           <stop offset="1" stopColor="#22d3ee" />
         </linearGradient>
-        <filter id="tg-glow" x="-30%" y="-30%" width="160%" height="160%">
-          <feGaussianBlur stdDeviation="1.4" result="b" />
-          <feMerge>
-            <feMergeNode in="b" />
-            <feMergeNode in="SourceGraphic" />
-          </feMerge>
-        </filter>
+        {/* Hands cannot paint outside this radius */}
+        <clipPath id="tg-face-clip">
+          <circle cx="36" cy="36" r="24" />
+        </clipPath>
         <filter id="tg-soft" x="-20%" y="-20%" width="140%" height="140%">
           <feGaussianBlur stdDeviation="0.6" />
         </filter>
       </defs>
 
-      <circle cx="36" cy="36" r="33" fill="url(#tg-bezel)" opacity="0.35" filter="url(#tg-soft)" />
+      {/* Bezel + face */}
+      <circle cx="36" cy="36" r="33" fill="url(#tg-bezel)" opacity="0.3" filter="url(#tg-soft)" />
       <circle cx="36" cy="36" r="31.5" stroke="url(#tg-bezel)" strokeWidth="2.5" fill="url(#tg-dial)" />
       <circle cx="36" cy="36" r="28.5" stroke="#334155" strokeWidth="1" fill="url(#tg-dial)" />
-      <ellipse cx="30" cy="26" rx="14" ry="8" fill="#67e8f9" opacity="0.12" />
+      <ellipse cx="30" cy="26" rx="14" ry="8" fill="#67e8f9" opacity="0.1" />
 
+      {/* Seconds ticks — on the face ring */}
       {Array.from({ length: 60 }).map((_, i) => {
         const a = (i / 60) * Math.PI * 2 - Math.PI / 2;
         const major = i % 5 === 0;
-        const r0 = major ? 25.2 : 26.4;
-        const r1 = 27.8;
+        const r0 = major ? 25.5 : 26.5;
+        const r1 = 27.6;
         return (
           <line
-            key={`s${i}`}
+            key={i}
             x1={36 + r0 * Math.cos(a)}
             y1={36 + r0 * Math.sin(a)}
             x2={36 + r1 * Math.cos(a)}
             y2={36 + r1 * Math.sin(a)}
             stroke={major ? '#a5f3fc' : '#64748b'}
-            strokeWidth={major ? 1.35 : 0.55}
+            strokeWidth={major ? 1.2 : 0.5}
             strokeLinecap="round"
-            opacity={major ? 0.95 : 0.55}
+            opacity={major ? 0.9 : 0.5}
           />
         );
       })}
 
-      {([-100, -70, -40, -10, 20, 50, 80] as const).map((deg, i) => {
+      {/* Coloured arc — kept inside outer bezel */}
+      {([-95, -65, -35, -5, 25, 55, 85] as const).map((deg, i) => {
         const colors = ['#22d3ee', '#2dd4bf', '#38bdf8', '#60a5fa', '#818cf8', '#a78bfa', '#c084fc'];
         const rad = (deg * Math.PI) / 180;
-        const cx = 36 + 18.5 * Math.cos(rad);
-        const cy = 36 + 18.5 * Math.sin(rad);
+        const cx = 36 + 17 * Math.cos(rad);
+        const cy = 36 + 17 * Math.sin(rad);
         return (
           <rect
             key={i}
-            x={cx - 2}
-            y={cy - 4.8}
-            width={4}
-            height={9.6}
-            rx={2}
+            x={cx - 1.8}
+            y={cy - 4.2}
+            width={3.6}
+            height={8.4}
+            rx={1.8}
             fill={colors[i]}
             transform={`rotate(${deg + 90} ${cx} ${cy})`}
-            filter="url(#tg-glow)"
-            opacity={0.95}
+            opacity={0.92}
           />
         );
       })}
 
-      <g style={{ transformOrigin: '36px 36px' }}>
-        {/* Hour — short */}
-        <line
-          x1="36"
-          y1="36"
-          x2="36"
-          y2="23"
-          stroke="#e2e8f0"
-          strokeWidth="3.2"
-          strokeLinecap="round"
-          transform={`rotate(${hour} 36 36)`}
-        />
-        {/* Minute — medium, inside ticks */}
-        <line
-          x1="36"
-          y1="36"
-          x2="36"
-          y2="18"
-          stroke="#7dd3fc"
-          strokeWidth="2.2"
-          strokeLinecap="round"
-          transform={`rotate(${minute} 36 36)`}
-        />
-        {/* Second — tip + pink dot stay inside dial (radius ~18.5, ticks start ~25) */}
-        <line
-          x1="36"
-          y1="39"
-          x2="36"
-          y2="17.5"
-          stroke="#f472b6"
-          strokeWidth="1.2"
-          strokeLinecap="round"
-          transform={`rotate(${second} 36 36)`}
-          filter="url(#tg-glow)"
-        />
-        <circle
-          cx="36"
-          cy="17.5"
-          r="1.45"
-          fill="#f9a8d4"
-          stroke="#831843"
-          strokeWidth="0.35"
-          transform={`rotate(${second} 36 36)`}
-          style={{ transformOrigin: '36px 36px' }}
-        />
+      {/* HANDS — clipped so tip/dot never leave the circle */}
+      <g clipPath="url(#tg-face-clip)">
+        {/* Hour: tip at y=24 → radius 12 */}
+        <g transform={`rotate(${hour} 36 36)`}>
+          <line x1="36" y1="36" x2="36" y2="24" stroke="#e2e8f0" strokeWidth="3" strokeLinecap="round" />
+        </g>
+
+        {/* Minute: tip at y=20 → radius 16 */}
+        <g transform={`rotate(${minute} 36 36)`}>
+          <line x1="36" y1="36" x2="36" y2="20" stroke="#7dd3fc" strokeWidth="2.1" strokeLinecap="round" />
+        </g>
+
+        {/* Second: tip at y=19 → radius 17, dot r=1.3 → still < 24 clip */}
+        <g transform={`rotate(${second} 36 36)`}>
+          <line
+            x1="36"
+            y1="38.5"
+            x2="36"
+            y2="19"
+            stroke="#f472b6"
+            strokeWidth="1.15"
+            strokeLinecap="round"
+          />
+          <circle cx="36" cy="19" r="1.3" fill="#f9a8d4" stroke="#9d174d" strokeWidth="0.3" />
+        </g>
       </g>
 
-      <circle cx="36" cy="36" r="4" fill="#0ea5e9" stroke="#e0f2fe" strokeWidth="1.5" />
-      <circle cx="36" cy="36" r="1.6" fill="#f8fafc" />
+      {/* Hub on top */}
+      <circle cx="36" cy="36" r="3.8" fill="#0ea5e9" stroke="#e0f2fe" strokeWidth="1.4" />
+      <circle cx="36" cy="36" r="1.5" fill="#f8fafc" />
     </svg>
   );
 };
