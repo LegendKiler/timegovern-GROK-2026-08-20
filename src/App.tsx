@@ -1,5 +1,5 @@
 import React, { useState, useEffect, Suspense, lazy } from 'react';
-import { fetchBillingStatus } from './lib/billing';
+import { fetchBillingStatus, getLocalEntitlements } from './lib/billing';
 import { Header } from './components/Header';
 import { AdBanner } from './components/AdBanner';
 import { AdSenseLoader } from './components/ads/AdSenseLoader';
@@ -35,6 +35,7 @@ export default function App() {
   const [activePillar, setActivePillar] = useState(1);
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [showAds, setShowAds] = useState(true);
+  const [isSupporter, setIsSupporter] = useState(() => getLocalEntitlements().supporter);
   const [primaryCity, setPrimaryCity] = useState<City | undefined>();
   const [selectedCityFromSearch, setSelectedCityFromSearch] = useState<City | undefined>();
   const [showArchModal, setShowArchModal] = useState(false);
@@ -50,7 +51,20 @@ export default function App() {
   }, [isDarkMode]);
 
   useEffect(() => {
-    fetchBillingStatus().catch(() => undefined);
+    const apply = (supporter: boolean) => {
+      setIsSupporter(supporter);
+      if (supporter) setShowAds(false);
+    };
+    apply(getLocalEntitlements().supporter);
+    fetchBillingStatus()
+      .then((st) => apply(!!st.supporter))
+      .catch(() => undefined);
+    const onBill = (e: Event) => {
+      const d = (e as CustomEvent).detail;
+      apply(!!(d?.supporter ?? getLocalEntitlements().supporter));
+    };
+    window.addEventListener('tg-billing-updated', onBill);
+    return () => window.removeEventListener('tg-billing-updated', onBill);
   }, []);
 
   useGlobalShortcuts({
@@ -87,22 +101,29 @@ export default function App() {
           <span className="flex items-center gap-1.5 truncate">
             <Globe className="w-3 h-3 text-indigo-500 dark:text-indigo-400" />
             {(companyContent as { tagline?: string })?.tagline || 'Global time, calendars & tools'}
+            {isSupporter && (
+              <span className="ml-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/15 text-rose-600 dark:text-rose-300 border border-rose-400/30">
+                Supporter
+              </span>
+            )}
           </span>
           <button
             type="button"
             onClick={() => setShowAds((p) => !p)}
             className="inline-flex items-center gap-1.5 font-semibold hover:underline text-slate-700 dark:text-slate-300"
+            disabled={isSupporter}
+            title={isSupporter ? 'Ads stay off for Supporters' : undefined}
           >
             {showAds ? <EyeOff className="w-3.5 h-3.5 text-amber-500" /> : <Eye className="w-3.5 h-3.5 text-emerald-500" />}
-            {showAds ? 'Hide ads' : 'Show ads'}
+            {isSupporter ? 'Ad-free (Supporter)' : showAds ? 'Hide ads' : 'Show ads'}
           </button>
         </div>
       </div>
 
-      {showAds && <AdBanner type="leaderboard" />}
+      {showAds && !isSupporter && <AdBanner type="leaderboard" />}
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-4 py-4 flex gap-3">
-        {showAds && <AdBanner type="skyscraper-left" />}
+        {showAds && !isSupporter && <AdBanner type="skyscraper-left" />}
         <div className="flex-1 min-w-0">
           <PillarErrorBoundary>
             <Suspense fallback={<PillarLoader />}>
@@ -167,7 +188,7 @@ export default function App() {
             </Suspense>
           </PillarErrorBoundary>
         </div>
-        {showAds && <AdBanner type="skyscraper-right" />}
+        {showAds && !isSupporter && <AdBanner type="skyscraper-right" />}
       </main>
 
       <SiteFooter
