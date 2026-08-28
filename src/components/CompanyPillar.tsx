@@ -58,23 +58,26 @@ export const CompanyPillar: React.FC<CompanyPillarProps> = ({ onNavigatePillar }
   ];
 
   const renderLegalDoc = () => {
-    const doc = (L as any)[legalSection] || L.privacy;
+    const docs: Record<LegalSection, { title: string; body: string }> = {
+      privacy: { title: L.privacy?.title || 'Privacy Policy', body: (L.privacy as any)?.body || (L.privacy as any)?.summary || '' },
+      terms: { title: L.terms?.title || 'Terms & Conditions', body: (L.terms as any)?.body || (L.terms as any)?.summary || '' },
+      ads: { title: (L as any).advertising?.title || 'Advertising', body: (L as any).advertising?.body || '' },
+      cookies: { title: (L as any).cookies?.title || 'Cookies', body: (L as any).cookies?.body || '' },
+      disclaimer: { title: (L as any).disclaimer?.title || 'Disclaimer', body: (L as any).disclaimer?.body || '' },
+      linkpolicy: { title: (L as any).linkPolicy?.title || 'Link policy', body: (L as any).linkPolicy?.body || '' },
+    };
+    const doc = docs[legalSection];
     return (
-      <div className="prose prose-invert prose-sm max-w-none text-slate-300">
-        <h4 className="text-white font-bold text-base mb-2">{doc?.title || legalSection}</h4>
-        {(doc?.sections || []).map((s: { heading: string; body: string }) => (
-          <div key={s.heading} className="mb-3">
-            <h5 className="text-cyan-300 font-semibold text-xs uppercase tracking-wide">{s.heading}</h5>
-            <p className="text-xs leading-relaxed whitespace-pre-wrap">{s.body}</p>
-          </div>
-        ))}
+      <div className="prose prose-slate dark:prose-invert prose-sm max-w-none text-slate-700 dark:text-slate-300">
+        <h4 className="text-slate-900 dark:text-white font-bold text-base mb-2">{doc.title}</h4>
+        <div className="whitespace-pre-wrap text-xs leading-relaxed">{doc.body || 'See full policy text in content files.'}</div>
       </div>
     );
   };
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap gap-1.5 p-1.5 rounded-xl bg-slate-900/80 border border-slate-700">
+      <div className="flex flex-wrap gap-1.5 p-1.5 rounded-xl bg-slate-100 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-700">
         {tabs.map((t) => (
           <button
             key={t.id}
@@ -82,8 +85,8 @@ export const CompanyPillar: React.FC<CompanyPillarProps> = ({ onNavigatePillar }
             onClick={() => setTab(t.id)}
             className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold border transition-colors ${
               tab === t.id
-                ? 'bg-cyan-500/20 border-cyan-400 text-cyan-200'
-                : 'border-transparent text-slate-400 hover:text-white hover:bg-slate-800'
+                ? 'bg-cyan-100 border-cyan-500 text-cyan-900 dark:bg-cyan-500/20 dark:border-cyan-400 dark:text-cyan-200'
+                : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800'
             }`}
           >
             {t.icon}
@@ -93,48 +96,55 @@ export const CompanyPillar: React.FC<CompanyPillarProps> = ({ onNavigatePillar }
       </div>
 
       {tab === 'about' && (
-        <div className="rounded-2xl border border-slate-700 bg-slate-950/80 p-5 space-y-4 text-sm text-slate-200">
-          <h3 className="text-lg font-bold text-white">{c.aboutUs.title}</h3>
-          <p className="text-slate-300">{c.aboutUs.lead}</p>
-          {c.aboutUs.paragraphs.map((p) => (
-            <p key={p.slice(0, 40)} className="text-xs text-slate-400 leading-relaxed">{p}</p>
+        <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950/80 p-5 space-y-4 text-sm text-slate-700 dark:text-slate-200 shadow-sm">
+          <h3 className="text-lg font-bold text-slate-900 dark:text-white">{c.aboutUs?.title || 'About TimeGovern'}</h3>
+          <p className="text-slate-600 dark:text-slate-300">{c.aboutUs?.lead}</p>
+          {(c.aboutUs?.paragraphs || []).map((p: string) => (
+            <p key={p.slice(0, 40)} className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">{p}</p>
           ))}
-          <div className="grid sm:grid-cols-2 gap-3 pt-2">
-            <div className="rounded-xl border border-slate-700 p-3">
-              <p className="text-[10px] font-bold uppercase text-cyan-400">Mission</p>
-              <p className="text-xs text-slate-300 mt-1">{c.aboutUs.mission}</p>
+          <div className="grid sm:grid-cols-2 gap-3">
+            <div className="rounded-xl border border-slate-200 dark:border-slate-700 p-3 bg-slate-50 dark:bg-slate-900/50">
+              <p className="text-[10px] font-bold uppercase text-cyan-700 dark:text-cyan-400">Mission</p>
+              <p className="text-xs text-slate-700 dark:text-slate-300 mt-1">{c.aboutUs?.mission}</p>
             </div>
-            <div className="rounded-xl border border-slate-700 p-3">
-              <p className="text-[10px] font-bold uppercase text-cyan-400">Vision</p>
-              <p className="text-xs text-slate-300 mt-1">{c.aboutUs.vision}</p>
+            <div className="rounded-xl border border-slate-200 dark:border-slate-700 p-3 bg-slate-50 dark:bg-slate-900/50">
+              <p className="text-[10px] font-bold uppercase text-cyan-700 dark:text-cyan-400">Vision</p>
+              <p className="text-xs text-slate-700 dark:text-slate-300 mt-1">{c.aboutUs?.vision}</p>
             </div>
           </div>
         </div>
       )}
 
       {tab === 'contact' && (
-        <div className="rounded-2xl border border-slate-700 bg-slate-950/80 p-5 space-y-3 text-sm">
-          <h3 className="text-lg font-bold text-white flex items-center gap-2"><Mail className="w-5 h-5 text-cyan-400" /> Contact</h3>
-          <p className="text-xs text-slate-400">{c.hq.fullAddress}</p>
-          <p className="text-xs text-slate-300">
+        <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950/80 p-5 space-y-3 text-sm text-slate-700 dark:text-slate-200 shadow-sm">
+          <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <Mail className="w-5 h-5 text-cyan-600 dark:text-cyan-400" /> Contact
+          </h3>
+          <p className="text-xs text-slate-600 dark:text-slate-400">{c.hq?.fullAddress}</p>
+          <p className="text-xs text-slate-700 dark:text-slate-300">
             Email:{' '}
-            <a className="text-cyan-400 font-semibold" href={`mailto:${c.hq.email}`}>{c.hq.email}</a>
-            {' · '}Phone: {c.hq.phoneDisplay}
+            <a className="text-cyan-700 dark:text-cyan-400 font-semibold" href={`mailto:${c.hq?.email}`}>
+              {c.hq?.email}
+            </a>
           </p>
-          <p className="text-[11px] text-slate-500">{c.hq.hours}</p>
+          {c.hq?.phone && (
+            <p className="text-xs text-slate-700 dark:text-slate-300">
+              Phone: <span className="font-semibold">{c.hq.phone}</span>
+            </p>
+          )}
         </div>
       )}
 
       {tab === 'newsletter' && (
-        <div className="rounded-2xl border border-slate-700 bg-slate-950/80 p-5 space-y-3 text-sm text-slate-200">
-          <h3 className="text-lg font-bold text-white">Newsletters</h3>
-          <p className="text-xs text-slate-400">Weekly, monthly and yearly digests about global time tools.</p>
+        <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950/80 p-5 space-y-3 text-sm text-slate-700 dark:text-slate-200 shadow-sm">
+          <h3 className="text-lg font-bold text-slate-900 dark:text-white">Newsletters</h3>
+          <p className="text-xs text-slate-600 dark:text-slate-400">Weekly, monthly and yearly digests about global time tools.</p>
           <input
             type="email"
             value={nlEmail}
             onChange={(e) => setNlEmail(e.target.value)}
             placeholder="you@example.com"
-            className="w-full max-w-sm text-xs rounded-lg border border-slate-600 bg-slate-900 px-3 py-2 text-white"
+            className="w-full max-w-sm text-xs rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 py-2 text-slate-900 dark:text-white"
           />
           <div className="flex flex-wrap gap-2">
             {(['weekly', 'monthly', 'yearly'] as const).map((x) => (
@@ -143,7 +153,9 @@ export const CompanyPillar: React.FC<CompanyPillarProps> = ({ onNavigatePillar }
                 type="button"
                 onClick={() => setNlCadence(x)}
                 className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold border ${
-                  nlCadence === x ? 'border-cyan-400 text-cyan-200' : 'border-slate-600 text-slate-400'
+                  nlCadence === x
+                    ? 'border-cyan-600 bg-cyan-50 text-cyan-900 dark:border-cyan-400 dark:bg-cyan-500/10 dark:text-cyan-200'
+                    : 'border-slate-300 text-slate-600 bg-white dark:border-slate-600 dark:text-slate-400 dark:bg-transparent'
                 }`}
               >
                 {x}
@@ -151,8 +163,8 @@ export const CompanyPillar: React.FC<CompanyPillarProps> = ({ onNavigatePillar }
             ))}
           </div>
           <a
-            href={`mailto:${c.hq.email}?subject=${encodeURIComponent('Newsletter subscribe — ' + nlCadence)}&body=${encodeURIComponent('Please subscribe ' + nlEmail + ' to ' + nlCadence)}`}
-            className="inline-flex text-xs font-bold text-cyan-400 underline"
+            href={`mailto:${c.hq?.email}?subject=${encodeURIComponent('Newsletter subscribe — ' + nlCadence)}&body=${encodeURIComponent('Please subscribe ' + (nlEmail || '[your email]') + ' to the ' + nlCadence + ' newsletter.')}`}
+            className="inline-flex text-xs font-bold text-cyan-700 dark:text-cyan-400 underline"
           >
             Subscribe via email
           </a>
@@ -160,38 +172,30 @@ export const CompanyPillar: React.FC<CompanyPillarProps> = ({ onNavigatePillar }
       )}
 
       {tab === 'podcast' && <PodcastPanel />}
-
       {tab === 'careers' && <CareersPanel />}
-
-      {tab === 'sitemap' && (
-        <SiteMapPanel
-          onNavigatePillar={onNavigatePillar}
-          onOpenTab={setTab}
-          onOpenLegal={(section) => {
-            setTab('legal');
-            setLegalSection(section as LegalSection);
-          }}
-        />
-      )}
-
       {tab === 'feedback' && <ExperienceFeedbackPanel />}
+      {tab === 'sitemap' && <SiteMapPanel onNavigatePillar={onNavigatePillar} />}
 
       {tab === 'trust' && (
-        <div className="rounded-2xl border border-slate-700 bg-slate-950/80 p-5 space-y-3 text-sm text-slate-200">
-          <h3 className="font-extrabold text-white text-lg flex items-center gap-2"><Shield className="w-5 h-5 text-cyan-400" /> Trust Centre</h3>
-          <p className="text-xs text-slate-400">Security posture, contacts, and how we handle trust.</p>
-          <ul className="space-y-2 text-xs text-slate-300">
+        <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950/80 p-5 space-y-3 text-sm text-slate-700 dark:text-slate-200 shadow-sm">
+          <h3 className="font-extrabold text-slate-900 dark:text-white text-lg flex items-center gap-2">
+            <Shield className="w-5 h-5 text-cyan-600 dark:text-cyan-400" /> Trust Centre
+          </h3>
+          <p className="text-xs text-slate-600 dark:text-slate-400">Security posture, contacts, and how we handle trust on TimeGovern.</p>
+          <ul className="space-y-2 text-xs text-slate-700 dark:text-slate-300">
             {((L as any).trustCentre?.points || []).map((pt: { title: string; text: string }) => (
-              <li key={pt.title}><strong className="text-cyan-300">{pt.title}:</strong> {pt.text}</li>
+              <li key={pt.title}>
+                <strong className="text-cyan-700 dark:text-cyan-300">{pt.title}:</strong> {pt.text}
+              </li>
             ))}
           </ul>
         </div>
       )}
 
       {tab === 'legal' && (
-        <div className="rounded-2xl border border-slate-700 bg-slate-950/80 p-5 space-y-4 text-sm">
-          <h3 className="font-extrabold text-white text-lg flex items-center gap-2">
-            <Scale className="w-5 h-5 text-cyan-400" /> Legal
+        <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950/80 p-5 space-y-4 text-sm text-slate-700 dark:text-slate-200 shadow-sm">
+          <h3 className="font-extrabold text-slate-900 dark:text-white text-lg flex items-center gap-2">
+            <Scale className="w-5 h-5 text-cyan-600 dark:text-cyan-400" /> Legal
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
             {([
@@ -208,21 +212,21 @@ export const CompanyPillar: React.FC<CompanyPillarProps> = ({ onNavigatePillar }
                 onClick={() => setLegalSection(x.id)}
                 className={`text-left rounded-xl border p-3 transition-all ${
                   legalSection === x.id
-                    ? 'bg-cyan-500/15 border-cyan-400'
-                    : 'bg-slate-900 border-slate-600 hover:border-cyan-500/40'
+                    ? 'bg-cyan-50 border-cyan-500 dark:bg-cyan-500/15 dark:border-cyan-400'
+                    : 'bg-white border-slate-200 hover:border-cyan-400 dark:bg-slate-900 dark:border-slate-600 dark:hover:border-cyan-500/40'
                 }`}
               >
-                <span className="block text-xs font-extrabold text-white">{x.label}</span>
-                <span className="block text-[11px] text-slate-400 mt-0.5">{x.blurb}</span>
+                <span className="block text-xs font-extrabold text-slate-900 dark:text-white">{x.label}</span>
+                <span className="block text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">{x.blurb}</span>
               </button>
             ))}
           </div>
-          <div className="rounded-xl border border-slate-600 bg-slate-900/80 p-4">{renderLegalDoc()}</div>
+          <div className="rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900/80 p-4">{renderLegalDoc()}</div>
         </div>
       )}
 
-      <p className="text-[10px] text-center text-slate-600">
-        © {c.legal?.year || new Date().getFullYear()} {c.legal?.copyrightName || c.legalName}. {c.hq.city}, {c.hq.country}.
+      <p className="text-[10px] text-center text-slate-500 dark:text-slate-600">
+        © {c.legal?.year || new Date().getFullYear()} {c.legal?.copyrightName || c.legalName}. {c.hq?.city}, {c.hq?.country}.
       </p>
     </div>
   );
