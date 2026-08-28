@@ -1,130 +1,222 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 
 /**
- * TimeGovern brand mark — Concept A2
- * Coloured meridian arc (timeanddate-inspired, original) +
- * outer micro-tick ring = seconds precision + dual hands.
+ * TimeGovern live brand mark — graphic dial + hands driven by the user's
+ * local PC clock (hour / minute / second). Updates every 250ms for a smooth
+ * second sweep; full “tick” feel on the second hand.
  */
-export const LogoMarkA2: React.FC<{ className?: string }> = ({
-  className = 'h-10 w-10',
-}) => (
-  <svg
-    className={className}
-    viewBox="0 0 64 64"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-    aria-hidden
-  >
-    <defs>
-      <linearGradient id="tg-a2-arc" x1="8" y1="32" x2="56" y2="32" gradientUnits="userSpaceOnUse">
-        <stop stopColor="#22d3ee" />
-        <stop offset="0.35" stopColor="#38bdf8" />
-        <stop offset="0.65" stopColor="#6366f1" />
-        <stop offset="1" stopColor="#a855f7" />
-      </linearGradient>
-    </defs>
 
-    {/* Outer seconds ring — fine ticks (unique vs plain clock logos) */}
-    {Array.from({ length: 60 }).map((_, i) => {
-      const a = (i / 60) * Math.PI * 2 - Math.PI / 2;
-      const major = i % 5 === 0;
-      const r0 = major ? 29.2 : 30.2;
-      const r1 = 31.6;
-      const x0 = 32 + r0 * Math.cos(a);
-      const y0 = 32 + r0 * Math.sin(a);
-      const x1 = 32 + r1 * Math.cos(a);
-      const y1 = 32 + r1 * Math.sin(a);
-      return (
+function useLocalClock(enabled: boolean) {
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    if (!enabled) return;
+    const reduce =
+      typeof window !== 'undefined' &&
+      window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    const ms = reduce ? 1000 : 250;
+    const id = window.setInterval(() => setNow(new Date()), ms);
+    return () => window.clearInterval(id);
+  }, [enabled]);
+  return now;
+}
+
+function handAngles(d: Date) {
+  const s = d.getSeconds() + d.getMilliseconds() / 1000;
+  const m = d.getMinutes() + s / 60;
+  const h = (d.getHours() % 12) + m / 60;
+  return {
+    second: s * 6, // 360/60
+    minute: m * 6,
+    hour: h * 30, // 360/12
+  };
+}
+
+export const LogoMarkLive: React.FC<{
+  className?: string;
+  live?: boolean;
+}> = ({ className = 'h-12 w-12', live = true }) => {
+  const now = useLocalClock(live);
+  const { hour, minute, second } = handAngles(now);
+
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 72 72"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      role="img"
+      aria-label={`Local time ${now.toLocaleTimeString()}`}
+    >
+      <defs>
+        <radialGradient id="tg-dial" cx="35%" cy="30%" r="70%">
+          <stop offset="0%" stopColor="#1e3a8a" />
+          <stop offset="55%" stopColor="#0f172a" />
+          <stop offset="100%" stopColor="#020617" />
+        </radialGradient>
+        <linearGradient id="tg-bezel" x1="8" y1="8" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+          <stop stopColor="#67e8f9" />
+          <stop offset="0.35" stopColor="#6366f1" />
+          <stop offset="0.7" stopColor="#a855f7" />
+          <stop offset="1" stopColor="#22d3ee" />
+        </linearGradient>
+        <linearGradient id="tg-arc" x1="12" y1="20" x2="60" y2="36" gradientUnits="userSpaceOnUse">
+          <stop stopColor="#22d3ee" />
+          <stop offset="0.4" stopColor="#38bdf8" />
+          <stop offset="0.7" stopColor="#818cf8" />
+          <stop offset="1" stopColor="#c084fc" />
+        </linearGradient>
+        <filter id="tg-glow" x="-30%" y="-30%" width="160%" height="160%">
+          <feGaussianBlur stdDeviation="1.4" result="b" />
+          <feMerge>
+            <feMergeNode in="b" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
+        </filter>
+        <filter id="tg-soft" x="-20%" y="-20%" width="140%" height="140%">
+          <feGaussianBlur stdDeviation="0.6" />
+        </filter>
+      </defs>
+
+      {/* Outer glow ring */}
+      <circle cx="36" cy="36" r="33" fill="url(#tg-bezel)" opacity="0.35" filter="url(#tg-soft)" />
+
+      {/* Bezel */}
+      <circle cx="36" cy="36" r="31.5" stroke="url(#tg-bezel)" strokeWidth="2.5" fill="url(#tg-dial)" />
+      <circle cx="36" cy="36" r="28.5" stroke="#334155" strokeWidth="1" fill="url(#tg-dial)" />
+
+      {/* Inner glass highlight */}
+      <ellipse cx="30" cy="26" rx="14" ry="8" fill="#67e8f9" opacity="0.12" />
+
+      {/* Seconds ring — 60 ticks */}
+      {Array.from({ length: 60 }).map((_, i) => {
+        const a = (i / 60) * Math.PI * 2 - Math.PI / 2;
+        const major = i % 5 === 0;
+        const r0 = major ? 25.2 : 26.4;
+        const r1 = 27.8;
+        return (
+          <line
+            key={`s${i}`}
+            x1={36 + r0 * Math.cos(a)}
+            y1={36 + r0 * Math.sin(a)}
+            x2={36 + r1 * Math.cos(a)}
+            y2={36 + r1 * Math.sin(a)}
+            stroke={major ? '#a5f3fc' : '#64748b'}
+            strokeWidth={major ? 1.35 : 0.55}
+            strokeLinecap="round"
+            opacity={major ? 0.95 : 0.55}
+          />
+        );
+      })}
+
+      {/* Meridian arc bars (graphic accent) */}
+      {(
+        [
+          -100, -70, -40, -10, 20, 50, 80,
+        ] as const
+      ).map((deg, i) => {
+        const colors = ['#22d3ee', '#2dd4bf', '#38bdf8', '#60a5fa', '#818cf8', '#a78bfa', '#c084fc'];
+        const rad = (deg * Math.PI) / 180;
+        const cx = 36 + 18.5 * Math.cos(rad);
+        const cy = 36 + 18.5 * Math.sin(rad);
+        return (
+          <rect
+            key={i}
+            x={cx - 2}
+            y={cy - 4.8}
+            width={4}
+            height={9.6}
+            rx={2}
+            fill={colors[i]}
+            transform={`rotate(${deg + 90} ${cx} ${cy})`}
+            filter="url(#tg-glow)"
+            opacity={0.95}
+          />
+        );
+      })}
+
+      {/* Hands group — rotated from center */}
+      <g style={{ transformOrigin: '36px 36px' }}>
+        {/* Hour */}
         <line
-          key={i}
-          x1={x0}
-          y1={y0}
-          x2={x1}
-          y2={y1}
-          stroke={major ? '#67e8f9' : '#a5f3fc'}
-          strokeWidth={major ? 1.1 : 0.55}
+          x1="36"
+          y1="36"
+          x2="36"
+          y2="22"
+          stroke="#e2e8f0"
+          strokeWidth="3.2"
           strokeLinecap="round"
-          opacity={major ? 0.9 : 0.45}
+          transform={`rotate(${hour} 36 36)`}
         />
-      );
-    })}
-
-    {/* Meridian arc — 7 rounded bars (open semicircle) */}
-    {(
-      [
-        { a: -110, c: '#22d3ee' },
-        { a: -80, c: '#2dd4bf' },
-        { a: -50, c: '#38bdf8' },
-        { a: -20, c: '#60a5fa' },
-        { a: 10, c: '#818cf8' },
-        { a: 40, c: '#8b5cf6' },
-        { a: 70, c: '#a855f7' },
-      ] as const
-    ).map((seg, i) => {
-      const rad = (seg.a * Math.PI) / 180;
-      const cx = 32 + 20 * Math.cos(rad);
-      const cy = 32 + 20 * Math.sin(rad);
-      return (
-        <rect
-          key={i}
-          x={cx - 2.2}
-          y={cy - 5.5}
-          width={4.4}
-          height={11}
-          rx={2.2}
-          fill={seg.c}
-          transform={`rotate(${seg.a + 90} ${cx} ${cy})`}
+        {/* Minute */}
+        <line
+          x1="36"
+          y1="36"
+          x2="36"
+          y2="16"
+          stroke="#7dd3fc"
+          strokeWidth="2.2"
+          strokeLinecap="round"
+          transform={`rotate(${minute} 36 36)`}
         />
-      );
-    })}
+        {/* Second — vivid “tick” hand */}
+        <line
+          x1="36"
+          y1="40"
+          x2="36"
+          y2="13"
+          stroke="#f472b6"
+          strokeWidth="1.15"
+          strokeLinecap="round"
+          transform={`rotate(${second} 36 36)`}
+          filter="url(#tg-glow)"
+        />
+        <circle
+          cx="36"
+          cy="13"
+          r="1.6"
+          fill="#f9a8d4"
+          transform={`rotate(${second} 36 36)`}
+          style={{ transformOrigin: '36px 36px' }}
+        />
+      </g>
 
-    {/* Hands */}
-    <line
-      x1="32"
-      y1="32"
-      x2="32"
-      y2="18"
-      stroke="#1d4ed8"
-      strokeWidth="2.4"
-      strokeLinecap="round"
-    />
-    <line
-      x1="32"
-      y1="32"
-      x2="42"
-      y2="38"
-      stroke="#2563eb"
-      strokeWidth="2"
-      strokeLinecap="round"
-    />
-    {/* Hub */}
-    <circle cx="32" cy="32" r="3.2" fill="#1e3a8a" stroke="#67e8f9" strokeWidth="1.2" />
-    <circle cx="32" cy="32" r="1.2" fill="#e0f2fe" />
-  </svg>
-);
+      {/* Hub */}
+      <circle cx="36" cy="36" r="4" fill="#0ea5e9" stroke="#e0f2fe" strokeWidth="1.5" />
+      <circle cx="36" cy="36" r="1.6" fill="#f8fafc" />
+    </svg>
+  );
+};
 
 export type BrandLogoProps = {
   className?: string;
   showWordmark?: boolean;
   wordmarkClassName?: string;
+  /** Drive hands from local PC time (default true) */
+  live?: boolean;
 };
 
 export const BrandLogo: React.FC<BrandLogoProps> = ({
   className = 'h-11 w-11 sm:h-12 sm:w-12',
   showWordmark = true,
-  wordmarkClassName = 'text-lg sm:text-xl font-extrabold tracking-tight text-slate-800 dark:text-white',
+  wordmarkClassName =
+    'text-lg sm:text-xl font-extrabold tracking-tight text-slate-800 dark:text-white leading-none',
+  live = true,
 }) => (
   <span className="inline-flex items-center gap-2.5 select-none">
-    <LogoMarkA2 className={className} />
+    <LogoMarkLive className={className} live={live} />
     {showWordmark && (
-      <span className={wordmarkClassName}>
-        Time<span className="text-indigo-600 dark:text-cyan-300">Govern</span>
+      <span className={`flex flex-col ${wordmarkClassName}`}>
+        <span>
+          Time<span className="text-indigo-600 dark:text-cyan-300">Govern</span>
+        </span>
+        <span className="text-[9px] sm:text-[10px] font-semibold tracking-[0.18em] uppercase text-slate-500 dark:text-slate-400">
+          Live local time
+        </span>
       </span>
     )}
   </span>
 );
 
-/** Kept so old Header imports do not break; A2 is the only live mark. */
 export const LogoVariantSwitcher: React.FC = () => null;
 
 export default BrandLogo;
