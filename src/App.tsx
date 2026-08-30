@@ -48,7 +48,6 @@ export default function App() {
   const [shortcutToast, setShortcutToast] = useState<string | null>(null);
 
   useEffect(() => {
-    // Light mode disabled via flag — force dark; keep toggle code for later re-enable
     const dark = LIGHT_MODE_ENABLED ? isDarkMode : true;
     if (!LIGHT_MODE_ENABLED && !isDarkMode) setIsDarkMode(true);
     document.documentElement.classList.toggle('dark', dark);
@@ -101,7 +100,7 @@ export default function App() {
       />
 
       <div className="border-b border-slate-200 dark:border-slate-800/80 bg-slate-100/90 dark:bg-slate-950/40">
-        <div className="max-w-7xl mx-auto px-3 sm:px-4 py-1.5 flex items-center justify-between gap-2 text-[11px] text-slate-600 dark:text-slate-400">
+        <div className="max-w-[1400px] mx-auto px-3 sm:px-4 py-1.5 flex items-center justify-between gap-2 text-[11px] text-slate-600 dark:text-slate-400">
           <span className="flex items-center gap-1.5 truncate">
             <Globe className="w-3 h-3 text-indigo-500 dark:text-indigo-400" />
             {(companyContent as { tagline?: string })?.tagline || 'Global time, calendars & tools'}
@@ -124,16 +123,14 @@ export default function App() {
         </div>
       </div>
 
-      {/* Sample A ads (timeanddate-style): top leaderboard + right sticky only — no left rail */}
+      {/* Sample A: top leaderboard + right sticky only */}
       {showAds && !isSupporter && (
-        <div className="w-full max-w-7xl mx-auto px-3 sm:px-4 pt-2">
+        <div className="w-full max-w-[1400px] mx-auto px-3 sm:px-4 pt-2">
           <AdBanner type="leaderboard" />
         </div>
       )}
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-4 py-4 flex gap-3 items-start">
-        {/* left skyscraper intentionally disabled in AdBanner */}
-        {showAds && !isSupporter && <AdBanner type="skyscraper-left" />}
+      <main className="flex-1 max-w-[1400px] w-full mx-auto px-3 sm:px-4 py-4 flex flex-row gap-4 items-start">
         <div className="flex-1 min-w-0">
           <PillarErrorBoundary>
             <Suspense fallback={<PillarLoader />}>
