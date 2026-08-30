@@ -1,0 +1,36 @@
+/**
+ * F1 font lock — must load AFTER themeForce.css (see main.tsx).
+ * Product type system: IBM Plex Sans + IBM Plex Mono only.
+ * Backup before F1: branch backup/pre-F1-fonts-2026-08-30
+ */
+
+html,
+body,
+#root {
+  font-family: "IBM Plex Sans", "Segoe UI", system-ui, -apple-system, sans-serif;
+}
+
+/* Override any Inter !important leftovers (e.g. footer headings in themeForce) */
+html.dark .tg-site-footer .tg-footer-heading,
+html:not(.dark) .tg-site-footer .tg-footer-heading,
+html.dark .tg-site-footer .tg-footer-heading--hero,
+html:not(.dark) .tg-site-footer .tg-footer-heading--hero {
+  font-family: "IBM Plex Sans", "Segoe UI", system-ui, -apple-system, sans-serif !important;
+}
+
+code,
+kbd,
+.font-mono,
+.tabular-nums,
+.tg-time,
+.tg-time-display,
+.font-display {
+  font-family: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+}
+
+.tg-time,
+.tg-time-display,
+.font-display {
+  font-family: "IBM Plex Sans", system-ui, sans-serif;
+  font-variant-numeric: tabular-nums;
+}
