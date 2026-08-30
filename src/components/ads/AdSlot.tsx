@@ -98,20 +98,18 @@ const SLOT_META: Record<
 };
 
 export const AdSlot: React.FC<AdSlotProps> = ({ slotId, className = '', persistent = false }) => {
-  const [dismissed, setDismissed] = useState(false);
+  const [hidden, setHidden] = useState(false);
   const meta = SLOT_META[slotId];
-
-  if (dismissed && !persistent) return null;
+  if (!meta || (hidden && !persistent)) return null;
 
   const goAdvertise = () => {
-    window.location.hash = 'advertise';
     window.dispatchEvent(new CustomEvent('tg-open-advertise'));
   };
 
   if (canRenderLiveAd(slotId)) {
     if (slotId === 'tg_rail_sticky') {
       return (
-        <aside className={`hidden xl:flex w-[300px] shrink-0 flex-col ${className}`} aria-label="Advertisement">
+        <aside className={`hidden lg:flex w-[300px] shrink-0 flex-col ${className}`} aria-label="Advertisement">
           <div className="sticky top-20 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden bg-slate-50 dark:bg-slate-900" style={{ width: 300, minHeight: 600 }}>
             <div className="px-2 py-1 text-[9px] font-bold uppercase text-slate-500 border-b border-slate-200 dark:border-slate-800">
               Advertisement
@@ -125,14 +123,13 @@ export const AdSlot: React.FC<AdSlotProps> = ({ slotId, className = '', persiste
       return (
         <div className={`fixed bottom-0 inset-x-0 z-40 md:hidden border-t bg-white/95 dark:bg-slate-950/95 backdrop-blur-md ${className}`}>
           <div className="max-w-lg mx-auto">
-            <AdSenseUnit slotId={slotId} format="horizontal" minHeight={50} />
+            <AdSenseUnit slotId={slotId} format={meta.adFormat} minHeight={50} />
           </div>
         </div>
       );
     }
     return (
-      <div className={`w-full ${className}`} aria-label="Advertisement">
-        <div className="text-[9px] font-bold uppercase text-slate-400 mb-0.5 px-1">Advertisement</div>
+      <div className={className}>
         <AdSenseUnit slotId={slotId} format={meta.adFormat} minHeight={meta.height} />
       </div>
     );
@@ -141,7 +138,7 @@ export const AdSlot: React.FC<AdSlotProps> = ({ slotId, className = '', persiste
   if (slotId === 'tg_rail_sticky') {
     return (
       <aside
-        className={`hidden xl:flex w-[300px] shrink-0 flex-col ${className}`}
+        className={`hidden lg:flex w-[300px] shrink-0 flex-col ${className}`}
         data-ad-slot={slotId}
         aria-label={`Advertisement ${meta.sizeLabel}`}
       >
@@ -159,16 +156,16 @@ export const AdSlot: React.FC<AdSlotProps> = ({ slotId, className = '', persiste
             </div>
             <p className="text-[10px] font-bold uppercase tracking-wide text-indigo-300">{meta.houseSponsor}</p>
             <p className="text-sm font-semibold text-white leading-snug">{meta.houseTitle}</p>
-            <p className="text-[11px] text-slate-400 leading-snug max-w-[220px]">{meta.houseSub}</p>
+            <p className="text-[11px] text-slate-400 leading-snug">{meta.houseSub}</p>
             <button
               type="button"
               onClick={goAdvertise}
-              className="mt-2 w-full max-w-[220px] px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold flex items-center justify-center gap-1.5"
+              className="mt-2 w-full px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold flex items-center justify-center gap-1.5 shadow-lg shadow-indigo-500/20"
             >
               {meta.houseCta} <ExternalLink className="w-3.5 h-3.5" />
             </button>
           </div>
-          <div className="px-3 py-2 border-t border-slate-700 text-[9px] text-slate-500 text-center">
+          <div className="px-3 py-2 border-t border-slate-800 text-[9px] text-slate-500 text-center">
             Premium inventory · Melbourne HQ
           </div>
         </div>
@@ -178,25 +175,22 @@ export const AdSlot: React.FC<AdSlotProps> = ({ slotId, className = '', persiste
 
   if (slotId === 'tg_header' || slotId === 'tg_footer') {
     return (
-      <div className={`w-full max-w-7xl mx-auto ${className}`} data-ad-slot={slotId} aria-label={`Advertisement ${meta.sizeLabel}`}>
+      <div className={`w-full ${className}`} data-ad-slot={slotId} aria-label={`Advertisement ${meta.sizeLabel}`}>
         <div className="rounded-xl border border-indigo-500/25 bg-gradient-to-r from-slate-900 to-indigo-950 overflow-hidden">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-4 py-3">
             <div className="min-w-0">
               <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400">Advertisement</span>
               <p className="text-xs font-bold text-indigo-300 mt-0.5">{meta.houseSponsor}</p>
-              <p className="text-sm font-semibold text-white">{meta.houseTitle}</p>
-              <p className="text-[10px] text-slate-400 mt-0.5">{meta.houseSub}</p>
+              <p className="text-sm font-semibold text-white mt-0.5 leading-snug">{meta.houseTitle}</p>
+              <p className="text-[11px] text-slate-400 mt-1">{meta.houseSub}</p>
             </div>
-            <div className="flex items-center gap-1 shrink-0">
-              <button type="button" onClick={goAdvertise} className="px-3 py-1.5 rounded-lg bg-indigo-600 text-white text-[10px] font-bold">
-                {meta.houseCta}
-              </button>
-              {!persistent && (
-                <button type="button" onClick={() => setDismissed(true)} className="p-1 text-slate-400" aria-label="Hide ad">
-                  <EyeOff className="w-3.5 h-3.5" />
-                </button>
-              )}
-            </div>
+            <button
+              type="button"
+              onClick={goAdvertise}
+              className="shrink-0 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold flex items-center gap-1.5"
+            >
+              {meta.houseCta} <ExternalLink className="w-3.5 h-3.5" />
+            </button>
           </div>
         </div>
       </div>
@@ -205,15 +199,12 @@ export const AdSlot: React.FC<AdSlotProps> = ({ slotId, className = '', persiste
 
   if (slotId === 'tg_mobile_anchor') {
     return (
-      <div
-        className={`fixed bottom-0 inset-x-0 z-40 md:hidden border-t border-slate-700 bg-slate-950/95 backdrop-blur-md ${className}`}
-        data-ad-slot={slotId}
-        aria-label="Advertisement mobile anchor"
-      >
-        <div className="max-w-lg mx-auto px-3 py-2 flex items-center justify-between gap-2">
-          <div className="min-w-0">
-            <p className="text-[10px] font-bold text-indigo-300">{meta.houseSponsor}</p>
-            <p className="text-xs text-white truncate">{meta.houseTitle}</p>
+      <div className={`fixed bottom-0 inset-x-0 z-40 md:hidden border-t border-slate-700 bg-slate-950/95 backdrop-blur-md ${className}`}>
+        <div className="max-w-lg mx-auto px-3 py-2 flex items-center gap-3">
+          <Megaphone className="w-5 h-5 text-indigo-300 shrink-0" />
+          <div className="flex-1 min-w-0">
+            <p className="text-[10px] font-bold text-white truncate">{meta.houseTitle}</p>
+            <p className="text-[9px] text-slate-400">{meta.houseSub}</p>
           </div>
           <button type="button" onClick={goAdvertise} className="px-3 py-1.5 rounded-lg bg-indigo-600 text-white text-[10px] font-bold shrink-0">
             {meta.houseCta}
