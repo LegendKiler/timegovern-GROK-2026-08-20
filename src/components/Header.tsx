@@ -77,7 +77,7 @@ export const Header: React.FC<HeaderProps> = ({
 
   return (
     <header className="sticky top-0 z-40 border-b border-slate-200 dark:border-slate-800/80 backdrop-blur-md bg-white/80 dark:bg-slate-950/80">
-      <div className="max-w-7xl mx-auto px-3 sm:px-4 py-2.5 flex items-center gap-3 sm:gap-4">
+      <div className="max-w-[1400px] mx-auto px-3 sm:px-4 py-2.5 flex items-center gap-3 sm:gap-4">
         <button type="button" onClick={() => setActivePillar(1)} className="shrink-0 flex items-center gap-2">
           <BrandLogo
             className="h-14 w-14 sm:h-16 sm:w-16"
@@ -86,7 +86,6 @@ export const Header: React.FC<HeaderProps> = ({
         </button>
         <LogoVariantSwitcher />
 
-        {/* City search — graphic control matched to tab chrome */}
         <div ref={boxRef} className="relative flex-1 min-w-[160px] max-w-sm">
           <div
             className={`flex items-center gap-2 h-10 sm:h-11 px-2.5 rounded-xl border transition-colors ${
@@ -214,7 +213,7 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
       </div>
 
-      <nav className="max-w-7xl mx-auto px-3 sm:px-4 pb-2.5 flex flex-wrap sm:flex-nowrap gap-1.5" aria-label="Main sections">
+      <nav className="max-w-[1400px] mx-auto px-3 sm:px-4 pb-2.5 flex flex-wrap gap-1.5 w-full" aria-label="Main sections">
         {NAV.map((item) => {
           const Icon = item.icon;
           const active = activePillar === item.id;
