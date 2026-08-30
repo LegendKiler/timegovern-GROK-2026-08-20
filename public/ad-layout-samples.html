@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TimeGovern — Ad layout samples</title>
+  <style>
+    :root {
+      --bg: #0b1220;
+      --panel: #111827;
+      --border: #1e293b;
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --accent: #6366f1;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+      background: #020617;
+      color: var(--text);
+      line-height: 1.4;
+    }
+    h1 { margin: 0 0 8px; }
+    .page { max-width: 1100px; margin: 0 auto; padding: 24px 16px 48px; }
+    .intro { color: var(--muted); margin-bottom: 28px; font-size: 14px; }
+    .sample { margin-bottom: 40px; }
+    .label {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #a5b4fc;
+      margin-bottom: 10px;
+    }
+    .frame {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      background: var(--bg);
+      box-shadow: 0 12px 40px rgba(0,0,0,.45);
+    }
+    .top {
+      display: grid;
+      grid-template-columns: 200px 1fr;
+      gap: 12px;
+      padding: 12px;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      background: #0f172a;
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 800;
+      font-size: 15px;
+    }
+    .logo-mark {
+      width: 40px; height: 40px; border-radius: 50%;
+      background: radial-gradient(circle at 30% 30%, #1e3a8a, #020617);
+      border: 2px solid #67e8f9;
+      display: grid; place-items: center;
+      font-size: 10px; color: #67e8f9;
+    }
+    .ad-top {
+      height: 72px;
+      border-radius: 8px;
+      background: linear-gradient(90deg, #1e293b, #334155 40%, #1e293b);
+      border: 1px dashed #64748b;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #cbd5e1;
+      font-size: 13px;
+      font-weight: 600;
+      position: relative;
+    }
+    .ad-top span.badge, .ad-right span.badge {
+      position: absolute;
+      top: 6px; left: 8px;
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #94a3b8;
+      font-weight: 700;
+    }
+    .nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+      background: #0b1220;
+    }
+    .nav span {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 6px 10px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: #1e293b;
+      color: #cbd5e1;
+    }
+    .nav span.on {
+      background: var(--accent);
+      border-color: #818cf8;
+      color: white;
+    }
+    .body {
+      display: grid;
+      grid-template-columns: 1fr 160px;
+      gap: 12px;
+      padding: 12px;
+      min-height: 320px;
+    }
+    .content {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+    }
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      min-height: 100px;
+    }
+    .card h3 { font-size: 13px; margin: 0 0 6px; }
+    .card p { margin: 0; font-size: 11px; color: var(--muted); }
+    .ad-right {
+      border-radius: 8px;
+      background: linear-gradient(180deg, #1e293b, #0f172a);
+      border: 1px dashed #64748b;
+      min-height: 300px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      color: #cbd5e1;
+      font-size: 12px;
+      font-weight: 600;
+      position: relative;
+      padding: 12px;
+    }
+    .body-dual { grid-template-columns: 120px 1fr 160px; }
+    .note {
+      margin-top: 10px;
+      font-size: 12px;
+      color: var(--muted);
+      padding: 10px 12px;
+      border-left: 3px solid var(--accent);
+      background: #0f172a;
+      border-radius: 0 8px 8px 0;
+    }
+    .note strong { color: #e2e8f0; }
+    .dims { font-size: 10px; color: #64748b; margin-top: 4px; font-weight: 500; }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <h1>TimeGovern — Ad layout samples</h1>
+    <p class="intro">
+      Static mockups only (no live ads). Pattern matches <strong>timeanddate.com</strong>:
+      top banner beside brand + right advertising rail. Content stays on the left.
+    </p>
+
+    <div class="sample">
+      <div class="label">Sample A — Recommended (timeanddate-style)</div>
+      <div class="frame">
+        <div class="top">
+          <div class="logo">
+            <div class="logo-mark">TG</div>
+            <div>
+              Time<span style="color:#67e8f9">Govern</span>
+              <div style="font-size:9px;color:#64748b;font-weight:600;letter-spacing:.12em;text-transform:uppercase">Live local time</div>
+            </div>
+          </div>
+          <div class="ad-top">
+            <span class="badge">Advertising · 728×90</span>
+            Top leaderboard placeholder
+            <div class="dims">Header banner next to logo (like timeanddate)</div>
+          </div>
+        </div>
+        <div class="nav">
+          <span class="on">World Clock</span>
+          <span>Calendar</span>
+          <span>Sun & Moon</span>
+          <span>Weather</span>
+          <span>Timers</span>
+          <span>News</span>
+          <span>Calculators</span>
+        </div>
+        <div class="body">
+          <div class="content">
+            <div class="card"><h3>Current Time</h3><p>Focal city + analog/digital clocks</p></div>
+            <div class="card"><h3>World Clock</h3><p>Pinned cities, meeting planner</p></div>
+            <div class="card"><h3>Calendar</h3><p>Holidays, date tools</p></div>
+            <div class="card"><h3>Astronomy</h3><p>Sun & moon LIVE bar</p></div>
+            <div class="card"><h3>Weather</h3><p>Open-Meteo conditions</p></div>
+            <div class="card"><h3>News</h3><p>Live feeds</p></div>
+          </div>
+          <div class="ad-right">
+            <span class="badge">Advertising</span>
+            Right rail<br/>160×600
+            <div class="dims">Sticky skyscraper</div>
+          </div>
+        </div>
+      </div>
+      <div class="note">
+        <strong>Why this:</strong> Same structure as timeanddate — product on the left, one top banner + one right ad column. Clean and monetisable without crowding tools.
+      </div>
+    </div>
+
+    <div class="sample">
+      <div class="label">Sample B — Dual sidebars (usually avoid)</div>
+      <div class="frame">
+        <div class="top">
+          <div class="logo">
+            <div class="logo-mark">TG</div>
+            <div>Time<span style="color:#67e8f9">Govern</span></div>
+          </div>
+          <div class="ad-top">
+            <span class="badge">Advertising · 728×90</span>
+            Top leaderboard
+          </div>
+        </div>
+        <div class="nav">
+          <span class="on">World Clock</span>
+          <span>Calendar</span>
+          <span>Weather</span>
+        </div>
+        <div class="body body-dual">
+          <div class="ad-right">
+            <span class="badge">Left</span>
+            120×600
+          </div>
+          <div class="content" style="grid-template-columns:1fr 1fr">
+            <div class="card"><h3>Tools squeezed</h3><p>Less room for clocks & maps</p></div>
+            <div class="card"><h3>Weaker UX</h3><p>Feels denser / less professional</p></div>
+          </div>
+          <div class="ad-right">
+            <span class="badge">Right</span>
+            160×600
+          </div>
+        </div>
+      </div>
+      <div class="note">
+        <strong>Why not:</strong> Dual rails shrink the tool area. timeanddate does <em>not</em> do this on the homepage. Prefer Sample A.
+      </div>
+    </div>
+
+    <div class="sample">
+      <div class="label">Sample C — Wide screen (optional premium)</div>
+      <div class="frame">
+        <div class="top" style="grid-template-columns: 220px 1fr">
+          <div class="logo">
+            <div class="logo-mark">TG</div>
+            <div>Time<span style="color:#67e8f9">Govern</span></div>
+          </div>
+          <div class="ad-top" style="height:90px">
+            <span class="badge">Advertising · 970×250 billboard</span>
+            Larger header unit on desktop XL
+          </div>
+        </div>
+        <div class="nav">
+          <span class="on">World Clock</span>
+          <span>Calendar</span>
+          <span>Sun & Moon</span>
+          <span>API</span>
+          <span>Company</span>
+        </div>
+        <div class="body" style="grid-template-columns:1fr 300px">
+          <div class="content">
+            <div class="card"><h3>Full tools</h3><p>Main column stays primary</p></div>
+            <div class="card"><h3>Meeting planner</h3><p>Hour strip etc.</p></div>
+            <div class="card"><h3>Globe / map</h3><p>Interactive modules</p></div>
+          </div>
+          <div class="ad-right">
+            <span class="badge">Advertising</span>
+            Half-page<br/>300×600
+            <div class="dims">Premium right rail</div>
+          </div>
+        </div>
+      </div>
+      <div class="note">
+        <strong>When:</strong> Large monitors only. Higher CPM formats (billboard + half-page). Same idea as A, bigger inventory.
+      </div>
+    </div>
+  </div>
+</body>
+</html>
