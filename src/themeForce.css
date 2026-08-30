@@ -1,21 +1,19 @@
 /*
- * Soft light mode — not pure white glare.
- * Cool slate page + tinted cards + readable dark text.
- * Dark mode unchanged below.
+ * LIGHT MODE surfaces only — professional tool-site hierarchy.
+ * Scoped exclusively to html:not(.dark). Dark block below is unchanged.
+ * Does not touch fonts, JS, routes, or component logic.
  */
 
 /* ——— LIGHT (html without .dark) ——— */
 html:not(.dark),
 html:not(.dark) body,
 html:not(.dark) #root {
-  background-color: #d8e0ea !important;
+  background-color: #f1f5f9 !important;
   color: #0f172a !important;
 }
 html:not(.dark) body {
   background-image:
-    radial-gradient(900px 480px at 88% 8%, rgba(79, 70, 229, 0.10), transparent 55%),
-    radial-gradient(700px 400px at 12% 88%, rgba(14, 165, 233, 0.07), transparent 50%),
-    linear-gradient(180deg, #e4eaf2 0%, #d5dee9 55%, #cfd8e6 100%) !important;
+    linear-gradient(180deg, #f8fafc 0%, #f1f5f9 40%, #eef2f7 100%) !important;
   background-attachment: fixed !important;
 }
 html:not(.dark) #root > div {
@@ -30,46 +28,47 @@ html:not(.dark) main .text-blue-600 {
   color: #4338ca !important;
 }
 
-/* Cards = soft slate, NOT pure white */
+/* Raised cards: real white on light page */
 html:not(.dark) main .bg-slate-950,
 html:not(.dark) main .bg-slate-900,
 html:not(.dark) main .bg-slate-800,
-html:not(.dark) main [class*="bg-slate-950"],
-html:not(.dark) main [class*="bg-slate-900"],
-html:not(.dark) main [class*="bg-slate-800"] {
-  background-color: #eef2f7 !important;
+html:not(.dark) main [class*="bg-slate-950"]:not([class*="from-"]),
+html:not(.dark) main [class*="bg-slate-900"]:not([class*="from-"]),
+html:not(.dark) main [class*="bg-slate-800"]:not([class*="from-"]) {
+  background-color: #ffffff !important;
   color: #0f172a !important;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 4px 12px rgba(15, 23, 42, 0.04);
 }
 html:not(.dark) main .bg-slate-700,
-html:not(.dark) main [class*="bg-slate-700"] {
-  background-color: #e4eaf2 !important;
+html:not(.dark) main [class*="bg-slate-700"]:not([class*="from-"]) {
+  background-color: #f8fafc !important;
   color: #0f172a !important;
 }
 html:not(.dark) main .bg-white {
-  background-color: #eef2f7 !important;
+  background-color: #ffffff !important;
   color: #0f172a !important;
 }
 html:not(.dark) main .bg-slate-50,
 html:not(.dark) main .bg-slate-100 {
-  background-color: #e4eaf2 !important;
+  background-color: #f8fafc !important;
   color: #0f172a !important;
 }
 
-/* Borders — slightly stronger so panels don’t float as white blobs */
+/* Borders */
 html:not(.dark) main .border-slate-800,
 html:not(.dark) main .border-slate-700,
 html:not(.dark) main .border-slate-600,
 html:not(.dark) main [class*="border-slate-8"],
 html:not(.dark) main [class*="border-slate-7"],
 html:not(.dark) main [class*="border-slate-6"] {
-  border-color: #b8c4d4 !important;
+  border-color: #e2e8f0 !important;
 }
 html:not(.dark) main .border-slate-200,
 html:not(.dark) main .border-slate-300 {
-  border-color: #c5d0de !important;
+  border-color: #e2e8f0 !important;
 }
 
-/* Text hierarchy */
+/* Text on light surfaces */
 html:not(.dark) main .text-white {
   color: #0f172a !important;
 }
@@ -81,6 +80,9 @@ html:not(.dark) main .text-slate-300 {
 html:not(.dark) main .text-slate-400,
 html:not(.dark) main .text-slate-500 {
   color: #475569 !important;
+}
+html:not(.dark) main .text-slate-600 {
+  color: #334155 !important;
 }
 html:not(.dark) main h1,
 html:not(.dark) main h2,
@@ -108,7 +110,7 @@ html:not(.dark) main .text-amber-300 {
   color: #b45309 !important;
 }
 html:not(.dark) main [class*="bg-violet-500"] {
-  background-color: #e9e5ff !important;
+  background-color: #ede9fe !important;
   color: #5b21b6 !important;
   border-color: #c4b5fd !important;
 }
@@ -119,12 +121,11 @@ html:not(.dark) main .bg-indigo-500 {
 }
 html:not(.dark) main .bg-cyan-50,
 html:not(.dark) main [class*="bg-cyan-50"] {
-  background-color: #cffafe !important;
+  background-color: #ecfeff !important;
 }
 html:not(.dark) main .bg-cyan-100,
 html:not(.dark) main [class*="bg-cyan-100"] {
-  background-color: #a5f3fc !important;
-  color: #155e75 !important;
+  background-color: #cffafe !important;
 }
 
 /* Tables */
@@ -132,18 +133,18 @@ html:not(.dark) main table,
 html:not(.dark) main th,
 html:not(.dark) main td {
   color: #0f172a !important;
-  border-color: #c5d0de !important;
 }
 html:not(.dark) main th {
-  background-color: #dce4ef !important;
+  background-color: #f1f5f9 !important;
   color: #1e293b !important;
 }
 
-/* Header — soft, not pure white */
+/* Header */
 html:not(.dark) header {
-  background-color: rgba(232, 238, 247, 0.96) !important;
-  border-bottom-color: #b8c4d4 !important;
+  background-color: rgba(255, 255, 255, 0.95) !important;
+  border-bottom-color: #e2e8f0 !important;
   color: #0f172a !important;
+  backdrop-filter: blur(8px);
 }
 html:not(.dark) header .text-white {
   color: #0f172a !important;
@@ -154,32 +155,32 @@ html:not(.dark) header .text-slate-500 {
   color: #475569 !important;
 }
 html:not(.dark) header input {
-  background-color: #e4eaf2 !important;
-  border-color: #b8c4d4 !important;
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
   color: #0f172a !important;
 }
 html:not(.dark) header input::placeholder {
   color: #64748b !important;
 }
 html:not(.dark) nav[aria-label="Main sections"] > button:not(.bg-indigo-500) {
-  background-color: #eef2f7 !important;
+  background-color: #ffffff !important;
   color: #334155 !important;
-  border-color: #c5d0de !important;
+  border-color: #e2e8f0 !important;
 }
 html:not(.dark) header button.inline-flex {
-  background-color: #eef2f7 !important;
-  border-color: #c5d0de !important;
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
   color: #334155 !important;
 }
 
-/* Footer — soft */
+/* Footer */
 html:not(.dark) .tg-site-footer {
-  background-color: #e4eaf2 !important;
+  background-color: #ffffff !important;
   color: #0f172a !important;
-  border-top: 1px solid #b8c4d4 !important;
+  border-top: 1px solid #e2e8f0 !important;
 }
 html:not(.dark) .tg-site-footer .tg-footer-body {
-  background-color: #e4eaf2 !important;
+  background-color: #ffffff !important;
   color: #0f172a !important;
 }
 html:not(.dark) .tg-site-footer .tg-footer-title,
@@ -202,11 +203,11 @@ html:not(.dark) .tg-site-footer .tg-footer-brand-accent {
   color: #4f46e5 !important;
 }
 html:not(.dark) .tg-site-footer .tg-footer-svc-icon {
-  background: #dde4f5 !important;
+  background: #eef2ff !important;
   color: #4f46e5 !important;
 }
 
-/* Hero gradients keep light text */
+/* Focal gradient heroes: keep dark panel + light text */
 html:not(.dark) main [class*="from-sky-900"],
 html:not(.dark) main [class*="from-slate-950"],
 html:not(.dark) main [class*="from-indigo-950"],
@@ -214,11 +215,14 @@ html:not(.dark) main [class*="via-indigo-950"],
 html:not(.dark) main [class*="to-slate-950"],
 html:not(.dark) main [class*="to-slate-900"] {
   color: #f8fafc !important;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
 }
 html:not(.dark) main [class*="from-sky-900"] .text-white,
 html:not(.dark) main [class*="from-slate-950"] .text-white,
 html:not(.dark) main [class*="from-indigo-950"] .text-white,
-html:not(.dark) main [class*="via-indigo-950"] .text-white {
+html:not(.dark) main [class*="via-indigo-950"] .text-white,
+html:not(.dark) main [class*="from-sky-900"] .text-slate-100,
+html:not(.dark) main [class*="from-slate-950"] .text-slate-100 {
   color: #ffffff !important;
 }
 html:not(.dark) main [class*="from-sky-900"] .text-slate-300,
@@ -259,61 +263,51 @@ main .tg-widget-surface.tg-widget-light * {
   border-color: #cbd5e1 !important;
 }
 .tg-widget-surface.tg-widget-dark,
-main .tg-widget-surface.tg-widget-dark {
+main .tg-widget-surface.tg-widget-dark,
+main .tg-widget-surface.tg-widget-dark * {
+  color: #e2e8f0 !important;
+}
+.tg-widget-surface.tg-widget-dark {
   background-color: #0f172a !important;
-  color: #f8fafc !important;
-  border-color: #475569 !important;
+  border-color: #334155 !important;
 }
 
-/* Dark footer */
 html.dark .tg-site-footer {
   background-color: #0f172a !important;
   color: #e2e8f0 !important;
-  border-top: 1px solid #334155 !important;
+  border-top: 1px solid #1e293b !important;
 }
 html.dark .tg-site-footer .tg-footer-body {
-  background-color: #0f172a !important;
+  background-color: transparent !important;
   color: #e2e8f0 !important;
 }
 html.dark .tg-site-footer .tg-footer-title {
   color: #f8fafc !important;
-  font-weight: 700 !important;
 }
 html.dark .tg-site-footer .tg-footer-link {
-  color: #e2e8f0 !important;
-  font-weight: 600 !important;
-  background: transparent !important;
-  border: none !important;
-  cursor: pointer;
-  text-align: left;
-  font-size: 13px;
-  line-height: 1.5;
-  padding: 0;
+  color: #cbd5e1 !important;
 }
 html.dark .tg-site-footer .tg-footer-link:hover {
   color: #a5b4fc !important;
-  text-decoration: underline;
 }
 html.dark .tg-site-footer .tg-footer-muted {
   color: #94a3b8 !important;
 }
 html.dark .tg-site-footer .tg-footer-strong {
   color: #f1f5f9 !important;
-  font-weight: 600 !important;
 }
 html.dark .tg-site-footer .tg-footer-brand {
   color: #f8fafc !important;
-  font-weight: 800 !important;
 }
 html.dark .tg-site-footer .tg-footer-brand-accent {
   color: #a5b4fc !important;
 }
 html.dark .tg-site-footer .tg-footer-heading {
-  color: #e2e8f0 !important;
   font-weight: 800 !important;
   font-size: 13px !important;
   letter-spacing: 0.08em !important;
   text-transform: uppercase !important;
+  color: #e2e8f0 !important;
   margin-bottom: 0.75rem !important;
   font-family: Inter, system-ui, sans-serif !important;
 }
