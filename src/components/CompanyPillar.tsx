@@ -10,6 +10,7 @@ import { ExperienceFeedbackPanel } from './ExperienceFeedbackPanel';
 import { CareersPanel } from './CareersPanel';
 import { PodcastPanel } from './PodcastPanel';
 import { SiteMapPanel } from './SiteMapPanel';
+import { LegalDocRenderer } from './LegalDocRenderer';
 
 interface CompanyPillarProps {
   onNavigatePillar?: (pillar: number) => void;
@@ -57,23 +58,7 @@ export const CompanyPillar: React.FC<CompanyPillarProps> = ({ onNavigatePillar }
     { id: 'sitemap', label: 'Sitemap', icon: <Globe className="w-3.5 h-3.5" /> },
   ];
 
-  const renderLegalDoc = () => {
-    const docs: Record<LegalSection, { title: string; body: string }> = {
-      privacy: { title: L.privacy?.title || 'Privacy Policy', body: (L.privacy as any)?.body || (L.privacy as any)?.summary || '' },
-      terms: { title: L.terms?.title || 'Terms & Conditions', body: (L.terms as any)?.body || (L.terms as any)?.summary || '' },
-      ads: { title: (L as any).advertising?.title || 'Advertising', body: (L as any).advertising?.body || '' },
-      cookies: { title: (L as any).cookies?.title || 'Cookies', body: (L as any).cookies?.body || '' },
-      disclaimer: { title: (L as any).disclaimer?.title || 'Disclaimer', body: (L as any).disclaimer?.body || '' },
-      linkpolicy: { title: (L as any).linkPolicy?.title || 'Link policy', body: (L as any).linkPolicy?.body || '' },
-    };
-    const doc = docs[legalSection];
-    return (
-      <div className="prose prose-slate dark:prose-invert prose-sm max-w-none text-slate-700 dark:text-slate-300">
-        <h4 className="text-slate-900 dark:text-white font-bold text-base mb-2">{doc.title}</h4>
-        <div className="whitespace-pre-wrap text-xs leading-relaxed">{doc.body || 'See full policy text in content files.'}</div>
-      </div>
-    );
-  };
+  const renderLegalDoc = () => <LegalDocRenderer section={legalSection} />;
 
   return (
     <div className="space-y-4">
