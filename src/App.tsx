@@ -124,9 +124,15 @@ export default function App() {
         </div>
       </div>
 
-      {showAds && !isSupporter && <AdBanner type="leaderboard" />}
+      {/* Sample A ads (timeanddate-style): top leaderboard + right sticky only — no left rail */}
+      {showAds && !isSupporter && (
+        <div className="w-full max-w-7xl mx-auto px-3 sm:px-4 pt-2">
+          <AdBanner type="leaderboard" />
+        </div>
+      )}
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-4 py-4 flex gap-3">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-4 py-4 flex gap-3 items-start">
+        {/* left skyscraper intentionally disabled in AdBanner */}
         {showAds && !isSupporter && <AdBanner type="skyscraper-left" />}
         <div className="flex-1 min-w-0">
           <PillarErrorBoundary>
