@@ -65,31 +65,33 @@ export const LogoMarkLive: React.FC<{ className?: string; live?: boolean }> = ({
       <circle cx="36" cy="36" r="33" fill="url(#tg-bezel)" opacity="0.3" filter="url(#tg-soft)" />
       <circle cx="36" cy="36" r="31.5" stroke="url(#tg-bezel)" strokeWidth="2.5" fill="url(#tg-dial)" />
       <circle cx="36" cy="36" r="28.5" stroke="#334155" strokeWidth="1" fill="url(#tg-dial)" />
-      <ellipse cx="30" cy="26" rx="14" ry="8" fill="#67e8f9" opacity="0.1" />
+      <ellipse cx="30" cy="26" rx="14" ry="8" fill="#67e8f9" opacity="0.12" />
 
-      {Array.from({ length: 60 }).map((_, i) => {
-        const a = (i / 60) * Math.PI * 2 - Math.PI / 2;
-        const major = i % 5 === 0;
-        const r0 = major ? 25.5 : 26.5;
-        const r1 = 27.6;
+      {Array.from({ length: 12 }).map((_, i) => {
+        const deg = i * 30;
+        const rad = ((deg - 90) * Math.PI) / 180;
+        const x1 = 36 + 22 * Math.cos(rad);
+        const y1 = 36 + 22 * Math.sin(rad);
+        const x2 = 36 + 26 * Math.cos(rad);
+        const y2 = 36 + 26 * Math.sin(rad);
         return (
           <line
             key={i}
-            x1={36 + r0 * Math.cos(a)}
-            y1={36 + r0 * Math.sin(a)}
-            x2={36 + r1 * Math.cos(a)}
-            y2={36 + r1 * Math.sin(a)}
-            stroke={major ? '#a5f3fc' : '#64748b'}
-            strokeWidth={major ? 1.2 : 0.5}
+            x1={x1}
+            y1={y1}
+            x2={x2}
+            y2={y2}
+            stroke={i % 3 === 0 ? '#a5b4fc' : '#475569'}
+            strokeWidth={i % 3 === 0 ? 2 : 1}
             strokeLinecap="round"
-            opacity={major ? 0.9 : 0.5}
           />
         );
       })}
 
-      {([-95, -65, -35, -5, 25, 55, 85] as const).map((deg, i) => {
-        const colors = ['#22d3ee', '#2dd4bf', '#38bdf8', '#60a5fa', '#818cf8', '#a78bfa', '#c084fc'];
-        const rad = (deg * Math.PI) / 180;
+      {Array.from({ length: 12 }).map((_, i) => {
+        const colors = ['#22d3ee', '#818cf8', '#c084fc', '#f472b6', '#fb923c', '#facc15', '#4ade80', '#2dd4bf', '#38bdf8', '#a78bfa', '#e879f9', '#f9a8d4'];
+        const deg = i * 30;
+        const rad = ((deg - 90) * Math.PI) / 180;
         const cx = 36 + 17 * Math.cos(rad);
         const cy = 36 + 17 * Math.sin(rad);
         return (
@@ -144,14 +146,14 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
     {showWordmark && (
       <span className={wordmarkClassName || 'flex flex-col justify-center leading-none'}>
         <span
-          className="font-display text-[1.2rem] sm:text-[1.4rem] font-bold tracking-tight text-slate-800 dark:text-white"
+          className="font-display text-[1.35rem] sm:text-[1.55rem] font-bold tracking-tight text-slate-800 dark:text-white"
           style={{ fontFamily: '"IBM Plex Sans", system-ui, sans-serif' }}
         >
           Time
           <span className="text-indigo-600 dark:text-cyan-300">Govern</span>
         </span>
         <span
-          className="mt-0.5 text-[9px] sm:text-[10px] font-semibold tracking-[0.2em] uppercase text-slate-500 dark:text-slate-400"
+          className="mt-0.5 text-[10px] sm:text-[11px] font-semibold tracking-[0.18em] uppercase text-slate-500 dark:text-slate-400"
           style={{ fontFamily: '"IBM Plex Sans", system-ui, sans-serif' }}
         >
           Live local time
