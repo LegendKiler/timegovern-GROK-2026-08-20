@@ -83,14 +83,15 @@ export const Header: React.FC<HeaderProps> = ({
         </button>
         <LogoVariantSwitcher />
 
-        <div ref={boxRef} className="relative flex-1 min-w-0 max-w-md">
+        {/* Option 1: compact city search — fixed width, same height as icon toolbar */}
+        <div ref={boxRef} className="relative w-[220px] sm:w-[260px] shrink-0">
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none" />
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onFocus={() => results.length && setOpen(true)}
             placeholder="Search city…"
-            className="w-full h-9 pl-8 pr-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-sm text-slate-900 dark:text-white placeholder:text-slate-400"
+            className="w-full h-9 pl-8 pr-3 rounded-xl border border-slate-200/90 dark:border-slate-600/80 bg-white/90 dark:bg-slate-800/80 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400"
           />
           {open && results.length > 0 && (
             <ul className="absolute z-50 mt-1 w-full max-h-64 overflow-auto rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xl">
@@ -114,21 +115,20 @@ export const Header: React.FC<HeaderProps> = ({
           )}
         </div>
 
-        <div className="flex items-center gap-1.5 shrink-0">
+        <div className="flex items-center gap-1.5 shrink-0 ml-auto">
           {primaryCity && (
             <button
               type="button"
               className={iconBtn}
-              title={isCityPinned(primaryCity) ? 'Unpin city' : 'Pin city'}
+              title={isCityPinned(primaryCity.id) ? 'Unpin city' : 'Pin city'}
+              aria-label="Pin city"
               onClick={() => {
                 togglePinCity(primaryCity);
                 setPinned(getPinnedCities());
               }}
             >
               <Star
-                className={`w-3.5 h-3.5 ${
-                  isCityPinned(primaryCity) ? 'fill-amber-400 text-amber-400' : ''
-                }`}
+                className={`w-4 h-4 ${isCityPinned(primaryCity.id) ? 'fill-amber-400 text-amber-400' : ''}`}
               />
             </button>
           )}
