@@ -1,5 +1,6 @@
 import React from 'react';
 import { legalContent } from '../content/legalContent';
+import { legalExpand } from '../content/legalExpand';
 
 export type LegalSectionId = 'privacy' | 'terms' | 'ads' | 'cookies' | 'disclaimer' | 'linkpolicy';
 
@@ -9,16 +10,16 @@ type Doc = {
   sections?: { heading: string; body: string }[];
 };
 
-/** Renders full legal documents from legalContent (intro + sections). */
+/** Renders full legal documents (base legalContent + expanded multi-region overrides). */
 export const LegalDocRenderer: React.FC<{ section: LegalSectionId }> = ({ section }) => {
   const L = legalContent;
   const map: Record<LegalSectionId, Doc> = {
     privacy: L.privacyPolicy as Doc,
     terms: L.termsOfUse as Doc,
-    ads: L.advertisingPolicy as Doc,
-    cookies: L.cookieNotice as Doc,
-    disclaimer: L.disclaimer as Doc,
-    linkpolicy: L.linkPolicy as Doc,
+    ads: legalExpand.advertisingPolicy as Doc,
+    cookies: legalExpand.cookieNotice as Doc,
+    disclaimer: legalExpand.disclaimer as Doc,
+    linkpolicy: legalExpand.linkPolicy as Doc,
   };
   const doc = map[section];
   if (!doc) return <p className="text-xs text-slate-500">Policy not found.</p>;
