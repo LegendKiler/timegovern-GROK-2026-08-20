@@ -29,12 +29,12 @@ const CompanyPillar = lazy(() => import('./components/CompanyPillar').then(m => 
 const ArchitectureModal = lazy(() => import('./components/ArchitectureModal').then(m => ({ default: m.ArchitectureModal })));
 const QrModal = lazy(() => import('./components/QrModal').then(m => ({ default: m.QrModal || m.default })));
 const UserAccountModal = lazy(() => import('./components/UserAccountModal').then(m => ({ default: m.UserAccountModal || m.default })));
-const SecurityTrustModal = lazy(() => import('./components/SecurityTrustModal').then(m => ({ default: m.SecurityTrustModal || m.default })));
+const SecurityTrustModal = lazy(() => import('./components/SecurityTrustModal').then(m => ({ default: m.SecurityTrustModal })));
 const KeyboardShortcutsModal = lazy(() => import('./components/KeyboardShortcutsModal').then(m => ({ default: m.KeyboardShortcutsModal })));
 
 export default function App() {
   const [activePillar, setActivePillar] = useState(1);
-  const [isDarkMode, setIsDarkMode] = useState(true); // light mode gated by LIGHT_MODE_ENABLED
+  const [isDarkMode, setIsDarkMode] = useState(true);
   const [showAds, setShowAds] = useState(true);
   const [isSupporter, setIsSupporter] = useState(() => getLocalEntitlements().supporter);
   const [primaryCity, setPrimaryCity] = useState<City | undefined>();
@@ -48,60 +48,92 @@ export default function App() {
   const [shortcutToast, setShortcutToast] = useState<string | null>(null);
 
   useEffect(() => {
-    // Light mode disabled product-side: always force dark when flag is false
+    // Light mode disabled via flag — force dark; keep toggle code for later re-enable
     const dark = LIGHT_MODE_ENABLED ? isDarkMode : true;
     if (!LIGHT_MODE_ENABLED && !isDarkMode) setIsDarkMode(true);
     document.documentElement.classList.toggle('dark', dark);
   }, [isDarkMode]);
 
   useEffect(() => {
-    fetchBillingStatus().then((s) => {
-      if (s?.supporter) setIsSupporter(true);
-    }).catch(() => {});
+    const apply = (supporter: boolean) => {
+      setIsSupporter(supporter);
+      if (supporter) setShowAds(false);
+    };
+    apply(getLocalEntitlements().supporter);
+    fetchBillingStatus()
+      .then((st) => apply(!!st.supporter))
+      .catch(() => undefined);
+    const onBill = (e: Event) => {
+      const d = (e as CustomEvent).detail;
+      apply(!!(d?.supporter ?? getLocalEntitlements().supporter));
+    };
+    window.addEventListener('tg-billing-updated', onBill);
+    return () => window.removeEventListener('tg-billing-updated', onBill);
   }, []);
 
   useGlobalShortcuts({
     setActivePillar,
     setShowShortcutsModal,
-    setShortcutToast,
+    onToast: setShortcutToast,
   });
 
   return (
-    <div className="min-h-screen flex flex-col bg-transparent text-slate-900 dark:text-slate-100">
+    <div className="min-h-screen flex flex-col">
       <AdSenseLoader />
       <Header
         activePillar={activePillar}
         setActivePillar={setActivePillar}
-        onOpenArch={() => setShowArchModal(true)}
-        onOpenQr={() => setShowQrModal(true)}
-        onOpenAccount={() => {
+        onSelectCity={(c) => {
+          setSelectedCityFromSearch(c);
+          setPrimaryCity(c);
+        }}
+        primaryCity={primaryCity}
+        onOpenArchModal={() => setShowArchModal(true)}
+        onOpenQrModal={() => setShowQrModal(true)}
+        onOpenAccountModal={() => {
           setAccountModalPanel('account');
           setShowAccountModal(true);
         }}
-        onOpenSecurity={() => setShowSecurityModal(true)}
+        onOpenSecurityModal={() => setShowSecurityModal(true)}
         onOpenShortcutsModal={() => setShowShortcutsModal(true)}
-        onSearchSelectCity={(c) => {
-          setSelectedCityFromSearch(c);
-          setPrimaryCity(c);
-          setActivePillar(1);
-        }}
         isDarkMode={isDarkMode}
         setIsDarkMode={LIGHT_MODE_ENABLED ? setIsDarkMode : undefined}
-        showAds={showAds}
-        setShowAds={setShowAds}
-        isSupporter={isSupporter}
       />
 
-      <main className="flex-1 w-full max-w-[1600px] mx-auto px-3 sm:px-4 py-3 flex gap-3">
+      <div className="border-b border-slate-200 dark:border-slate-800/80 bg-slate-100/90 dark:bg-slate-950/40">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 py-1.5 flex items-center justify-between gap-2 text-[11px] text-slate-600 dark:text-slate-400">
+          <span className="flex items-center gap-1.5 truncate">
+            <Globe className="w-3 h-3 text-indigo-500 dark:text-indigo-400" />
+            {(companyContent as { tagline?: string })?.tagline || 'Global time, calendars & tools'}
+            {isSupporter && (
+              <span className="ml-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/15 text-rose-600 dark:text-rose-300 border border-rose-400/30">
+                Supporter
+              </span>
+            )}
+          </span>
+          <button
+            type="button"
+            onClick={() => setShowAds((p) => !p)}
+            className="inline-flex items-center gap-1.5 font-semibold hover:underline text-slate-700 dark:text-slate-300"
+            disabled={isSupporter}
+            title={isSupporter ? 'Ads stay off for Supporters' : undefined}
+          >
+            {showAds ? <EyeOff className="w-3.5 h-3.5 text-amber-500" /> : <Eye className="w-3.5 h-3.5 text-emerald-500" />}
+            {isSupporter ? 'Ad-free (Supporter)' : showAds ? 'Hide ads' : 'Show ads'}
+          </button>
+        </div>
+      </div>
+
+      {showAds && !isSupporter && <AdBanner type="leaderboard" />}
+
+      <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-4 py-4 flex gap-3">
         {showAds && !isSupporter && <AdBanner type="skyscraper-left" />}
         <div className="flex-1 min-w-0">
-          {showAds && !isSupporter && <AdBanner type="leaderboard" />}
           <PillarErrorBoundary>
             <Suspense fallback={<PillarLoader />}>
               {activePillar === 1 && (
                 <PillarChrome pillarId={1}>
                   <WorldClockPillar
-                    isDarkMode={isDarkMode}
                     selectedCityFromSearch={selectedCityFromSearch}
                     onPrimaryCityChange={setPrimaryCity}
                   />
