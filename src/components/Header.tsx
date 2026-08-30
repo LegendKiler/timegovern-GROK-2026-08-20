@@ -73,25 +73,29 @@ export const Header: React.FC<HeaderProps> = ({
   }, [query]);
 
   const iconBtn =
-    'inline-flex items-center justify-center h-9 w-9 rounded-xl border border-slate-200/90 dark:border-slate-600/80 bg-white/90 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 shadow-sm hover:text-indigo-600 dark:hover:text-white hover:border-indigo-400 hover:bg-indigo-50 dark:hover:bg-slate-700 hover:shadow-md hover:scale-105 active:scale-95 transition-all duration-150';
+    'inline-flex items-center justify-center h-10 w-10 sm:h-11 sm:w-11 rounded-xl border border-slate-200/90 dark:border-slate-600/80 bg-white/90 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 shadow-sm hover:text-indigo-600 dark:hover:text-white hover:border-indigo-400 hover:bg-indigo-50 dark:hover:bg-slate-700 hover:shadow-md hover:scale-105 active:scale-95 transition-all duration-150';
 
   return (
     <header className="sticky top-0 z-40 border-b border-slate-200 dark:border-slate-800/80 backdrop-blur-md bg-white/80 dark:bg-slate-950/80">
-      <div className="max-w-7xl mx-auto px-3 sm:px-4 py-2.5 flex items-center gap-2 sm:gap-3">
+      {/* Top bar: logo | search | tools — balanced growth */}
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 py-2.5 flex items-center gap-3 sm:gap-4">
         <button type="button" onClick={() => setActivePillar(1)} className="shrink-0 flex items-center gap-2">
-          <BrandLogo />
+          <BrandLogo
+            className="h-14 w-14 sm:h-16 sm:w-16"
+            wordmarkClassName="flex flex-col justify-center leading-none"
+          />
         </button>
         <LogoVariantSwitcher />
 
-        {/* Option 1: compact city search — fixed width, same height as icon toolbar */}
-        <div ref={boxRef} className="relative w-[220px] sm:w-[260px] shrink-0">
-          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none" />
+        {/* Search grows with row so header feels even */}
+        <div ref={boxRef} className="relative flex-1 min-w-[180px] max-w-xl">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onFocus={() => results.length && setOpen(true)}
             placeholder="Search city…"
-            className="w-full h-9 pl-8 pr-3 rounded-xl border border-slate-200/90 dark:border-slate-600/80 bg-white/90 dark:bg-slate-800/80 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400"
+            className="w-full h-10 sm:h-11 pl-10 pr-3 rounded-xl border border-slate-200/90 dark:border-slate-600/80 bg-white/90 dark:bg-slate-800/80 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400"
           />
           {open && results.length > 0 && (
             <ul className="absolute z-50 mt-1 w-full max-h-64 overflow-auto rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xl">
@@ -201,7 +205,7 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
       </div>
 
-      <nav className="max-w-7xl mx-auto px-3 sm:px-4 pb-2 flex flex-wrap gap-1" aria-label="Main sections">
+      <nav className="max-w-7xl mx-auto px-3 sm:px-4 pb-2.5 flex flex-wrap sm:flex-nowrap gap-1.5" aria-label="Main sections">
         {NAV.map((item) => {
           const Icon = item.icon;
           const active = activePillar === item.id;
@@ -210,14 +214,14 @@ export const Header: React.FC<HeaderProps> = ({
               key={item.id}
               type="button"
               onClick={() => setActivePillar(item.id)}
-              className={`tg-tab inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold border transition-colors ${
+              className={`tg-tab flex-1 min-w-0 inline-flex items-center justify-center gap-1.5 px-2 py-2 rounded-xl text-[11px] sm:text-xs font-semibold border transition-colors ${
                 active
                   ? 'bg-indigo-500 text-white border-indigo-400 shadow-sm shadow-indigo-500/25'
                   : 'bg-white dark:bg-slate-800/50 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700/80 hover:border-indigo-400/50 hover:text-indigo-700 dark:hover:text-white'
               }`}
             >
-              <Icon className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">{item.label}</span>
+              <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+              <span className="hidden sm:inline truncate">{item.label}</span>
             </button>
           );
         })}
