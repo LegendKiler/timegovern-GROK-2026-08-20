@@ -1,3 +1,8 @@
+/* =============================================================================
+ * F1 LEGACY — NOT imported by the live Vite app (see src/index.css + index.html).
+ * Do not import this file. Product fonts are IBM Plex Sans + IBM Plex Mono only.
+ * Kept for reference / old experiments only.
+ * ============================================================================= */
 @import "tailwindcss";
 
 /* ==========================================================================

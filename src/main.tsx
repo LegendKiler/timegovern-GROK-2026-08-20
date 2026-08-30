@@ -2,6 +2,7 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import './index.css';
 import './themeForce.css';
+import './fontLock.css'; // F1: IBM Plex only (after themeForce)
 
 const params = new URLSearchParams(window.location.search);
 const isEmbed = Boolean(params.get('embed'));
