@@ -77,7 +77,7 @@ export const Header: React.FC<HeaderProps> = ({
 
   return (
     <header className="sticky top-0 z-40 border-b border-slate-200 dark:border-slate-800/80 backdrop-blur-md bg-white/80 dark:bg-slate-950/80">
-      <div className="max-w-[1400px] mx-auto px-3 sm:px-4 py-2.5 flex items-center gap-3 sm:gap-4">
+      <div className="max-w-[1600px] mx-auto px-3 sm:px-4 py-2.5 flex items-center gap-3 sm:gap-4">
         <button type="button" onClick={() => setActivePillar(1)} className="shrink-0 flex items-center gap-2">
           <BrandLogo
             className="h-14 w-14 sm:h-16 sm:w-16"
@@ -172,48 +172,29 @@ export const Header: React.FC<HeaderProps> = ({
               className={iconBtn}
               onClick={onOpenQrModal}
               title="Share / QR code"
-              aria-label="Share QR code"
             >
               <QrCode className="w-4 h-4" />
             </button>
           )}
           {onOpenSecurityModal && (
-            <button
-              type="button"
-              className={iconBtn}
-              onClick={onOpenSecurityModal}
-              title="Trust & security"
-              aria-label="Trust and security"
-            >
+            <button type="button" className={iconBtn} onClick={onOpenSecurityModal} title="Trust & security">
               <Shield className="w-4 h-4" />
             </button>
           )}
           {onOpenArchModal && (
-            <button
-              type="button"
-              className={iconBtn}
-              onClick={onOpenArchModal}
-              title="How time stays current"
-              aria-label="How time data stays current"
-            >
+            <button type="button" className={iconBtn} onClick={onOpenArchModal} title="How time stays current">
               <Layers className="w-4 h-4" />
             </button>
           )}
           {onOpenAccountModal && (
-            <button
-              type="button"
-              className={iconBtn}
-              onClick={onOpenAccountModal}
-              title="Account & Supporter"
-              aria-label="Account"
-            >
+            <button type="button" className={iconBtn} onClick={onOpenAccountModal} title="Account & Supporter">
               <User className="w-4 h-4" />
             </button>
           )}
         </div>
       </div>
 
-      <nav className="max-w-[1400px] mx-auto px-3 sm:px-4 pb-2.5 flex flex-wrap gap-1.5 w-full" aria-label="Main sections">
+      <nav className="max-w-[1600px] mx-auto px-3 sm:px-4 pb-2.5 flex flex-wrap gap-1.5 w-full" aria-label="Main sections">
         {NAV.map((item) => {
           const Icon = item.icon;
           const active = activePillar === item.id;
