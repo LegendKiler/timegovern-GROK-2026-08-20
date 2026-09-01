@@ -15,7 +15,6 @@ function apiDevServerPlugin(): Plugin {
 
         const url = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
 
-        // TimeGovern public API v1 (lab)
         try {
           const v1 = await handleV1TimeNode(url.pathname, url.search, req.method || 'GET');
           if (v1) {
@@ -172,25 +171,30 @@ export default defineConfig({
     chunkSizeWarningLimit: 1200,
     rollupOptions: {
       output: {
+        /**
+         * Do NOT manual-chunk react / react-dom / scheduler.
+         * Splitting them caused circular vendor-core <-> vendor-react-core
+         * and production crash: Cannot set properties of undefined (setting 'Activity').
+         */
         manualChunks(id) {
-          if (id.includes('node_modules')) {
-            if (id.includes('three') || id.includes('@react-three')) {
-              return 'vendor-three';
-            }
-            if (id.includes('jspdf') || id.includes('html2canvas') || id.includes('purify')) {
-              return 'vendor-pdf';
-            }
-            if (id.includes('recharts') || id.includes('d3')) {
-              return 'vendor-charts';
-            }
-            if (id.includes('lucide-react') || id.includes('motion') || id.includes('gsap')) {
-              return 'vendor-ui-motion';
-            }
-            if (id.includes('react') || id.includes('react-dom')) {
-              return 'vendor-react-core';
-            }
-            return 'vendor-core';
+          if (!id.includes('node_modules')) return;
+
+          // three.js is large — safe to isolate
+          if (id.includes(`${path.sep}three${path.sep}`) || id.includes('three/') || id.includes('@react-three')) {
+            return 'vendor-three';
           }
+          if (id.includes('jspdf') || id.includes('html2canvas') || id.includes('dompurify')) {
+            return 'vendor-pdf';
+          }
+          if (id.includes('recharts') || id.includes(`${path.sep}d3-${path.sep}`) || id.includes('/d3-')) {
+            return 'vendor-charts';
+          }
+          // lucide + motion only (never match bare "react" substring)
+          if (id.includes('lucide-react') || id.includes('framer-motion') || id.includes('motion/react') || id.includes('gsap')) {
+            return 'vendor-ui-motion';
+          }
+
+          // leave react, react-dom, scheduler, and everything else to Vite defaults
         },
       },
     },
