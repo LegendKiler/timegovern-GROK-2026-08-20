@@ -26,16 +26,6 @@ export function getPinnedCityIds(): string[] {
   }
 }
 
-export function savePinnedCityIds(ids: string[]): void {
-  if (typeof window === 'undefined') return;
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(ids));
-    window.dispatchEvent(new CustomEvent(PINNED_CHANGE_EVENT, { detail: { ids } }));
-  } catch (err) {
-    console.error('Failed to save pinned cities:', err);
-  }
-}
-
 export function getPinnedCities(): City[] {
   const ids = getPinnedCityIds();
   const pinnedList: City[] = [];
@@ -50,6 +40,16 @@ export function isCityPinned(cityOrId: City | string): boolean {
   const id = typeof cityOrId === 'string' ? cityOrId : cityOrId?.id;
   if (!id) return false;
   return getPinnedCityIds().includes(id);
+}
+
+export function savePinnedCityIds(ids: string[]): void {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(ids));
+    window.dispatchEvent(new CustomEvent(PINNED_CHANGE_EVENT, { detail: { ids } }));
+  } catch (err) {
+    console.error('Failed to save pinned cities:', err);
+  }
 }
 
 export type PinResult = {
