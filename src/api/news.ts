@@ -135,25 +135,68 @@ function timeAgo(ts: number): string {
 function stripHtml(html: string): string {
   return html
     .replace(/<[^>]+>/g, ' ')
-    .replace(/&nbsp;/g, ' ')
-    .replace(/&/g, '&')
-    .replace(/</g, '<')
-    .replace(/>/g, '>')
-    .replace(/"/g, '"')
-    .replace(/&#39;/g, "'")
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&/gi, '&')
+    .replace(/"/gi, '"')
+    .replace(/&#0*39;/g, "'")
+    .replace(/'/gi, "'")
+    .replace(/</gi, '<')
+    .replace(/>/gi, '>')
     .replace(/\s+/g, ' ')
     .trim();
 }
 
-function parseRssItems(xml: string): Array<{ title: string; link: string; pubDate: string; description: string }> {
-  const items: Array<{ title: string; link: string; pubDate: string; description: string }> = [];
+/** Pull a usable image URL from a single RSS <item> block */
+function extractImageFromItem(block: string): string {
+  const candidates: string[] = [];
+  const push = (u?: string) => {
+    if (!u) return;
+    let s = u.trim().replace(/^['"]|['"]$/g, '');
+    if (!s) return;
+    if (s.startsWith('//')) s = 'https:' + s;
+    if (!/^https?:\/\//i.test(s)) return;
+    if (/1x1|pixel|spacer|favicon|\.svg(\?|$)/i.test(s)) return;
+    candidates.push(s);
+  };
+
+  for (const m of block.matchAll(/<enclosure[^>]*url=["']([^"']+)["'][^>]*>/gi)) {
+    const tag = m[0];
+    if (/type=["']image/i.test(tag) || /\.(jpe?g|png|webp|gif)(\?|$)/i.test(m[1])) push(m[1]);
+  }
+  for (const m of block.matchAll(/<media:(?:content|thumbnail)[^>]*url=["']([^"']+)["'][^>]*\/?>/gi)) {
+    push(m[1]);
+  }
+  const encoded =
+    (block.match(/<content:encoded[^>]*>[\s\S]*?<!\[CDATA\[([\s\S]*?)\]\]>/i) ||
+      block.match(/<content:encoded[^>]*>([\s\S]*?)<\/content:encoded>/i) ||
+      [])[1] || '';
+  const descRaw =
+    (block.match(/<description[^>]*>[\s\S]*?<!\[CDATA\[([\s\S]*?)\]\]>/i) ||
+      block.match(/<description[^>]*>([\s\S]*?)<\/description>/i) ||
+      [])[1] || '';
+  const htmlBlob = `${encoded}\n${descRaw}`;
+  for (const m of htmlBlob.matchAll(/<img[^>]+src=["']([^"']+)["']/gi)) {
+    push(m[1]);
+  }
+
+  return candidates[0] || '';
+}
+
+function parseRssItems(
+  xml: string
+): Array<{ title: string; link: string; pubDate: string; description: string; imageUrl: string }> {
+  const items: Array<{ title: string; link: string; pubDate: string; description: string; imageUrl: string }> =
+    [];
   const blocks = xml.match(/<item[\s\S]*?<\/item>/gi) || [];
   for (const block of blocks) {
     const title =
       (block.match(/<title><!\[CDATA\[([\s\S]*?)\]\]><\/title>/i) ||
         block.match(/<title>([\s\S]*?)<\/title>/i) ||
         [])[1] || '';
-    const link = (block.match(/<link>([\s\S]*?)<\/link>/i) || [])[1] || '';
+    const link =
+      (block.match(/<link><!\[CDATA\[([\s\S]*?)\]\]><\/link>/i) ||
+        block.match(/<link>([\s\S]*?)<\/link>/i) ||
+        [])[1] || '';
     const pubDate = (block.match(/<pubDate>([\s\S]*?)<\/pubDate>/i) || [])[1] || '';
     const description =
       (block.match(/<description><!\[CDATA\[([\s\S]*?)\]\]><\/description>/i) ||
@@ -165,6 +208,7 @@ function parseRssItems(xml: string): Array<{ title: string; link: string; pubDat
         link: link.trim(),
         pubDate: pubDate.trim(),
         description: stripHtml(description).slice(0, 500),
+        imageUrl: extractImageFromItem(block),
       });
     }
   }
@@ -178,8 +222,10 @@ function classifyArticle(
 ): GroundedArticle['category'] {
   const text = `${title} ${summary}`.toLowerCase();
   if (/leap second|leap.?second|atomic clock|bipm|\btai\b|utc adjustment|iirs/.test(text)) return 'leap_seconds';
-  if (/daylight saving|daylight-saving|\bdst\b|summer time|winter time|spring forward|fall back|clocks? (forward|back)/.test(text)) return 'dst';
-  if (/quantum|software|\bchip\b|\bai\b|artificial intelligence|cyber|semiconductor|startup|internet|\b5g\b|cloud computing|technology/.test(text)) return 'technology';
+  if (/daylight saving|daylight-saving|\bdst\b|summer time|winter time|spring forward|fall back|clocks? (forward|back)/.test(text))
+    return 'dst';
+  if (/quantum|software|\bchip\b|\bai\b|artificial intelligence|cyber|semiconductor|startup|internet|\b5g\b|cloud computing|technology/.test(text))
+    return 'technology';
   if (/metrolog|si unit|kilogram|second definition|\bnist\b/.test(text)) return 'metrology';
   if (/eclipse|nasa|space|astronomy|\bmoon\b|\bmars\b|satellite|\biss\b|astronaut/.test(text)) return 'astronomy';
   if (/time zone|timezone|iana|utc offset|\bzulu\b/.test(text)) return 'timezones';
@@ -197,7 +243,8 @@ function fallbackArticles(): GroundedArticle[] {
       author: 'TimeGovern',
       readTime: '1 min',
       summary: 'Live RSS feeds are temporarily unreachable. The system will retry automatically.',
-      content: 'TimeGovern aggregates free public RSS from Google News, BBC, Guardian, NPR, NASA. DST, leap-second and tech feeds included.',
+      content:
+        'TimeGovern aggregates free public RSS from Google News, BBC, Guardian, NPR, NASA. DST, leap-second and tech feeds included.',
       keyTakeaways: ['Free multi-source RSS', 'Auto-refresh every 30s', 'No paid APIs'],
       imageUrl: '',
       sourceUrl: 'https://timegovern.com',
@@ -221,10 +268,7 @@ async function fetchWithTimeout(url: string, ms = 12000): Promise<Response> {
 }
 
 async function fetchOneFeed(feed: (typeof RSS_FEEDS)[0]): Promise<GroundedArticle[]> {
-  const urls = [
-    feed.url,
-    `https://api.allorigins.win/raw?url=${encodeURIComponent(feed.url)}`,
-  ];
+  const urls = [feed.url, `https://api.allorigins.win/raw?url=${encodeURIComponent(feed.url)}`];
   for (const url of urls) {
     try {
       const res = await fetchWithTimeout(url, 14000);
@@ -246,7 +290,7 @@ async function fetchOneFeed(feed: (typeof RSS_FEEDS)[0]): Promise<GroundedArticl
           summary: it.description || it.title,
           content: it.description || it.title,
           keyTakeaways: [`Source: ${feed.publisher}`, 'Free public RSS', 'Auto-updated'],
-          imageUrl: '',
+          imageUrl: it.imageUrl || '',
           sourceUrl: it.link || feed.url,
           publisher: feed.publisher,
           pubTimestamp: ts,
