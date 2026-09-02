@@ -148,20 +148,24 @@ export const NewsPillar: React.FC = () => {
 
   const handleCustomTopicSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!customTopicInput.trim()) return;
-    setActiveTopic(customTopicInput.trim());
-    fetchNewsFeed({ topic: customTopicInput.trim(), category: selectedCategory, force: true });
+    const q = customTopicInput.trim();
+    if (!q) return;
+    setActiveTopic(q);
+    setSearchQuery(q);
+    fetchNewsFeed({ topic: q, category: selectedCategory, force: true });
   };
 
   const handleQuickTopicClick = (topicText: string) => {
     setCustomTopicInput(topicText);
     setActiveTopic(topicText);
+    setSearchQuery(topicText);
     fetchNewsFeed({ topic: topicText, category: selectedCategory, force: true });
   };
 
   const handleClearTopic = () => {
     setCustomTopicInput('');
     setActiveTopic('');
+    setSearchQuery('');
     fetchNewsFeed({ category: selectedCategory, force: true });
   };
 
@@ -174,58 +178,32 @@ export const NewsPillar: React.FC = () => {
 
   const filteredArticles = articles.filter((art) => {
     const matchesCat = selectedCategory === 'all' || art.category === selectedCategory;
+    const q = searchQuery.toLowerCase();
     const matchesSearch =
-      art.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      art.summary.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      art.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      art.author.toLowerCase().includes(searchQuery.toLowerCase());
+      !q ||
+      art.title.toLowerCase().includes(q) ||
+      art.summary.toLowerCase().includes(q) ||
+      art.content.toLowerCase().includes(q) ||
+      art.author.toLowerCase().includes(q);
     return matchesCat && matchesSearch;
   });
 
   const getCategoryBadge = (category: string) => {
     switch (category) {
       case 'leap_seconds':
-        return {
-          label: 'Leap Seconds & Metrology',
-          icon: Clock,
-          color: 'bg-amber-600/10 text-amber-700 dark:text-amber-300 border-amber-500/30',
-        };
+        return { label: 'Leap Seconds & Metrology', icon: Clock, color: 'bg-amber-600/10 text-amber-700 dark:text-amber-300 border-amber-500/30' };
       case 'dst':
-        return {
-          label: 'Daylight Saving',
-          icon: Compass,
-          color: 'bg-emerald-600/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/30',
-        };
+        return { label: 'Daylight Saving', icon: Compass, color: 'bg-emerald-600/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/30' };
       case 'astronomy':
-        return {
-          label: 'Astronomy & Space',
-          icon: Orbit,
-          color: 'bg-purple-600/10 text-purple-700 dark:text-purple-300 border-purple-500/30',
-        };
+        return { label: 'Astronomy & Space', icon: Orbit, color: 'bg-purple-600/10 text-purple-700 dark:text-purple-300 border-purple-500/30' };
       case 'timezones':
-        return {
-          label: 'Time Zones & IANA',
-          icon: Globe,
-          color: 'bg-blue-600/10 text-blue-700 dark:text-blue-300 border-blue-500/30',
-        };
+        return { label: 'Time Zones & IANA', icon: Globe, color: 'bg-blue-600/10 text-blue-700 dark:text-blue-300 border-blue-500/30' };
       case 'technology':
-        return {
-          label: 'Quantum Tech',
-          icon: Cpu,
-          color: 'bg-cyan-600/10 text-cyan-700 dark:text-cyan-300 border-cyan-500/30',
-        };
+        return { label: 'Quantum Tech', icon: Cpu, color: 'bg-cyan-600/10 text-cyan-700 dark:text-cyan-300 border-cyan-500/30' };
       case 'world':
-        return {
-          label: 'World News',
-          icon: Globe,
-          color: 'bg-sky-600/10 text-sky-700 dark:text-sky-300 border-sky-500/30',
-        };
+        return { label: 'World News', icon: Globe, color: 'bg-sky-600/10 text-sky-700 dark:text-sky-300 border-sky-500/30' };
       default:
-        return {
-          label: 'SI Standards',
-          icon: Atom,
-          color: 'bg-indigo-600/10 text-indigo-700 dark:text-indigo-300 border-indigo-500/30',
-        };
+        return { label: 'SI Standards', icon: Atom, color: 'bg-indigo-600/10 text-indigo-700 dark:text-indigo-300 border-indigo-500/30' };
     }
   };
 
@@ -242,16 +220,17 @@ export const NewsPillar: React.FC = () => {
               <Sparkles className="w-4 h-4 text-cyan-400" />
               Free Live News
             </span>
-            <span className="bg-cyan-500/20 text-cyan-300 border border-cyan-400/40 text-[10px] font-mono px-2 py-0.5 rounded-full font-bold">
-              {activeModel}
-            </span>
             {isGrounded && (
-              <span className="bg-emerald-500/20 text-emerald-300 border border-emerald-400/40 text-[10px] font-mono px-2 py-0.5 rounded-full flex items-center gap-1">
-                <CheckCircle2 className="w-3 h-3" /> Live
+              <span className="inline-flex items-center gap-1.5 bg-emerald-500/20 text-emerald-300 border border-emerald-400/50 text-[11px] font-bold px-2.5 py-1 rounded-full">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400" />
+                </span>
+                LIVE FEED
               </span>
             )}
             {headlineCount > 0 && (
-              <span className="text-[10px] text-slate-400 font-mono">{headlineCount} headlines</span>
+              <span className="text-[11px] text-slate-300 font-semibold tabular-nums">{headlineCount} stories</span>
             )}
           </div>
           <p className="text-xs text-slate-300">
@@ -275,8 +254,35 @@ export const NewsPillar: React.FC = () => {
         </div>
       </div>
 
+      {articles.length > 0 && (
+        <div className="overflow-hidden rounded-xl border border-emerald-500/30 bg-slate-950/80">
+          <div className="flex items-center gap-3 px-3 py-2">
+            <span className="shrink-0 inline-flex items-center gap-1 text-[10px] font-extrabold tracking-wider text-emerald-400 uppercase">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              Live
+            </span>
+            <div className="min-w-0 flex-1 overflow-x-auto">
+              <div className="flex gap-6 whitespace-nowrap pb-0.5">
+                {articles.slice(0, 12).map((a, i) => (
+                  <button
+                    key={`${a.id}-tick-${i}`}
+                    type="button"
+                    onClick={() => a.sourceUrl && window.open(a.sourceUrl, '_blank', 'noopener,noreferrer')}
+                    className="text-[11px] text-slate-300 hover:text-cyan-300 transition-colors cursor-pointer"
+                  >
+                    <span className="text-slate-500 font-semibold">{a.publisher || a.author}</span>
+                    <span className="mx-1.5 text-slate-600">·</span>
+                    {a.title}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm text-slate-900 dark:text-slate-100 space-y-5">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div className="flex flex-col gap-4">
           <div>
             <h1 className="text-2xl font-bold font-display text-slate-900 dark:text-white flex items-center gap-2.5">
               <Newspaper className="w-6 h-6 text-blue-600 dark:text-cyan-400" />
@@ -286,26 +292,38 @@ export const NewsPillar: React.FC = () => {
               DST, leap seconds, astronomy, time zones & world headlines.
             </p>
           </div>
-          <form onSubmit={handleCustomTopicSearch} className="flex items-center gap-2 w-full lg:max-w-md">
+          <form onSubmit={handleCustomTopicSearch} className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full">
             <div className="relative flex-1">
-              <Sparkles className="w-4 h-4 absolute left-3 top-2.5 text-cyan-600 dark:text-cyan-400" />
+              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
-                type="text"
+                type="search"
                 value={customTopicInput}
-                onChange={(e) => setCustomTopicInput(e.target.value)}
-                placeholder="Filter topic (e.g. leap second, eclipse)..."
-                className="w-full bg-slate-50 dark:bg-slate-800/90 border border-slate-300 dark:border-slate-700 rounded-xl pl-9 pr-3 py-2 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-500"
+                onChange={(e) => {
+                  setCustomTopicInput(e.target.value);
+                  setSearchQuery(e.target.value);
+                }}
+                placeholder="Search live headlines (e.g. eclipse, leap second, time zone)…"
+                className="w-full bg-slate-50 dark:bg-slate-800/90 border border-slate-300 dark:border-slate-700 rounded-xl pl-10 pr-3 py-2.5 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500/40"
+                aria-label="Search live headlines"
               />
             </div>
             <button
               type="submit"
               disabled={isRefreshing || !customTopicInput.trim()}
-              className="px-3.5 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-semibold text-xs rounded-xl transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5"
+              className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-semibold text-xs rounded-xl transition-all cursor-pointer whitespace-nowrap flex items-center justify-center gap-1.5 shrink-0"
             >
               <Search className="w-3.5 h-3.5" />
-              <span>Search</span>
+              <span>Search feed</span>
             </button>
+            {(customTopicInput || searchQuery || activeTopic) && (
+              <button type="button" onClick={handleClearTopic} className="px-3 py-2.5 text-xs font-semibold text-rose-500 hover:bg-rose-500/10 rounded-xl cursor-pointer shrink-0">
+                Clear
+              </button>
+            )}
           </form>
+          <p className="text-[11px] text-slate-500 dark:text-slate-400 -mt-2">
+            Typing filters stories on this page. <span className="font-semibold text-slate-600 dark:text-slate-300">Search feed</span> pulls matching topics from live sources.
+          </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2 pt-1 border-t border-slate-100 dark:border-slate-800 text-xs">
@@ -326,11 +344,6 @@ export const NewsPillar: React.FC = () => {
               {topicChip}
             </button>
           ))}
-          {activeTopic && (
-            <button type="button" onClick={handleClearTopic} className="text-[11px] text-rose-500 hover:underline font-semibold ml-1 cursor-pointer">
-              Clear (✕)
-            </button>
-          )}
         </div>
 
         {fetchError && (
@@ -343,41 +356,29 @@ export const NewsPillar: React.FC = () => {
           </div>
         )}
 
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
-          <div className="flex flex-wrap items-center gap-1.5 text-xs font-semibold">
-            {[
-              { id: 'all', label: 'All News' },
-              { id: 'world', label: 'World' },
-              { id: 'astronomy', label: 'Astronomy' },
-              { id: 'timezones', label: 'Time Zones' },
-              { id: 'dst', label: 'DST' },
-              { id: 'leap_seconds', label: 'Leap Seconds' },
-              { id: 'technology', label: 'Tech' },
-            ].map((cat) => (
-              <button
-                key={cat.id}
-                type="button"
-                onClick={() => handleCategoryChange(cat.id)}
-                className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer ${
-                  selectedCategory === cat.id
-                    ? 'bg-blue-600 text-white shadow-xs'
-                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
-                }`}
-              >
-                {cat.label}
-              </button>
-            ))}
-          </div>
-          <div className="relative max-w-xs w-full">
-            <Search className="w-3.5 h-3.5 absolute left-3 top-2.5 text-slate-400" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Filter headlines..."
-              className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl pl-8 pr-3 py-1.5 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-500"
-            />
-          </div>
+        <div className="flex flex-wrap items-center gap-1.5 text-xs font-semibold pt-2">
+          {[
+            { id: 'all', label: 'All News' },
+            { id: 'world', label: 'World' },
+            { id: 'astronomy', label: 'Astronomy' },
+            { id: 'timezones', label: 'Time Zones' },
+            { id: 'dst', label: 'DST' },
+            { id: 'leap_seconds', label: 'Leap Seconds' },
+            { id: 'technology', label: 'Tech' },
+          ].map((cat) => (
+            <button
+              key={cat.id}
+              type="button"
+              onClick={() => handleCategoryChange(cat.id)}
+              className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer ${
+                selectedCategory === cat.id
+                  ? 'bg-blue-600 text-white shadow-xs'
+                  : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+              }`}
+            >
+              {cat.label}
+            </button>
+          ))}
         </div>
       </div>
 
@@ -388,7 +389,6 @@ export const NewsPillar: React.FC = () => {
               <div className="h-44 bg-slate-200 dark:bg-slate-800 rounded-xl"></div>
               <div className="h-4 bg-slate-200 dark:bg-slate-800 rounded w-1/3"></div>
               <div className="h-6 bg-slate-200 dark:bg-slate-800 rounded w-3/4"></div>
-              <div className="h-16 bg-slate-200 dark:bg-slate-800 rounded"></div>
             </div>
           ))}
         </div>
@@ -399,12 +399,9 @@ export const NewsPillar: React.FC = () => {
           const badge = getCategoryBadge(article.category);
           const IconComp = badge.icon;
           const openArticle = () => {
-            if (article.sourceUrl) {
-              window.open(article.sourceUrl, '_blank', 'noopener,noreferrer');
-            }
+            if (article.sourceUrl) window.open(article.sourceUrl, '_blank', 'noopener,noreferrer');
           };
           const hasImage = !!(article.imageUrl && String(article.imageUrl).trim());
-
           return (
             <article
               key={article.id}
@@ -436,10 +433,8 @@ export const NewsPillar: React.FC = () => {
                     </div>
                   )}
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/20 to-transparent pointer-events-none" />
-                  <div className="absolute top-3 left-3 flex items-center gap-1.5 z-10">
-                    <span
-                      className={`text-[10px] font-bold px-2.5 py-1 rounded-full border shadow-sm flex items-center gap-1 backdrop-blur-md ${badge.color}`}
-                    >
+                  <div className="absolute top-3 left-3 z-10">
+                    <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border shadow-sm flex items-center gap-1 backdrop-blur-md ${badge.color}`}>
                       <IconComp className="w-3 h-3" />
                       {badge.label}
                     </span>
@@ -474,7 +469,7 @@ export const NewsPillar: React.FC = () => {
                     e.stopPropagation();
                     copyArticleCitation(article);
                   }}
-                  className="text-slate-500 hover:text-slate-700 dark:hover:text-slate-200 text-[11px] font-medium flex items-center gap-1 cursor-pointer transition-colors"
+                  className="text-slate-500 hover:text-slate-700 dark:hover:text-slate-200 text-[11px] font-medium flex items-center gap-1 cursor-pointer"
                 >
                   {copiedId === article.id ? (
                     <>
@@ -495,7 +490,7 @@ export const NewsPillar: React.FC = () => {
                       target="_blank"
                       rel="noopener noreferrer"
                       onClick={(e) => e.stopPropagation()}
-                      className="text-slate-500 hover:text-blue-600 dark:hover:text-cyan-400 font-medium flex items-center gap-1 cursor-pointer text-[11px]"
+                      className="text-slate-500 hover:text-blue-600 dark:hover:text-cyan-400 font-medium flex items-center gap-1 text-[11px]"
                     >
                       <span>Source</span>
                       <ExternalLink className="w-3 h-3" />
@@ -520,71 +515,28 @@ export const NewsPillar: React.FC = () => {
           </h3>
           <p className="text-xs text-slate-500 max-w-md mx-auto">
             {articles.length === 0
-              ? 'Feeds may be slow or temporarily blocked. Click Force Live Sync to retry.'
-              : 'No headlines match your category or search. Clear filters or try All News.'}
+              ? 'Feeds may be slow. Click Force Live Sync to retry.'
+              : 'No headlines match your search. Clear filters or try All News.'}
           </p>
-          <div className="flex flex-wrap items-center justify-center gap-2">
-            <button
-              type="button"
-              onClick={() => {
-                setSearchQuery('');
-                setSelectedCategory('all');
-                handleClearTopic();
-              }}
-              className="px-4 py-2 bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-100 text-xs font-semibold rounded-xl cursor-pointer"
-            >
-              Reset Filters
-            </button>
-            <button
-              type="button"
-              onClick={() => fetchNewsFeed({ category: 'all', force: true })}
-              disabled={isRefreshing}
-              className="px-4 py-2 bg-blue-600 text-white text-xs font-semibold rounded-xl cursor-pointer disabled:opacity-60"
-            >
-              {isRefreshing ? 'Updating…' : 'Force Live Sync'}
-            </button>
-          </div>
-        </div>
-      )}
-
-      {isRefreshing && filteredArticles.length === 0 && articles.length === 0 && (
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-10 text-center space-y-2">
-          <RefreshCw className="w-8 h-8 text-cyan-500 mx-auto animate-spin" />
-          <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">Fetching headlines…</p>
+          <button type="button" onClick={handleClearTopic} className="px-4 py-2 bg-blue-600 text-white text-xs font-semibold rounded-xl cursor-pointer">
+            Clear search
+          </button>
         </div>
       )}
 
       {activeArticle && (
         <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-3xl w-full p-6 sm:p-8 space-y-5 shadow-2xl relative max-h-[90vh] overflow-y-auto">
-            <button
-              type="button"
-              onClick={() => setActiveArticle(null)}
-              className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 dark:hover:text-white text-lg font-bold p-2 cursor-pointer rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-            >
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-3xl w-full p-6 space-y-5 relative max-h-[90vh] overflow-y-auto">
+            <button type="button" onClick={() => setActiveArticle(null)} className="absolute top-4 right-4 text-slate-400 p-2">
               ✕
             </button>
-            <h2 className="text-2xl font-bold font-display text-slate-900 dark:text-white pr-8">{activeArticle.title}</h2>
+            <h2 className="text-2xl font-bold pr-8">{activeArticle.title}</h2>
             <p className="text-sm text-slate-600 dark:text-slate-300">{activeArticle.summary}</p>
-            <div className="flex gap-2">
-              {activeArticle.sourceUrl && (
-                <a
-                  href={activeArticle.sourceUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="px-4 py-2 bg-blue-600 text-white text-xs font-bold rounded-xl"
-                >
-                  Open Source
-                </a>
-              )}
-              <button
-                type="button"
-                onClick={() => setActiveArticle(null)}
-                className="px-5 py-2 bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900 font-bold text-xs rounded-xl cursor-pointer"
-              >
-                Close
-              </button>
-            </div>
+            {activeArticle.sourceUrl && (
+              <a href={activeArticle.sourceUrl} target="_blank" rel="noopener noreferrer" className="inline-block px-4 py-2 bg-blue-600 text-white text-xs font-bold rounded-xl">
+                Open Source
+              </a>
+            )}
           </div>
         </div>
       )}
