@@ -1,10 +1,12 @@
 import { City } from '../types';
 import { MAJOR_CITIES } from './citiesData';
 import { getMemberEntitlements, FREE_PIN_LIMIT, SUPPORTER_PIN_LIMIT } from './memberEntitlements';
+import { isLocationSeeded, markLocationSeeded, buildSeedPinIds, type DetectedLocation } from './userLocation';
 
 const STORAGE_KEY = 'timegovern_pinned_cities_v1';
 const PINNED_CHANGE_EVENT = 'timegovern_pinned_cities_changed';
 
+/** Legacy defaults until first geo seed runs. */
 export const DEFAULT_PINNED_CITY_IDS: string[] = [
   'nyc', 'lon', 'par', 'tyo', 'syd', 'dxb', 'sin', 'sao',
 ];
@@ -25,6 +27,16 @@ export function getPinnedCityIds(): string[] {
   }
 }
 
+function savePinnedCityIds(ids: string[]): void {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(ids));
+    window.dispatchEvent(new Event(PINNED_CHANGE_EVENT));
+  } catch {
+    /* ignore */
+  }
+}
+
 export function getPinnedCities(): City[] {
   const ids = getPinnedCityIds();
   const pinnedList: City[] = [];
@@ -35,26 +47,16 @@ export function getPinnedCities(): City[] {
   return pinnedList;
 }
 
-export function isCityPinned(cityId: string): boolean {
-  return getPinnedCityIds().includes(cityId);
-}
-
-export function savePinnedCityIds(ids: string[]): void {
-  if (typeof window === 'undefined') return;
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(ids));
-    window.dispatchEvent(new CustomEvent(PINNED_CHANGE_EVENT, { detail: { ids } }));
-  } catch (err) {
-    console.error('Failed to save pinned cities:', err);
-  }
+export function isCityPinned(cityOrId: City | string): boolean {
+  const id = typeof cityOrId === 'string' ? cityOrId : cityOrId.id;
+  return getPinnedCityIds().includes(id);
 }
 
 export type PinResult = {
   ok: boolean;
   isPinned: boolean;
   cities: City[];
-  error?: string;
-  pinLimit?: number;
+  reason?: string;
 };
 
 export function pinCity(city: City): PinResult {
@@ -62,26 +64,22 @@ export function pinCity(city: City): PinResult {
   if (ids.includes(city.id)) {
     return { ok: true, isPinned: true, cities: getPinnedCities() };
   }
-  const limit = getMemberEntitlements().pinLimit;
-  if (ids.length >= limit) {
-    const needSupporter = limit <= FREE_PIN_LIMIT;
+  const { pinLimit } = getMemberEntitlements();
+  if (ids.length >= pinLimit) {
     return {
       ok: false,
       isPinned: false,
       cities: getPinnedCities(),
-      pinLimit: limit,
-      error: needSupporter
-        ? `Free accounts can pin up to ${FREE_PIN_LIMIT} cities. Become a Supporter for ${SUPPORTER_PIN_LIMIT}.`
-        : `Pin limit reached (${limit}). Unpin a city first.`,
+      reason: `Pin limit (${pinLimit}) reached`,
     };
   }
-  savePinnedCityIds([city.id, ...ids]);
+  savePinnedCityIds([...ids, city.id]);
   return { ok: true, isPinned: true, cities: getPinnedCities() };
 }
 
 export function unpinCity(cityId: string): City[] {
-  const ids = getPinnedCityIds().filter((id) => id !== cityId);
-  savePinnedCityIds(ids);
+  const next = getPinnedCityIds().filter((id) => id !== cityId);
+  savePinnedCityIds(next.length ? next : DEFAULT_PINNED_CITY_IDS);
   return getPinnedCities();
 }
 
@@ -94,6 +92,16 @@ export function togglePinCity(city: City): PinResult {
 
 export function resetPinnedCities(): City[] {
   savePinnedCityIds(DEFAULT_PINNED_CITY_IDS);
+  return getPinnedCities();
+}
+
+/** Phase A+B: first visit replaces default pins with home + near + hubs. */
+export function applyDetectedLocationSeed(detected: DetectedLocation): City[] {
+  if (typeof window === 'undefined') return getPinnedCities();
+  if (isLocationSeeded()) return getPinnedCities();
+  const seedIds = buildSeedPinIds(detected.city, detected.nearYou);
+  savePinnedCityIds(seedIds);
+  markLocationSeeded();
   return getPinnedCities();
 }
 
