@@ -226,7 +226,7 @@ export const NewsPillar: React.FC = () => {
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400" />
                 </span>
-                LIVE FEED
+                <span className="font-black tracking-wide">LIVE</span>
               </span>
             )}
             {headlineCount > 0 && (
@@ -238,9 +238,9 @@ export const NewsPillar: React.FC = () => {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-3 shrink-0">
-          <div className="text-right hidden sm:block">
-            <span className="text-[10px] text-slate-400 block font-mono">Last Sync</span>
-            <span className="text-xs font-semibold text-slate-200">{lastSyncTime}</span>
+          <div className="text-right hidden sm:block" title="When headlines were last refreshed">
+            <span className="text-[10px] text-slate-500 block">Updated</span>
+            <span className="text-xs font-medium text-slate-300 tabular-nums">{lastSyncTime}</span>
           </div>
           <button
             type="button"
@@ -256,19 +256,36 @@ export const NewsPillar: React.FC = () => {
 
       {articles.length > 0 && (
         <div className="overflow-hidden rounded-xl border border-emerald-500/30 bg-slate-950/80">
-          <div className="flex items-center gap-3 px-3 py-2">
-            <span className="shrink-0 inline-flex items-center gap-1 text-[10px] font-extrabold tracking-wider text-emerald-400 uppercase">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              Live
+          <style>{`
+            @keyframes tg-news-marquee {
+              0% { transform: translateX(0); }
+              100% { transform: translateX(-50%); }
+            }
+            .tg-news-marquee-track {
+              display: flex;
+              width: max-content;
+              animation: tg-news-marquee 45s linear infinite;
+            }
+            .tg-news-marquee-track:hover {
+              animation-play-state: paused;
+            }
+            @media (prefers-reduced-motion: reduce) {
+              .tg-news-marquee-track { animation: none; }
+            }
+          `}</style>
+          <div className="flex items-center gap-3 px-3 py-2.5">
+            <span className="shrink-0 inline-flex items-center gap-1.5 text-[11px] font-extrabold tracking-wider text-emerald-400 uppercase">
+              <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="font-black">LIVE</span>
             </span>
-            <div className="min-w-0 flex-1 overflow-x-auto">
-              <div className="flex gap-6 whitespace-nowrap pb-0.5">
-                {articles.slice(0, 12).map((a, i) => (
+            <div className="min-w-0 flex-1 overflow-hidden">
+              <div className="tg-news-marquee-track gap-8">
+                {[...articles.slice(0, 14), ...articles.slice(0, 14)].map((a, i) => (
                   <button
                     key={`${a.id}-tick-${i}`}
                     type="button"
                     onClick={() => a.sourceUrl && window.open(a.sourceUrl, '_blank', 'noopener,noreferrer')}
-                    className="text-[11px] text-slate-300 hover:text-cyan-300 transition-colors cursor-pointer"
+                    className="text-[11px] text-slate-300 hover:text-cyan-300 transition-colors cursor-pointer shrink-0"
                   >
                     <span className="text-slate-500 font-semibold">{a.publisher || a.author}</span>
                     <span className="mx-1.5 text-slate-600">·</span>
