@@ -82,13 +82,7 @@ export const NewsPillar: React.FC = () => {
       const data: NewsResponsePayload = await res.json();
       if (data.success && Array.isArray(data.articles) && data.articles.length > 0) {
         const cleaned = data.articles.map(sanitizeArticle);
-        const rank = (c: string) =>
-          c === 'leap_seconds' || c === 'dst' || c === 'astronomy' || c === 'timezones' || c === 'metrology'
-            ? 0
-            : c === 'technology'
-              ? 1
-              : 2;
-        cleaned.sort((a, b) => rank(a.category) - rank(b.category));
+        cleaned.sort((a, b) => (b.pubTimestamp || 0) - (a.pubTimestamp || 0));
         setArticles(cleaned);
         setHeadlineCount(cleaned.length);
         setFetchError(null);
@@ -147,7 +141,8 @@ export const NewsPillar: React.FC = () => {
     setCustomTopicInput(topicText);
     setActiveTopic(topicText);
     setSearchQuery(topicText);
-    fetchNewsFeed({ topic: topicText, category: selectedCategory, force: true });
+    setSelectedCategory('all');
+    fetchNewsFeed({ topic: topicText, category: 'all', force: true });
   };
 
   const handleClearTopic = () => {
@@ -182,13 +177,21 @@ export const NewsPillar: React.FC = () => {
     if (!matchesCat && selectedCategory === 'world') {
       matchesCat = art.category === 'world' || art.category === 'metrology';
     }
-    const q = searchQuery.toLowerCase();
-    const matchesSearch =
-      !q ||
-      art.title.toLowerCase().includes(q) ||
-      art.summary.toLowerCase().includes(q) ||
-      art.content.toLowerCase().includes(q) ||
-      art.author.toLowerCase().includes(q);
+    const q = searchQuery.toLowerCase().trim();
+    const topicMap: Record<string, string[]> = {
+      'leap second': ['leap second', 'leap-second', 'tai', 'bipm', 'iers', 'utc adjustment'],
+      'atomic clock': ['atomic clock', 'nist', 'caesium', 'cesium', 'timekeeping', 'frequency standard'],
+      'daylight saving': ['daylight saving', 'daylight-saving', 'dst', 'summer time', 'winter time', 'spring forward', 'fall back'],
+      'time zone': ['time zone', 'timezone', 'iana', 'utc offset', 'standard time'],
+      'astronomy': ['astronomy', 'nasa', 'eclipse', 'moon', 'mars', 'satellite', 'iss', 'astronaut', 'meteor'],
+      'eclipse': ['eclipse', 'solar eclipse', 'lunar eclipse', 'totality'],
+    };
+    let matchesSearch = !q;
+    if (q) {
+      const extras = topicMap[q] || [q];
+      const blob = (art.title + ' ' + art.summary + ' ' + art.content + ' ' + art.author).toLowerCase();
+      matchesSearch = extras.some((t) => blob.includes(t));
+    }
     return matchesCat && matchesSearch;
   });
 
@@ -269,7 +272,7 @@ export const NewsPillar: React.FC = () => {
               height: 100%;
               width: max-content;
               white-space: nowrap;
-              animation: tg-news-marquee 60s linear infinite;
+              animation: tg-news-marquee 28s linear infinite;
               will-change: transform;
             }
             .tg-ticker-track:hover {
@@ -299,7 +302,7 @@ export const NewsPillar: React.FC = () => {
           </div>
           <div className="tg-ticker-viewport">
             <div className="tg-ticker-track">
-              {[...articles, ...articles].map((a, i) => (
+              {[...articles, ...articles, ...articles].map((a, i) => (
                 <button
                   key={`${a.id}-tick-${i}`}
                   type="button"
@@ -396,8 +399,8 @@ export const NewsPillar: React.FC = () => {
       
       {!isRefreshing && filteredArticles.length === 0 && articles.length > 0 && (
         <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 px-4 py-8 text-center">
-          <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">No stories in this category right now</p>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Try All News, or another topic. Headlines refresh automatically.</p>
+          <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">No headlines matched this filter right now</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Rare topics (leap second, atomic clock) are often empty between news cycles. Try All News or clear search.</p>
           <button type="button" onClick={() => handleCategoryChange('all')} className="mt-3 text-xs font-semibold text-blue-600 dark:text-cyan-400 hover:underline cursor-pointer">Show all news</button>
         </div>
       )}
@@ -473,7 +476,7 @@ export const NewsPillar: React.FC = () => {
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-10 text-center space-y-3">
           <Newspaper className="w-10 h-10 text-slate-400 mx-auto" />
           <h3 className="text-lg font-bold text-slate-800 dark:text-slate-200">{articles.length === 0 ? 'No headlines loaded yet' : 'No Articles Match Filters'}</h3>
-          <p className="text-xs text-slate-500 max-w-md mx-auto">{articles.length === 0 ? 'Feeds may be slow. Click Force Live Sync to retry.' : 'No headlines match your search. Clear filters or try All News.'}</p>
+          <p className="text-xs text-slate-500 max-w-md mx-auto">{articles.length === 0 ? 'Feeds may be slow. Click Refresh to retry.' : 'No headlines match your search. Clear filters or try All News.'}</p>
           <button type="button" onClick={handleClearTopic} className="px-4 py-2 bg-blue-600 text-white text-xs font-semibold rounded-xl cursor-pointer">Clear search</button>
         </div>
       )}
