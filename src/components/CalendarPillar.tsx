@@ -1,4 +1,4 @@
-﻿import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   Calendar as CalendarIcon,
   Calculator,
@@ -525,15 +525,15 @@ export const CalendarPillar: React.FC = () => {
           <div>
             <div className="flex items-center gap-2 mb-1">
               <span className="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold uppercase tracking-wide bg-blue-100 dark:bg-blue-900/60 text-blue-700 dark:text-blue-300">
-                Pillar II ÔÇó Temporal Mathematics
+                Date tools
               </span>
             </div>
             <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2.5">
               <CalendarIcon className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-              <span>Calendar & date calculator</span>
+              <span>Date calculators</span>
             </h1>
             <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
-              Count days, weeks, and business days between two dates.
+              How many days, weeks, and working days fall between two dates?
             </p>
           </div>
 
@@ -604,7 +604,7 @@ export const CalendarPillar: React.FC = () => {
                 <div>
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-wider">
-                      Date range
+                      Select dates
                     </span>
                     <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-600 text-white font-bold animate-pulse">
                       Click two dates
@@ -612,8 +612,8 @@ export const CalendarPillar: React.FC = () => {
                   </div>
                   <p className="text-xs text-slate-600 dark:text-slate-300 mt-0.5">
                     {selectionStep === 'start'
-                      ? 'Click a day to set the start date.'
-                      : 'Click a day to set the end date.'}
+                      ? 'Choose a start date on the calendar.'
+                      : 'Choose an end date to see the full duration.'}
                   </p>
                 </div>
               </div>
@@ -631,7 +631,7 @@ export const CalendarPillar: React.FC = () => {
                   className="px-3 py-1.5 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-lg border border-slate-300 dark:border-slate-700 flex items-center gap-1.5 transition-all cursor-pointer"
                 >
                   <RotateCcw className="w-3.5 h-3.5 text-blue-500" />
-                  <span>Reset (+30 days)</span>
+                  <span>Reset (30 days)</span>
                 </button>
 
                 <button
@@ -643,7 +643,7 @@ export const CalendarPillar: React.FC = () => {
                   }}
                   className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-lg shadow-xs flex items-center gap-1.5 transition-all cursor-pointer"
                 >
-                  <span>Full calculation</span>
+                  <span>Detailed results</span>
                   <ArrowRight className="w-3.5 h-3.5" />
                 </button>
               </div>
@@ -682,7 +682,7 @@ export const CalendarPillar: React.FC = () => {
                 {/* 1. Exact Days */}
                 <div className="bg-slate-950/80 p-3.5 rounded-xl border border-slate-800/80">
                   <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1">
-                    <CalendarIcon className="w-3 h-3 text-blue-400" /> Total Calendar Days
+                    <CalendarIcon className="w-3 h-3 text-blue-400" /> Calendar days
                   </span>
                   <div className="mt-1.5 flex items-baseline gap-1.5">
                     <span className="text-2xl sm:text-3xl font-black font-mono text-white">
@@ -697,10 +697,10 @@ export const CalendarPillar: React.FC = () => {
                   </span>
                 </div>
 
-                {/* 2. Exact Weeks */}
+                {/* 2. Weeks */}
                 <div className="bg-slate-950/80 p-3.5 rounded-xl border border-slate-800/80">
                   <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1">
-                    <Clock className="w-3 h-3 text-indigo-400" /> Exact Weeks
+                    <Clock className="w-3 h-3 text-indigo-400" /> Weeks
                   </span>
                   <div className="mt-1.5 flex items-baseline gap-1.5">
                     <span className="text-2xl sm:text-3xl font-black font-mono text-indigo-300">
@@ -1126,7 +1126,7 @@ export const CalendarPillar: React.FC = () => {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-700 pb-3">
                 <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
                   <Calculator className="w-4 h-4 text-blue-600" />
-                  <span>Date Difference & Business Days Calculator</span>
+                  <span>Days between two dates</span>
                 </h3>
 
                 {/* Quick Preset Buttons */}
@@ -1191,7 +1191,7 @@ export const CalendarPillar: React.FC = () => {
 
                 <div>
                   <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
-                    Weekend Structure
+                    Weekends
                   </label>
                   <select
                     value={weekendPattern}
@@ -1207,7 +1207,7 @@ export const CalendarPillar: React.FC = () => {
 
                 <div>
                   <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
-                    Holiday Database
+                    Holiday country
                   </label>
                   <select
                     value={selectedCountryCode}
@@ -1235,7 +1235,7 @@ export const CalendarPillar: React.FC = () => {
                     onChange={(e) => setIncludeEndDate(e.target.checked)}
                     className="rounded text-blue-600 focus:ring-blue-500 w-4 h-4 cursor-pointer"
                   />
-                  <span>Include End Date (Inclusive Calculation, +1 day)</span>
+                  <span>Include end date</span>
                 </label>
 
                 <label className="flex items-center gap-2 cursor-pointer text-xs font-medium text-slate-700 dark:text-slate-300">
@@ -1245,17 +1245,17 @@ export const CalendarPillar: React.FC = () => {
                     onChange={(e) => setBetweenExcludeHolidays(e.target.checked)}
                     className="rounded text-blue-600 focus:ring-blue-500 w-4 h-4 cursor-pointer"
                   />
-                  <span>Exclude Public Holidays ({selectedCountryCode}) from Business Days</span>
+                  <span>Exclude public holidays ({selectedCountryCode}) from business days</span>
                 </label>
               </div>
             </div>
 
             {/* RESULTS METRICS GRID */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {/* Total Calendar Days */}
+              {/* Calendar days */}
               <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm text-center">
                 <span className="text-xs text-slate-500 uppercase font-extrabold tracking-wider block">
-                  Total Calendar Days
+                  Calendar days
                 </span>
                 <span className="block text-3xl sm:text-4xl font-black text-blue-600 dark:text-blue-400 mt-2 font-mono">
                   {betweenResult.totalDays} Days
@@ -1265,10 +1265,10 @@ export const CalendarPillar: React.FC = () => {
                 </span>
               </div>
 
-              {/* Total Exact Weeks */}
+              {/* Total Weeks */}
               <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm text-center">
                 <span className="text-xs text-slate-500 uppercase font-extrabold tracking-wider block">
-                  Exact Weeks
+                  Weeks
                 </span>
                 <span className="block text-3xl sm:text-4xl font-black text-indigo-600 dark:text-indigo-400 mt-2 font-mono">
                   {betweenResult.exactWeeks} Wks
@@ -1278,10 +1278,10 @@ export const CalendarPillar: React.FC = () => {
                 </span>
               </div>
 
-              {/* Net Business Days */}
+              {/* Business days */}
               <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm text-center">
                 <span className="text-xs text-slate-500 uppercase font-extrabold tracking-wider block">
-                  Net Business Days
+                  Business days
                 </span>
                 <span className="block text-3xl sm:text-4xl font-black text-emerald-600 dark:text-emerald-400 mt-2 font-mono">
                   {betweenResult.businessDays} Days
@@ -1294,7 +1294,7 @@ export const CalendarPillar: React.FC = () => {
               {/* Working Hours */}
               <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm text-center">
                 <span className="text-xs text-slate-500 uppercase font-extrabold tracking-wider block">
-                  Equivalent Hours
+                  Hours
                 </span>
                 <span className="block text-2xl sm:text-3xl font-black text-amber-600 dark:text-amber-400 mt-2 font-mono">
                   {betweenResult.workingHours.toLocaleString()} Hrs
@@ -1310,7 +1310,7 @@ export const CalendarPillar: React.FC = () => {
               <div className="bg-slate-50 dark:bg-slate-800/50 p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-slate-700">
                 <h4 className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 mb-3 flex items-center gap-2">
                   <Filter className="w-3.5 h-3.5 text-amber-500" />
-                  <span>Public Holidays Occurring in this Span ({betweenResult.holidaysList.length}):</span>
+                  <span>Public holidays in this range ({betweenResult.holidaysList.length}):</span>
                 </h4>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
