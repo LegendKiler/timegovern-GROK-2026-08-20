@@ -272,7 +272,7 @@ export const NewsPillar: React.FC = () => {
               height: 100%;
               width: max-content;
               white-space: nowrap;
-              animation: tg-news-marquee 25s linear infinite;
+              animation: tg-news-marquee 42s linear infinite;
               will-change: transform;
             }
             .tg-ticker-track:hover {
@@ -290,7 +290,7 @@ export const NewsPillar: React.FC = () => {
             }
             .tg-ticker-viewport::-webkit-scrollbar { display: none; }
             @media (prefers-reduced-motion: reduce) {
-              .tg-ticker-track { animation: tg-news-marquee 60s linear infinite; }
+              .tg-ticker-track { animation: tg-news-marquee 42s linear infinite; }
             }
           `}</style>
           <div className="shrink-0 flex items-center gap-2 px-3 sm:px-4 border-r border-zinc-800 z-10 bg-zinc-950">
