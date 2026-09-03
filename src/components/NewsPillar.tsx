@@ -179,7 +179,7 @@ export const NewsPillar: React.FC = () => {
   const getCategoryBadge = (category: string) => {
     switch (category) {
       case 'leap_seconds':
-        return { label: 'Leap Seconds & Metrology', icon: Clock, color: 'bg-amber-600/10 text-amber-700 dark:text-amber-300 border-amber-500/30' };
+        return { label: 'Leap seconds & UTC', icon: Clock, color: 'bg-amber-600/10 text-amber-700 dark:text-amber-300 border-amber-500/30' };
       case 'dst':
         return { label: 'Daylight Saving', icon: Compass, color: 'bg-emerald-600/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/30' };
       case 'astronomy':

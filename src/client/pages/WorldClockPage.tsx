@@ -54,7 +54,7 @@ export const WorldClockPage: React.FC<WorldClockPageProps> = ({
             <span>World Clock — Current Local Time Worldwide</span>
           </h1>
           <p className="text-xs text-[#627d98] mt-0.5">
-            Atomic clock synchronized with UTC/GMT standard. Showing 142,000+ locations and temporal hubs.
+            Times use standard UTC offsets from the IANA timezone database. Showing 142,000+ locations and temporal hubs.
           </p>
         </div>
 

@@ -382,7 +382,7 @@ export const LocalTimeBiasSyncCard: React.FC<LocalTimeBiasSyncCardProps> = ({
             </div>
 
             <p className="text-[11px] text-slate-400 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800/80 leading-relaxed">
-              <strong className="text-slate-200">Metrology Assessment:</strong> {report.recommendation}
+              <strong className="text-slate-200">Time accuracy check:</strong> {report.recommendation}
             </p>
           </div>
 

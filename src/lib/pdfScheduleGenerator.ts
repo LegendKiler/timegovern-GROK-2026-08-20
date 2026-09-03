@@ -98,7 +98,7 @@ export function generateMonthlyPdf(options: PdfScheduleOptions): jsPDF {
   if (removeBranding) {
     doc.text(companyLabel || 'PERSONAL CALENDAR SCHEDULE', marginX + 6, marginTop + 7);
   } else {
-    doc.text('TIMEGOVERN · PRECISION TEMPORAL SCHEDULE', marginX + 6, marginTop + 7);
+    doc.text('TIMEGOVERN · CALENDAR SCHEDULE', marginX + 6, marginTop + 7);
   }
 
   doc.setTextColor(255, 255, 255);

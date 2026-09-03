@@ -67,12 +67,12 @@ export const LEAP_SECOND_FAQS: FAQItem[] = [
     question: 'How is UTC+0 (Coordinated Universal Time) actually calculated and maintained?',
     shortAnswer: 'UTC is calculated monthly by the BIPM in France through a weighted ensemble of over 450 atomic clocks across 80 national metrology institutes, synchronized via satellite time transfers.',
     tags: ['BIPM', 'Circular T', 'Cesium-133', 'NIST', 'NPL', 'PTB'],
-    authority: 'Bureau International des Poids et Mesures (BIPM), S+¿vres, France',
+    authority: 'Bureau International des Poids et Mesures (BIPM), S+ï¿½vres, France',
     updatedDate: 'August 2026',
     detailedAnswer: (
       <div className="space-y-3 text-xs leading-relaxed text-slate-600 dark:text-slate-300">
         <p>
-          Unlike a physical master clock sitting in a room, <strong>UTC is a computed paper time scale</strong> generated retrospectively each month by the <strong>BIPM Time Department</strong> in S+¿vres, France.
+          Unlike a physical master clock sitting in a room, <strong>UTC is a computed paper time scale</strong> generated retrospectively each month by the <strong>BIPM Time Department</strong> in S+ï¿½vres, France.
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
           <div className="bg-slate-100 dark:bg-slate-950 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800">
@@ -229,7 +229,7 @@ export const LEAP_SECOND_FAQS: FAQItem[] = [
                 <td className="p-2 font-bold text-blue-600 dark:text-cyan-400">UT1</td>
                 <td className="p-2 text-slate-600 dark:text-slate-400 font-sans">Earth Rotation Angle</td>
                 <td className="p-2 text-slate-500 font-sans">Continuous Natural</td>
-                <td className="p-2 text-slate-800 dark:text-slate-200">DUT1 Ôëê +0.038s</td>
+                <td className="p-2 text-slate-800 dark:text-slate-200">DUT1 ï¿½ï¿½ï¿½ +0.038s</td>
               </tr>
               <tr>
                 <td className="p-2 font-bold text-emerald-600 dark:text-emerald-400">TAI</td>
@@ -259,7 +259,7 @@ export const LEAP_SECOND_FAQS: FAQItem[] = [
     id: 'post-2035-astronomical-drift',
     category: 'future-2035',
     question: 'If leap seconds end in 2035, will the Sun eventually rise at night?',
-    shortAnswer: 'No. At EarthÔÇÖs current deceleration rate (~1.7ms/century), it will take over 5,000 years for the difference to accumulate to a single hour.',
+    shortAnswer: 'No. At Earthï¿½ï¿½ï¿½s current deceleration rate (~1.7ms/century), it will take over 5,000 years for the difference to accumulate to a single hour.',
     tags: ['Solar Noon', '2135', 'Sun Drift', 'Astronomy', 'Long Term'],
     authority: 'Royal Astronomical Society (RAS) & US Naval Observatory',
     updatedDate: 'August 2026',
@@ -269,7 +269,7 @@ export const LEAP_SECOND_FAQS: FAQItem[] = [
           A common misconception is that abolishing leap seconds will quickly desynchronize civil clocks from the day-night cycle.
         </p>
         <p>
-          In reality, the divergence between atomic time and true solar noon accumulates at approximately <strong>0.5 to 1 second per year</strong>. Over a span of <strong>100 years</strong>, the difference between clock noon and solar noon will be less than <strong>1.5 minutes</strong>ÔÇöfar less than the 60-minute seasonal shift caused by Daylight Saving Time.
+          In reality, the divergence between atomic time and true solar noon accumulates at approximately <strong>0.5 to 1 second per year</strong>. Over a span of <strong>100 years</strong>, the difference between clock noon and solar noon will be less than <strong>1.5 minutes</strong>ï¿½ï¿½ï¿½far less than the 60-minute seasonal shift caused by Daylight Saving Time.
         </p>
         <div className="bg-slate-100 dark:bg-slate-950 p-3 rounded-xl border border-slate-200 dark:border-slate-800">
           <span className="font-bold text-slate-900 dark:text-white block mb-1">The 100-Year Re-evaluation Clause:</span>
@@ -290,7 +290,7 @@ export const LeapSecondFAQ: React.FC = () => {
   const categories = [
     { id: 'all', label: 'All Topics', icon: Layers, count: LEAP_SECOND_FAQS.length },
     { id: 'future-2035', label: '2035 Deprecation & Future', icon: ShieldCheck, count: LEAP_SECOND_FAQS.filter(f => f.category === 'future-2035').length },
-    { id: 'utc-maintenance', label: 'UTC+0 & Metrology', icon: Clock, count: LEAP_SECOND_FAQS.filter(f => f.category === 'utc-maintenance').length },
+    { id: 'utc-maintenance', label: 'UTC & standards', icon: Clock, count: LEAP_SECOND_FAQS.filter(f => f.category === 'utc-maintenance').length },
     { id: 'physics-earth', label: 'Earth Physics & Rotation', icon: Globe, count: LEAP_SECOND_FAQS.filter(f => f.category === 'physics-earth').length },
     { id: 'infrastructure-tech', label: 'Tech, NTP & GNSS', icon: Cpu, count: LEAP_SECOND_FAQS.filter(f => f.category === 'infrastructure-tech').length },
   ];
@@ -340,7 +340,7 @@ export const LeapSecondFAQ: React.FC = () => {
             </div>
             <div>
               <h3 className="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
-                Leap Seconds & Metrology Knowledge Base
+                Leap seconds FAQ
               </h3>
               <p className="text-xs text-slate-500 dark:text-slate-400">
                 Expert-curated answers on CGPM Resolution 4, 2035 deprecation, BIPM UTC+0 maintenance, and planetary rotation.

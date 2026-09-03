@@ -81,19 +81,19 @@ export const companyContent = {
   engineeringPillars: [
     {
       id: 'metrology',
-      title: 'Precision Metrology',
+      title: 'Accurate time',
       text: 'Clear UTC offsets, drift awareness and careful daylight-saving handling so teams plan on the same clock.',
       icon: 'precision',
     },
     {
       id: 'resilience',
-      title: 'Enterprise Resilience',
+      title: 'Built for teams',
       text: 'World clocks, meeting planners and calculators built to stay usable for distributed teams under everyday load.',
       icon: 'resilience',
     },
     {
       id: 'governance',
-      title: 'Open Governance',
+      title: 'Clear policies',
       text: 'Transparent policies, Australian-facing legal copy, and free core tools without locking essential time features behind paywalls.',
       icon: 'governance',
     },
@@ -102,8 +102,8 @@ export const companyContent = {
   ethosQuote: {
     quote:
       'Time is not a footnote in modern systems — it is a structural variable. When clocks disagree, everything downstream becomes a negotiation.',
-    attribution: 'TimeGovern Engineering Ethos',
-    role: 'Melbourne · Global temporal tools',
+    attribution: 'TimeGovern',
+    role: 'Melbourne · Global time tools',
   },
 
   podcast: {

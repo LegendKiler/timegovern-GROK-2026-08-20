@@ -1420,7 +1420,7 @@ export const AtomicTelemetryWidget: React.FC = () => {
               <div>
                 <h4 className="font-bold text-slate-200 flex items-center gap-2">
                   <Cpu className="w-4 h-4 text-purple-400" />
-                  Quantum Metrology: Allan Deviation vs Averaging Time (τ)
+                  Clock stability: Allan deviation vs averaging time
                 </h4>
                 <p className="text-[11px] text-slate-400 mt-0.5">
                   Comparing Strontium optical lattice clocks ($8 \times 10^{-19}$) vs Cesium-133 microwave fountains ($10^{-16}$) for the 2030 SI second redefinition.
@@ -1686,7 +1686,7 @@ export const AtomicTelemetryWidget: React.FC = () => {
         )}
       </div>
 
-      {/* 5. Atomic Metrology Principles Explainer Bar */}
+      {/* 5. How precise clocks work */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
         <div className="bg-slate-950/80 border border-slate-800 p-3.5 rounded-xl space-y-1">
           <span className="text-[10px] uppercase font-bold text-cyan-400 flex items-center gap-1">
