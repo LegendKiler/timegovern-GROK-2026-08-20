@@ -176,7 +176,7 @@ export const NewsPillar: React.FC = () => {
     let matchesCat = selectedCategory === 'all' || art.category === selectedCategory;
     if (!matchesCat && selectedCategory !== 'all' && selectedCategory !== 'world') {
       const re = categoryKeywords[selectedCategory];
-      const blob = \ \ \;
+      const blob = `${art.title} ${art.summary} ${art.content}`;
       if (re && re.test(blob)) matchesCat = true;
     }
     if (!matchesCat && selectedCategory === 'world') {
