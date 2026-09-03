@@ -243,50 +243,72 @@ export const NewsPillar: React.FC = () => {
       </div>
 
       {articles.length > 0 && (
-        <div className="w-full overflow-hidden rounded-lg border border-zinc-800 bg-zinc-950 shadow-md">
+        <div
+          className="w-full h-11 overflow-hidden rounded-lg border border-zinc-800 bg-zinc-950 shadow-md flex items-stretch"
+          aria-label="Live headlines ticker"
+        >
           <style>{`
             @keyframes tg-news-marquee {
               0% { transform: translateX(0); }
               100% { transform: translateX(-50%); }
             }
-            .tg-news-marquee-track {
-              display: flex;
+            .tg-ticker-viewport {
+              flex: 1 1 0%;
+              min-width: 0;
+              overflow: hidden;
+              position: relative;
+            }
+            .tg-ticker-track {
+              display: inline-flex;
+              flex-direction: row;
+              flex-wrap: nowrap;
               align-items: center;
+              height: 100%;
               width: max-content;
-              animation: tg-news-marquee 55s linear infinite;
+              white-space: nowrap;
+              animation: tg-news-marquee 60s linear infinite;
               will-change: transform;
             }
-            .tg-news-marquee-track:hover {
+            .tg-ticker-track:hover {
               animation-play-state: paused;
             }
+            .tg-ticker-item {
+              display: inline-flex;
+              flex-shrink: 0;
+              align-items: center;
+              gap: 0.5rem;
+              padding: 0 0.75rem;
+              height: 100%;
+              white-space: nowrap;
+              max-width: none;
+            }
+            .tg-ticker-viewport::-webkit-scrollbar { display: none; }
             @media (prefers-reduced-motion: reduce) {
-              .tg-news-marquee-track { animation: none; flex-wrap: wrap; width: 100%; }
+              .tg-ticker-track { animation: none; transform: none; }
             }
           `}</style>
-          <div className="flex items-stretch min-h-[44px]">
-            <div className="shrink-0 flex items-center gap-2 px-3 sm:px-4 bg-zinc-950 border-r border-zinc-800 z-10">
-              <span className="relative flex h-2.5 w-2.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-600" />
-              </span>
-              <span className="text-red-500 font-black text-sm sm:text-base tracking-tight uppercase">LIVE</span>
-            </div>
-            <div className="min-w-0 flex-1 overflow-hidden flex items-center bg-zinc-950">
-              <div className="tg-news-marquee-track px-2">
-                {[...articles, ...articles].map((a, i) => (
-                  <button
-                    key={`${a.id}-tick-${i}`}
-                    type="button"
-                    onClick={() => a.sourceUrl && window.open(a.sourceUrl, '_blank', 'noopener,noreferrer')}
-                    className="inline-flex items-center gap-3 shrink-0 px-3 text-[13px] sm:text-sm text-zinc-100 hover:text-white transition-colors cursor-pointer"
-                  >
-                    <span className="text-zinc-500 font-semibold shrink-0">{a.publisher || a.author || 'News'}</span>
-                    <span className="text-zinc-600 select-none" aria-hidden>■</span>
-                    <span className="font-medium whitespace-nowrap">{a.title}</span>
-                    <span className="text-zinc-600 select-none mx-1" aria-hidden>|</span>
-                  </button>
-                ))}
-              </div>
+          <div className="shrink-0 flex items-center gap-2 px-3 sm:px-4 border-r border-zinc-800 z-10 bg-zinc-950">
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-600" />
+            </span>
+            <span className="text-red-500 font-black text-sm tracking-tight uppercase">LIVE</span>
+          </div>
+          <div className="tg-ticker-viewport">
+            <div className="tg-ticker-track">
+              {[...articles, ...articles].map((a, i) => (
+                <button
+                  key={`${a.id}-tick-${i}`}
+                  type="button"
+                  onClick={() => a.sourceUrl && window.open(a.sourceUrl, '_blank', 'noopener,noreferrer')}
+                  className="tg-ticker-item text-[13px] text-zinc-100 hover:text-white transition-colors cursor-pointer bg-transparent border-0"
+                >
+                  <span className="text-zinc-500 font-semibold">{a.publisher || a.author || 'News'}</span>
+                  <span className="text-zinc-600 select-none" aria-hidden>■</span>
+                  <span className="font-medium">{a.title}</span>
+                  <span className="text-zinc-600 select-none" aria-hidden>|</span>
+                </button>
+              ))}
             </div>
           </div>
         </div>
