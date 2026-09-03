@@ -6,7 +6,7 @@ import {
   Tag,
   Globe,
   Search,
-          <RefreshCw className={"w-3.5 h-3.5" + (isRefreshing ? " animate-spin" : "")} />
+  RefreshCw,
   CheckCircle2,
   ExternalLink,
   ShieldCheck,
@@ -176,7 +176,7 @@ export const NewsPillar: React.FC = () => {
     let matchesCat = selectedCategory === 'all' || art.category === selectedCategory;
     if (!matchesCat && selectedCategory !== 'all' && selectedCategory !== 'world') {
       const re = categoryKeywords[selectedCategory];
-      const blob = `${art.title} ${art.summary} ${art.content}`;
+      const blob = art.title + " " + art.summary + " " + art.content;
       if (re && re.test(blob)) matchesCat = true;
     }
     if (!matchesCat && selectedCategory === 'world') {
