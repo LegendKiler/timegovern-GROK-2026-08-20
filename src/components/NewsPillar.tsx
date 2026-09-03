@@ -244,7 +244,7 @@ export const NewsPillar: React.FC = () => {
           title="Refresh headlines"
         >
           <RefreshCw className={"w-3.5 h-3.5" + (isRefreshing ? " animate-spin" : "")} />
-          <span className="hidden sm:inline">{isRefreshing ? 'Refreshing…' : 'Refresh'}</span>
+          <span className="sr-only">{isRefreshing ? 'Refreshing' : 'Refresh headlines'}</span>
         </button>
       </div>
 
@@ -255,8 +255,8 @@ export const NewsPillar: React.FC = () => {
         >
           <style>{`
             @keyframes tg-news-marquee {
-              0% { transform: translateX(0); }
-              100% { transform: translateX(-50%); }
+              0% { transform: translate3d(0,0,0); }
+              100% { transform: translate3d(-33.333%,0,0); }
             }
             .tg-ticker-viewport {
               flex: 1 1 0%;
@@ -272,7 +272,7 @@ export const NewsPillar: React.FC = () => {
               height: 100%;
               width: max-content;
               white-space: nowrap;
-              animation: tg-news-marquee 28s linear infinite;
+              animation: tg-news-marquee 25s linear infinite;
               will-change: transform;
             }
             .tg-ticker-track:hover {
@@ -290,7 +290,7 @@ export const NewsPillar: React.FC = () => {
             }
             .tg-ticker-viewport::-webkit-scrollbar { display: none; }
             @media (prefers-reduced-motion: reduce) {
-              .tg-ticker-track { animation: none; transform: none; }
+              .tg-ticker-track { animation: tg-news-marquee 60s linear infinite; }
             }
           `}</style>
           <div className="shrink-0 flex items-center gap-2 px-3 sm:px-4 border-r border-zinc-800 z-10 bg-zinc-950">
