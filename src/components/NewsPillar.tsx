@@ -158,14 +158,30 @@ export const NewsPillar: React.FC = () => {
   };
 
   const copyArticleCitation = (article: GroundedArticle) => {
-    const citation = `"${article.title}". ${article.publisher || article.author} (${article.date}). Retrieved via TimeGovern Free Live News: ${article.sourceUrl}`;
+    const citation = `"${article.title}". ${article.publisher || article.author} (${article.date}). Retrieved via TimeGovern News: ${article.sourceUrl}`;
     navigator.clipboard.writeText(citation);
     setCopiedId(article.id);
     setTimeout(() => setCopiedId(null), 2500);
   };
 
+  const categoryKeywords: Record<string, RegExp> = {
+    leap_seconds: /leap second|atomic clock|\\btai\\b|bipm|utc adjustment/i,
+    dst: /daylight saving|\\bdst\\b|summer time|winter time|clocks? (forward|back)|spring forward|fall back/i,
+    astronomy: /eclipse|nasa|astronomy|\\bmoon\\b|\\bmars\\b|satellite|\\biss\\b|astronaut|space telescope|meteor/i,
+    timezones: /time zone|timezone|iana|utc offset|\\bzulu\\b|standard time/i,
+    technology: /\\bai\\b|artificial intelligence|quantum|semiconductor|cyber|software|chip\\b|startup/i,
+  };
+
   const filteredArticles = articles.filter((art) => {
-    const matchesCat = selectedCategory === 'all' || art.category === selectedCategory;
+    let matchesCat = selectedCategory === 'all' || art.category === selectedCategory;
+    if (!matchesCat && selectedCategory !== 'all' && selectedCategory !== 'world') {
+      const re = categoryKeywords[selectedCategory];
+      const blob = \ \ \;
+      if (re && re.test(blob)) matchesCat = true;
+    }
+    if (!matchesCat && selectedCategory === 'world') {
+      matchesCat = art.category === 'world' || art.category === 'metrology';
+    }
     const q = searchQuery.toLowerCase();
     const matchesSearch =
       !q ||
@@ -179,67 +195,54 @@ export const NewsPillar: React.FC = () => {
   const getCategoryBadge = (category: string) => {
     switch (category) {
       case 'leap_seconds':
-        return { label: 'Leap seconds & UTC', icon: Clock, color: 'bg-amber-600/10 text-amber-700 dark:text-amber-300 border-amber-500/30' };
+        return { label: 'Leap seconds', icon: Clock, color: 'bg-amber-600/10 text-amber-700 dark:text-amber-300 border-amber-500/30' };
       case 'dst':
         return { label: 'Daylight Saving', icon: Compass, color: 'bg-emerald-600/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/30' };
       case 'astronomy':
-        return { label: 'Astronomy & Space', icon: Orbit, color: 'bg-purple-600/10 text-purple-700 dark:text-purple-300 border-purple-500/30' };
+        return { label: 'Astronomy', icon: Orbit, color: 'bg-purple-600/10 text-purple-700 dark:text-purple-300 border-purple-500/30' };
       case 'timezones':
-        return { label: 'Time Zones & IANA', icon: Globe, color: 'bg-blue-600/10 text-blue-700 dark:text-blue-300 border-blue-500/30' };
+        return { label: 'Time zones', icon: Globe, color: 'bg-blue-600/10 text-blue-700 dark:text-blue-300 border-blue-500/30' };
       case 'technology':
-        return { label: 'Quantum Tech', icon: Cpu, color: 'bg-cyan-600/10 text-cyan-700 dark:text-cyan-300 border-cyan-500/30' };
+        return { label: 'Tech', icon: Cpu, color: 'bg-cyan-600/10 text-cyan-700 dark:text-cyan-300 border-cyan-500/30' };
       case 'world':
-        return { label: 'World News', icon: Globe, color: 'bg-sky-600/10 text-sky-700 dark:text-sky-300 border-sky-500/30' };
+        return { label: 'World', icon: Globe, color: 'bg-sky-600/10 text-sky-700 dark:text-sky-300 border-sky-500/30' };
       default:
-        return { label: 'SI Standards', icon: Atom, color: 'bg-indigo-600/10 text-indigo-700 dark:text-indigo-300 border-indigo-500/30' };
+        return { label: 'Other', icon: Atom, color: 'bg-indigo-600/10 text-indigo-700 dark:text-indigo-300 border-indigo-500/30' };
     }
   };
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
-      <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-lg text-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="space-y-1.5">
-          <div className="flex flex-wrap items-center gap-2.5">
-            <span className="flex h-2.5 w-2.5 relative">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
-            </span>
-            <span className="font-bold text-cyan-300 text-sm tracking-wide flex items-center gap-1.5">
-              <Sparkles className="w-4 h-4 text-cyan-400" />
-              Free Live News
-            </span>
-            {isGrounded && (
-              <span className="inline-flex items-center gap-1.5 bg-emerald-500/20 text-emerald-300 border border-emerald-400/50 text-[11px] font-bold px-2.5 py-1 rounded-full">
-                <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400" />
-                </span>
-                <span className="font-black tracking-wide">LIVE</span>
+      {/* Quiet status — auto-refresh */}
+      <div className="flex flex-wrap items-center justify-between gap-2 px-1">
+        <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+          {isGrounded && (
+            <span className="inline-flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-semibold">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
               </span>
-            )}
-            {headlineCount > 0 && (
-              <span className="text-[11px] text-slate-300 font-semibold tabular-nums">{headlineCount} stories</span>
-            )}
-          </div>
-          <p className="text-xs text-slate-300">
-            Updates about every 30 seconds while this section is open. Tap a story to read the original article.
-          </p>
+              LIVE
+            </span>
+          )}
+          {headlineCount > 0 && (
+            <span className="tabular-nums">{headlineCount} stories</span>
+          )}
+          <span className="text-slate-400 dark:text-slate-500">·</span>
+          <span title="Headlines refresh while this section is open">
+            Updated {lastSyncTime}
+          </span>
         </div>
-        <div className="flex flex-wrap items-center gap-3 shrink-0">
-          <div className="text-right hidden sm:block" title="When headlines were last refreshed">
-            <span className="text-[10px] text-slate-500 block">Updated</span>
-            <span className="text-xs font-medium text-slate-300 tabular-nums">{lastSyncTime}</span>
-          </div>
-          <button
-            type="button"
-            onClick={() => fetchNewsFeed({ category: selectedCategory, topic: activeTopic, force: true })}
-            disabled={isRefreshing}
-            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-semibold text-xs rounded-xl shadow-md transition-all cursor-pointer disabled:opacity-50"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
-            <span>{isRefreshing ? 'Updating…' : 'Force Live Sync'}</span>
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={() => fetchNewsFeed({ category: selectedCategory, topic: activeTopic, force: true })}
+          disabled={isRefreshing}
+          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-medium text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer disabled:opacity-50"
+          title="Refresh headlines"
+        >
+          <RefreshCw className={\w-3.5 h-3.5 \} />
+          <span className="hidden sm:inline">{isRefreshing ? 'Refreshing…' : 'Refresh'}</span>
+        </button>
       </div>
 
       {articles.length > 0 && (
@@ -319,9 +322,9 @@ export const NewsPillar: React.FC = () => {
           <div>
             <h1 className="text-2xl font-bold font-display text-slate-900 dark:text-white flex items-center gap-2.5">
               <Newspaper className="w-6 h-6 text-blue-600 dark:text-cyan-400" />
-              Live News — Time, Astronomy & World
+              News
             </h1>
-            <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">DST, leap seconds, astronomy, time zones & world headlines.</p>
+            <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">Latest on time zones, daylight saving, astronomy, and world headlines.</p>
           </div>
           <form onSubmit={handleCustomTopicSearch} className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full">
             <div className="relative flex-1">
@@ -346,9 +349,6 @@ export const NewsPillar: React.FC = () => {
               <button type="button" onClick={handleClearTopic} className="px-3 py-2.5 text-xs font-semibold text-rose-500 hover:bg-rose-500/10 rounded-xl cursor-pointer shrink-0">Clear</button>
             )}
           </form>
-          <p className="text-[11px] text-slate-500 dark:text-slate-400 -mt-2">
-            Typing filters stories on this page. <span className="font-semibold text-slate-600 dark:text-slate-300">Search feed</span> pulls matching topics from live sources.
-          </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2 pt-1 border-t border-slate-100 dark:border-slate-800 text-xs">
@@ -393,7 +393,16 @@ export const NewsPillar: React.FC = () => {
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      
+      {!isRefreshing && filteredArticles.length === 0 && articles.length > 0 && (
+        <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 px-4 py-8 text-center">
+          <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">No stories in this category right now</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Try All News, or another topic. Headlines refresh automatically.</p>
+          <button type="button" onClick={() => handleCategoryChange('all')} className="mt-3 text-xs font-semibold text-blue-600 dark:text-cyan-400 hover:underline cursor-pointer">Show all news</button>
+        </div>
+      )}
+
+<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {filteredArticles.map((article) => {
           const badge = getCategoryBadge(article.category);
           const IconComp = badge.icon;
