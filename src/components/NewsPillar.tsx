@@ -149,7 +149,8 @@ export const NewsPillar: React.FC = () => {
     if (!q) return;
     setActiveTopic(q);
     setSearchQuery(q);
-    fetchNewsFeed({ topic: q, category: selectedCategory, force: true });
+    setSelectedCategory('all');
+    fetchNewsFeed({ topic: q, category: 'all', force: true });
   };
 
   const handleQuickTopicClick = (topicText: string) => {
@@ -414,9 +415,22 @@ export const NewsPillar: React.FC = () => {
       
       {!isRefreshing && filteredArticles.length === 0 && articles.length > 0 && (
         <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 px-4 py-8 text-center">
-          <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">No headlines matched this filter right now</p>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Rare topics (leap second, atomic clock) are often empty between news cycles. Try All News or clear search.</p>
-          <button type="button" onClick={() => handleCategoryChange('all')} className="mt-3 text-xs font-semibold text-blue-600 dark:text-cyan-400 hover:underline cursor-pointer">Show all news</button>
+          <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+            {searchQuery.trim()
+              ? ('No headlines matched "' + searchQuery.trim() + '" right now')
+              : selectedCategory !== 'all'
+                ? 'No headlines in this category right now'
+                : 'No headlines matched this filter right now'}
+          </p>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+            Rare topics (leap second, atomic clock) are often empty between news cycles. Try All News or clear search.
+          </p>
+          <div className="mt-3 flex flex-wrap items-center justify-center gap-3">
+            {(searchQuery || activeTopic) && (
+              <button type="button" onClick={handleClearTopic} className="text-xs font-semibold text-rose-500 hover:underline cursor-pointer">Clear search</button>
+            )}
+            <button type="button" onClick={() => { handleClearTopic(); handleCategoryChange('all'); }} className="text-xs font-semibold text-blue-600 dark:text-cyan-400 hover:underline cursor-pointer">Show all news</button>
+          </div>
         </div>
       )}
 
@@ -491,7 +505,7 @@ export const NewsPillar: React.FC = () => {
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-10 text-center space-y-3">
           <Newspaper className="w-10 h-10 text-slate-400 mx-auto" />
           <h3 className="text-lg font-bold text-slate-800 dark:text-slate-200">{articles.length === 0 ? 'No headlines loaded yet' : 'No Articles Match Filters'}</h3>
-          <p className="text-xs text-slate-500 max-w-md mx-auto">{articles.length === 0 ? 'Feeds may be slow. Click Refresh to retry.' : 'No headlines match your search. Clear filters or try All News.'}</p>
+          <p className="text-xs text-slate-500 max-w-md mx-auto">{articles.length === 0 ? 'Feeds may be slow. Click Refresh to retry.' : 'No headlines match your search or topic. Clear search or open All News.'}</p>
           <button type="button" onClick={handleClearTopic} className="px-4 py-2 bg-blue-600 text-white text-xs font-semibold rounded-xl cursor-pointer">Clear search</button>
         </div>
       )}
