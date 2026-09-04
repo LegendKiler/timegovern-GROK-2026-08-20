@@ -1,8 +1,8 @@
-/**
- * Theme feature flags — light mode is disabled in product for now.
- * Code paths remain so we can re-enable later without rewriting.
+﻿/**
+ * Theme feature flags — light mode is DISABLED (P0-3).
+ * Product stays dark-only until light surfaces are fully rebuilt.
  *
- * To turn light mode + toggle back on:
+ * Re-enable later:
  *   export const LIGHT_MODE_ENABLED = true;
  */
 export const LIGHT_MODE_ENABLED = false;
