@@ -187,7 +187,7 @@ export const WorldClockPillar: React.FC<WorldClockPillarProps> = ({
     <div className="space-y-4 max-w-7xl mx-auto">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
-          <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+          <h2 className="sr-only">
             <Clock className="w-5 h-5 text-cyan-500" />
             World Clock
           </h2>
