@@ -42,7 +42,7 @@ interface CacheEntry {
 }
 
 const newsCache = new Map<string, CacheEntry>();
-const CACHE_TTL_MS = 30 * 1000;
+const CACHE_TTL_MS = 90 * 1000;
 
 const RSS_FEEDS = [
   {
@@ -254,7 +254,7 @@ function fallbackArticles(): GroundedArticle[] {
   ];
 }
 
-async function fetchWithTimeout(url: string, ms = 12000): Promise<Response> {
+async function fetchWithTimeout(url: string, ms = 8000): Promise<Response> {
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), ms);
   try {
@@ -271,7 +271,7 @@ async function fetchOneFeed(feed: (typeof RSS_FEEDS)[0]): Promise<GroundedArticl
   const urls = [feed.url, `https://api.allorigins.win/raw?url=${encodeURIComponent(feed.url)}`];
   for (const url of urls) {
     try {
-      const res = await fetchWithTimeout(url, 14000);
+      const res = await fetchWithTimeout(url, 8000);
       if (!res.ok) continue;
       const xml = await res.text();
       if (!xml.includes('<item') && !xml.includes('<entry')) continue;
@@ -365,7 +365,7 @@ export async function handleNews(request: Request): Promise<Response> {
   return new Response(JSON.stringify(payload), {
     headers: {
       'Content-Type': 'application/json',
-      'Cache-Control': 'public, max-age=30',
+      'Cache-Control': 'public, max-age=60, stale-while-revalidate=120',
     },
   });
 }

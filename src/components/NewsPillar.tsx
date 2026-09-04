@@ -85,6 +85,9 @@ export const NewsPillar: React.FC = () => {
         cleaned.sort((a, b) => (b.pubTimestamp || 0) - (a.pubTimestamp || 0));
         setArticles(cleaned);
         setHeadlineCount(cleaned.length);
+        try {
+          sessionStorage.setItem('tg-news-cache-v1', JSON.stringify({ at: Date.now(), articles: cleaned.slice(0, 40) }));
+        } catch (_) {}
         setFetchError(null);
         setIsGrounded(!!data.grounded);
         if (data.model) setActiveModel(data.model);
@@ -106,6 +109,18 @@ export const NewsPillar: React.FC = () => {
   };
 
   useEffect(() => {
+    // P0-1: show last headlines immediately from session, then refresh in background
+    try {
+      const raw = sessionStorage.getItem('tg-news-cache-v1');
+      if (raw) {
+        const parsed = JSON.parse(raw) as { at?: number; articles?: GroundedArticle[] };
+        if (Array.isArray(parsed.articles) && parsed.articles.length > 0) {
+          setArticles(parsed.articles.map(sanitizeArticle));
+          setHeadlineCount(parsed.articles.length);
+          setLastSyncTime('Cached');
+        }
+      }
+    } catch (_) {}
     fetchNewsFeed();
     const tick = () => {
       if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return;
