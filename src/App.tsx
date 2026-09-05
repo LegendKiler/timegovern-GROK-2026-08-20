@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, Suspense, lazy } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { fetchBillingStatus, getLocalEntitlements } from './lib/billing';
 import { Header } from './components/Header';
 import { AdBanner } from './components/AdBanner';
@@ -25,6 +25,7 @@ const EnterpriseServicesPillar = lazy(() => import('./components/EnterpriseServi
 const NewsPillar = lazy(() => import('./components/NewsPillar').then(m => ({ default: m.NewsPillar })));
 const CalculatorsPillar = lazy(() => import('./components/CalculatorsPillar').then(m => ({ default: m.CalculatorsPillar })));
 const CompanyPillar = lazy(() => import('./components/CompanyPillar').then(m => ({ default: m.CompanyPillar })));
+const CountryCodesPillar = lazy(() => import('./components/CountryCodesPillar').then(m => ({ default: m.CountryCodesPillar })));
 
 const ArchitectureModal = lazy(() => import('./components/ArchitectureModal').then(m => ({ default: m.ArchitectureModal })));
 const QrModal = lazy(() => import('./components/QrModal').then(m => ({ default: m.QrModal || m.default })));

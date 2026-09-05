@@ -1,7 +1,7 @@
-﻿import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Search, Star, Moon, Sun, Keyboard, QrCode, User, Shield, Layers,
-  Clock, Calendar, CloudSun, Timer, Activity, Code2, Newspaper, Calculator, Building2,
+  Clock, Calendar, CloudSun, Timer, Activity, Code2, Newspaper, Calculator, Building2, Phone,
 } from 'lucide-react';
 import { City } from '../types';
 import { searchCities } from '../lib/citiesData';
@@ -34,6 +34,7 @@ const NAV: { id: number; label: string; icon: React.ElementType }[] = [
   { id: 9, label: 'News', icon: Newspaper },
   { id: 10, label: 'Calculators', icon: Calculator },
   { id: 11, label: 'Company', icon: Building2 },
+  { id: 12, label: 'Country codes', icon: Phone },
 ];
 
 export const Header: React.FC<HeaderProps> = ({
