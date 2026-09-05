@@ -1,4 +1,4 @@
-import React, { useState, useEffect, Suspense, lazy } from 'react';
+﻿import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { fetchBillingStatus, getLocalEntitlements } from './lib/billing';
 import { Header } from './components/Header';
 import { AdBanner } from './components/AdBanner';
@@ -75,6 +75,18 @@ export default function App() {
     setShowShortcutsModal,
     onToast: setShortcutToast,
   });
+
+  useEffect(() => {
+    const raw = new URLSearchParams(window.location.search).get("pillar");
+    if (!raw) return;
+    const key = raw.toLowerCase().trim();
+    const map: Record<string, number> = {
+      "world-clock": 1, calendar: 2, astronomy: 3, "sun-moon": 3, weather: 4, timers: 5,
+      "live-data": 6, widgets: 7, services: 8, api: 8, news: 9, calculators: 10, company: 11,
+      "country-codes": 12, "country-code": 12, countries: 12,
+    };
+    if (map[key]) setActivePillar(map[key]);
+  }, []);
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -239,3 +251,5 @@ export default function App() {
     </div>
   );
 }
+
+

@@ -5,10 +5,10 @@
 import React from 'react';
 import {
   Clock, Calendar, Sun, CloudRain, Timer, Activity, Code, Layers,
-  Newspaper, Calculator, Building2,
+  Newspaper, Calculator, Building2, Phone,
 } from 'lucide-react';
 
-export type PillarId = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11;
+export type PillarId = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12;
 
 interface Accent {
   label: string;
@@ -115,10 +115,19 @@ const ACCENTS: Record<PillarId, Accent> = {
     label: 'Company',
     title: 'Company',
     subtitle: 'About TimeGovern, contact, legal, trust, and careers.',
-    Icon: Building2,
+    Icon: Building2, Phone,
     rail: 'from-indigo-400 via-slate-400 to-indigo-300',
     chip: 'bg-indigo-100 text-indigo-950 border-indigo-300 dark:bg-indigo-500/15 dark:text-slate-100 dark:border-indigo-400/30',
     glow: 'shadow-indigo-500/10',
+  },
+  12: {
+    label: 'Country codes',
+    title: 'Country calling codes',
+    subtitle: 'International dial codes and ISO country codes — search by name, +code, or ISO.',
+    Icon: Phone,
+    rail: 'from-emerald-500 via-teal-400 to-cyan-400',
+    chip: 'bg-emerald-100 text-emerald-900 border-emerald-300 dark:bg-emerald-500/20 dark:text-emerald-100 dark:border-emerald-400/40',
+    glow: 'shadow-emerald-500/10',
   },
 };
 
@@ -174,3 +183,4 @@ export const PillarChrome: React.FC<PillarChromeProps> = ({
 };
 
 export default PillarChrome;
+

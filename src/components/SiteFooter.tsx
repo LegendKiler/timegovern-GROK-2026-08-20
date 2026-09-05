@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import {
   Heart,
   Mail,
@@ -37,7 +37,7 @@ type Props = {
 
 /**
  * Footer colours locked in themeForce.css (.tg-site-footer*).
- * Legal → Company Legal docs. Services → pillars with icons. Account/Supporter → modals.
+ * Legal â†’ Company Legal docs. Services â†’ pillars with icons. Account/Supporter â†’ modals.
  */
 export const SiteFooter: React.FC<Props> = ({
   onNavigatePillar,
@@ -80,8 +80,8 @@ export const SiteFooter: React.FC<Props> = ({
     setWantPublic(false);
     setDoneMsg(
       wantPublic
-        ? 'Thanks — saved. Public share waits for approval (Company → Feedback).'
-        : 'Thanks — your private feedback was saved.'
+        ? 'Thanks â€” saved. Public share waits for approval (Company â†’ Feedback).'
+        : 'Thanks â€” your private feedback was saved.'
     );
   };
 
@@ -210,7 +210,7 @@ export const SiteFooter: React.FC<Props> = ({
                   <Heart className="w-3.5 h-3.5 fill-white" /> Become a Supporter
                 </button>
                 <p className="tg-footer-muted mt-2 text-[11px]">
-                  From <span className="tg-footer-strong">A$29.99/year</span> · Not a tax-deductible donation
+                  From <span className="tg-footer-strong">A$29.99/year</span> Â· Not a tax-deductible donation
                 </p>
               </div>
             </div>
@@ -253,7 +253,7 @@ export const SiteFooter: React.FC<Props> = ({
                     ) : (
                       <span
                         key={label}
-                        title={`${label} — add URL in companyContent`}
+                        title={`${label} â€” add URL in companyContent`}
                         className={`tg-social-btn tg-social-btn--muted ${tone}`}
                       >
                         <Icon className="w-4 h-4" strokeWidth={2.25} />
@@ -320,8 +320,8 @@ export const SiteFooter: React.FC<Props> = ({
               </span>
             </div>
             <p className="tg-footer-muted text-[11px]">
-              © {c.legal?.copyrightName || c.legalName} 2024–{year}
-              {c.hq.abn ? ` · ABN ${c.hq.abn}` : ''} · {c.hq.city}, {c.hq.country}
+              Â© {c.legal?.copyrightName || c.legalName} 2024â€“{year}
+              {c.hq.abn ? ` Â· ABN ${c.hq.abn}` : ''} Â· {c.hq.city}, {c.hq.country}
             </p>
           </div>
         </div>
@@ -331,3 +331,4 @@ export const SiteFooter: React.FC<Props> = ({
 };
 
 export default SiteFooter;
+

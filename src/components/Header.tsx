@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+﻿import React, { useState, useEffect, useRef } from 'react';
 import {
   Search, Star, Moon, Sun, Keyboard, QrCode, User, Shield, Layers,
   Clock, Calendar, CloudSun, Timer, Activity, Code2, Newspaper, Calculator, Building2,
@@ -101,7 +101,7 @@ export const Header: React.FC<HeaderProps> = ({
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onFocus={() => results.length && setOpen(true)}
-              placeholder="Search city…"
+              placeholder="Search cityâ€¦"
               className="flex-1 min-w-0 bg-transparent border-0 outline-none text-xs sm:text-sm font-semibold text-slate-800 dark:text-slate-100 placeholder:text-slate-400 placeholder:font-medium"
             />
           </div>
@@ -220,3 +220,5 @@ export const Header: React.FC<HeaderProps> = ({
 };
 
 export default Header;
+
+
