@@ -203,7 +203,12 @@ export default function App() {
                 <PillarChrome pillarId={11}>
                   <CompanyPillar onNavigatePillar={setActivePillar} />
                 </PillarChrome>
-              )}
+              )
+              {activePillar === 12 && (
+                <PillarChrome pillarId={12}>
+                  <CountryCodesPillar />
+                </PillarChrome>
+              )}}
             </Suspense>
           </PillarErrorBoundary>
         </div>
