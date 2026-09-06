@@ -1,12 +1,19 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { CloudRain, Sun, Cloud, Wind, Droplets, Gauge, Eye, History, MapPin, Search } from 'lucide-react';
 import { MAJOR_CITIES } from '../lib/citiesData';
 import { City, WeatherCondition } from '../types';
 import { getCurrentWeatherForCity, get14DayForecast, getHistoricalWeather } from '../lib/weatherEngine';
 
-export const WeatherPillar: React.FC = () => {
+export const WeatherPillar: React.FC<{ primaryCity?: City; isDarkMode?: boolean }> = ({ primaryCity }) => {
   const [subTab, setSubTab] = useState<'current' | 'forecast' | 'history'>('current');
-  const [selectedCity, setSelectedCity] = useState<City>(MAJOR_CITIES[0]); // NYC
+  const [selectedCity, setSelectedCity] = useState<City>(primaryCity || MAJOR_CITIES[0]);
+  // When Country codes / World Clock set a city, use it (not default NYC)
+  useEffect(() => {
+    if (primaryCity && primaryCity.id) {
+      setSelectedCity(primaryCity);
+    }
+  }, [primaryCity?.id, primaryCity?.lat, primaryCity?.lng, primaryCity?.name]);
+
   const [histDate, setHistDate] = useState<string>('2020-07-26');
 
   const currentWeather = getCurrentWeatherForCity(selectedCity.lat, selectedCity.name);
