@@ -263,3 +263,14 @@ export function getCityById(id: string): City | undefined {
   return undefined;
 }
 
+
+/** Best city for a country code: capital preferred, else largest known city in MAJOR_CITIES. */
+export function findCityForCountry(iso2: string): City | undefined {
+  const code = (iso2 || "").toUpperCase();
+  if (!code) return undefined;
+  const inCountry = MAJOR_CITIES.filter((c) => (c.countryCode || "").toUpperCase() === code);
+  if (inCountry.length === 0) return undefined;
+  const capital = inCountry.find((c) => c.isCapital);
+  if (capital) return capital;
+  return inCountry.slice().sort((a, b) => (b.population || 0) - (a.population || 0))[0];
+}

@@ -206,7 +206,10 @@ export default function App() {
               )}
               {activePillar === 12 && (
                 <PillarChrome pillarId={12}>
-                  <CountryCodesPillar />
+                  <CountryCodesPillar
+                    onNavigatePillar={setActivePillar}
+                    onSelectCity={(c) => { setSelectedCityFromSearch(c); setPrimaryCity(c); }}
+                  />
                 </PillarChrome>
               )}
             </Suspense>

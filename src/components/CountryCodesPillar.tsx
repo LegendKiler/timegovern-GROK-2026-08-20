@@ -1,7 +1,9 @@
-﻿import React, { useMemo, useState } from "react";
-import { Search, Phone, Copy, Check, Flag, ArrowRightLeft } from "lucide-react";
+﻿import React, { useMemo, useState, useEffect } from "react";
+import { Search, Phone, Copy, Check, Flag, ArrowRightLeft, Clock, Cloud, X, MapPin } from "lucide-react";
 import { COUNTRY_CODES, type CountryCodeRow } from "../data/countryCodes";
 import { buildDialSequence, getIdd } from "../data/iddCodes";
+import { findCityForCountry } from "../lib/citiesData";
+import type { City } from "../types";
 
 function matches(row: CountryCodeRow, q: string): boolean {
   const s = q.trim().toLowerCase();
@@ -19,14 +21,19 @@ function matches(row: CountryCodeRow, q: string): boolean {
   );
 }
 
-export const CountryCodesPillar: React.FC = () => {
+type Props = {
+  onNavigatePillar?: (pillar: number) => void;
+  onSelectCity?: (city: City) => void;
+};
+
+export const CountryCodesPillar: React.FC<Props> = ({ onNavigatePillar, onSelectCity }) => {
   const [query, setQuery] = useState("");
   const [copied, setCopied] = useState<string | null>(null);
-
-  // Phase 2 — dial helper (default From = Australia)
   const [fromIso, setFromIso] = useState("AU");
   const [toIso, setToIso] = useState("US");
   const [national, setNational] = useState("");
+  const [selected, setSelected] = useState<CountryCodeRow | null>(null);
+  const [liveClock, setLiveClock] = useState("");
 
   const sorted = useMemo(
     () => COUNTRY_CODES.slice().sort((a, b) => a.name.localeCompare(b.name)),
@@ -52,6 +59,37 @@ export const CountryCodesPillar: React.FC = () => {
     );
   }, [query]);
 
+  const linkedCity = useMemo(
+    () => (selected ? findCityForCountry(selected.iso2) : undefined),
+    [selected]
+  );
+
+  useEffect(() => {
+    if (!linkedCity?.timezone) {
+      setLiveClock("");
+      return;
+    }
+    const tick = () => {
+      try {
+        setLiveClock(
+          new Intl.DateTimeFormat(undefined, {
+            timeZone: linkedCity.timezone,
+            weekday: "short",
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+            hour12: false,
+          }).format(new Date())
+        );
+      } catch {
+        setLiveClock("");
+      }
+    };
+    tick();
+    const id = window.setInterval(tick, 1000);
+    return () => window.clearInterval(id);
+  }, [linkedCity?.timezone]);
+
   const copyText = async (text: string, key: string) => {
     try {
       await navigator.clipboard.writeText(text);
@@ -67,30 +105,36 @@ export const CountryCodesPillar: React.FC = () => {
     setToIso(fromIso);
   };
 
+  const openWorldClock = () => {
+    if (linkedCity && onSelectCity) onSelectCity(linkedCity);
+    onNavigatePillar?.(1);
+  };
+
+  const openWeather = () => {
+    if (linkedCity && onSelectCity) onSelectCity(linkedCity);
+    onNavigatePillar?.(4);
+  };
+
   return (
     <div className="space-y-4">
-      {/* Phase 2: How to dial */}
-      <div className="rounded-2xl border border-emerald-500/30 bg-gradient-to-br from-emerald-500/10 via-slate-950/40 to-slate-900/80 dark:from-emerald-500/15 p-4 shadow-sm space-y-3">
+      {/* Phase 2 dial helper */}
+      <div className="rounded-2xl border border-emerald-500/30 bg-gradient-to-br from-emerald-500/10 via-slate-950/40 to-slate-900/80 p-4 shadow-sm space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 className="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
             <Phone className="w-4 h-4 text-emerald-500" />
             How to dial internationally
           </h2>
-          <span className="text-[10px] font-bold uppercase tracking-wide text-emerald-600 dark:text-emerald-400">
-            Phase 2
-          </span>
         </div>
         <p className="text-xs text-slate-600 dark:text-slate-400">
-          Choose where you are calling from and to. Optional: paste the local number (with or without leading 0).
+          Choose where you are calling from and to. Optional: paste the local number.
         </p>
-
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           <label className="block text-xs space-y-1">
             <span className="font-bold text-slate-600 dark:text-slate-300">From country</span>
             <select
               value={fromIso}
               onChange={(e) => setFromIso(e.target.value)}
-              className="w-full h-10 px-2 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-sm font-semibold text-slate-900 dark:text-slate-100"
+              className="w-full h-10 px-2 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-sm font-semibold"
             >
               {sorted.map((c) => (
                 <option key={c.iso2} value={c.iso2}>
@@ -100,24 +144,21 @@ export const CountryCodesPillar: React.FC = () => {
             </select>
             <span className="text-[10px] text-slate-500">Exit code (IDD): {getIdd(fromIso)}</span>
           </label>
-
           <div className="flex sm:items-end justify-center pb-1">
             <button
               type="button"
               onClick={swapFromTo}
-              className="inline-flex items-center gap-1.5 h-10 px-3 rounded-xl border border-slate-200 dark:border-slate-600 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-emerald-500/10"
-              title="Swap from / to"
+              className="inline-flex items-center gap-1.5 h-10 px-3 rounded-xl border border-slate-200 dark:border-slate-600 text-xs font-bold hover:bg-emerald-500/10"
             >
               <ArrowRightLeft className="w-3.5 h-3.5" /> Swap
             </button>
           </div>
-
           <label className="block text-xs space-y-1">
             <span className="font-bold text-slate-600 dark:text-slate-300">To country</span>
             <select
               value={toIso}
               onChange={(e) => setToIso(e.target.value)}
-              className="w-full h-10 px-2 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-sm font-semibold text-slate-900 dark:text-slate-100"
+              className="w-full h-10 px-2 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-sm font-semibold"
             >
               {sorted.map((c) => (
                 <option key={"to-" + c.iso2} value={c.iso2}>
@@ -127,28 +168,25 @@ export const CountryCodesPillar: React.FC = () => {
             </select>
             <span className="text-[10px] text-slate-500">Country code: +{toCountry?.dial}</span>
           </label>
-
           <label className="block text-xs space-y-1">
             <span className="font-bold text-slate-600 dark:text-slate-300">Local / national number</span>
             <input
               value={national}
               onChange={(e) => setNational(e.target.value)}
-              placeholder="e.g. 02 1234 5678 or 2125550123"
-              className="w-full h-10 px-3 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-sm font-semibold text-slate-900 dark:text-slate-100"
+              placeholder="e.g. 02 1234 5678"
+              className="w-full h-10 px-3 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-sm font-semibold"
             />
-            <span className="text-[10px] text-slate-500">Leading 0 is removed for international form</span>
           </label>
         </div>
-
         <div className="rounded-xl border border-slate-200 dark:border-slate-600 bg-white/80 dark:bg-slate-950/80 p-3 space-y-2">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
               <p className="text-[10px] font-bold uppercase tracking-wide text-slate-500">Dial this sequence</p>
-              <p className="text-lg sm:text-xl font-mono font-extrabold text-emerald-600 dark:text-emerald-400 tracking-wide">
+              <p className="text-lg sm:text-xl font-mono font-extrabold text-emerald-600 dark:text-emerald-400">
                 {sequence.full || "—"}
               </p>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                Mobile / contacts form: <span className="font-mono font-bold text-slate-800 dark:text-slate-200">{sequence.plusForm}</span>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Mobile form: <span className="font-mono font-bold">{sequence.plusForm}</span>
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -158,14 +196,13 @@ export const CountryCodesPillar: React.FC = () => {
                 className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white"
               >
                 {copied === "seq" ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                {copied === "seq" ? "Copied" : "Copy sequence"}
+                Copy sequence
               </button>
               <button
                 type="button"
                 onClick={() => copyText(sequence.plusForm, "plus")}
-                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold border border-slate-300 dark:border-slate-600 text-slate-800 dark:text-slate-100"
+                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold border border-slate-300 dark:border-slate-600"
               >
-                {copied === "plus" ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
                 Copy +form
               </button>
             </div>
@@ -178,6 +215,96 @@ export const CountryCodesPillar: React.FC = () => {
         </div>
       </div>
 
+      {/* Phase 2b detail */}
+      {selected && (
+        <div className="rounded-2xl border border-cyan-500/30 bg-slate-50 dark:bg-slate-950/90 p-4 shadow-sm space-y-3">
+          <div className="flex items-start justify-between gap-2">
+            <div>
+              <h3 className="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+                <MapPin className="w-4 h-4 text-cyan-500" />
+                {selected.name}
+              </h3>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Calling code <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">+{selected.dial}</span>
+                {" · "}ISO {selected.iso2} / {selected.iso3}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setSelected(null)}
+              className="p-1.5 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-800"
+              aria-label="Close detail"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => copyText("+" + selected.dial, "det-dial")}
+              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold border border-slate-200 dark:border-slate-600"
+            >
+              {copied === "det-dial" ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
+              Copy +{selected.dial}
+            </button>
+            <button
+              type="button"
+              onClick={() => copyText(selected.iso2, "det-iso2")}
+              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold border border-slate-200 dark:border-slate-600"
+            >
+              Copy {selected.iso2}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setToIso(selected.iso2);
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }}
+              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold border border-emerald-500/40 text-emerald-700 dark:text-emerald-300"
+            >
+              Use in dial helper
+            </button>
+          </div>
+
+          {linkedCity ? (
+            <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900/80 p-3 space-y-2">
+              <p className="text-xs text-slate-600 dark:text-slate-300">
+                Linked city: <strong>{linkedCity.name}</strong>
+                {linkedCity.isCapital ? " (capital)" : ""}
+                {" · "}
+                <span className="font-mono text-[11px]">{linkedCity.timezone}</span>
+              </p>
+              {liveClock && (
+                <p className="text-sm font-mono font-bold text-slate-900 dark:text-white">
+                  Local time now: {liveClock}
+                </p>
+              )}
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={openWorldClock}
+                  className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-500 text-white"
+                >
+                  <Clock className="w-3.5 h-3.5" /> Open World Clock
+                </button>
+                <button
+                  type="button"
+                  onClick={openWeather}
+                  className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-sky-600 hover:bg-sky-500 text-white"
+                >
+                  <Cloud className="w-3.5 h-3.5" /> Open Weather
+                </button>
+              </div>
+            </div>
+          ) : (
+            <p className="text-xs text-amber-700 dark:text-amber-300/90 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2">
+              No city in the World Clock database for this country yet. Dial codes still work; World Clock / Weather links appear when a matching city exists.
+            </p>
+          )}
+        </div>
+      )}
+
       {/* Directory */}
       <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950/80 p-4 shadow-sm">
         <div className="flex flex-wrap items-start justify-between gap-3">
@@ -186,23 +313,21 @@ export const CountryCodesPillar: React.FC = () => {
               <Flag className="w-4 h-4 text-emerald-500" />
               Country calling codes
             </h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-xl">
-              International dialling prefixes and ISO codes. Search by name, +code, or ISO (e.g. AU, AUS, 61).
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+              Click a row for detail, dial helper, and World Clock / Weather when available.
             </p>
           </div>
-          <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+          <span className="text-[11px] font-semibold text-slate-500">
             {rows.length} / {COUNTRY_CODES.length} countries
           </span>
         </div>
-
         <div className="mt-3 flex items-center gap-2 h-11 px-3 rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900">
           <Search className="w-4 h-4 text-slate-400 shrink-0" />
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search country, ISO, or dial code…"
-            className="flex-1 min-w-0 bg-transparent border-0 outline-none text-sm font-semibold text-slate-800 dark:text-slate-100 placeholder:text-slate-400"
-            aria-label="Search country codes"
+            className="flex-1 min-w-0 bg-transparent border-0 outline-none text-sm font-semibold"
           />
         </div>
       </div>
@@ -211,41 +336,47 @@ export const CountryCodesPillar: React.FC = () => {
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
             <thead>
-              <tr className="bg-slate-100 dark:bg-slate-900 text-[11px] uppercase tracking-wide text-slate-500 dark:text-slate-400">
+              <tr className="bg-slate-100 dark:bg-slate-900 text-[11px] uppercase tracking-wide text-slate-500">
                 <th className="px-3 py-2.5 font-bold">Country</th>
                 <th className="px-3 py-2.5 font-bold">Dial code</th>
                 <th className="px-3 py-2.5 font-bold">ISO-2</th>
                 <th className="px-3 py-2.5 font-bold">ISO-3</th>
-                <th className="px-3 py-2.5 font-bold w-28">Actions</th>
+                <th className="px-3 py-2.5 font-bold w-36">Actions</th>
               </tr>
             </thead>
             <tbody>
               {rows.map((r) => {
                 const dialFull = "+" + r.dial;
+                const active = selected?.iso2 === r.iso2;
                 return (
                   <tr
                     key={r.iso2}
-                    className="border-t border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900/60"
+                    onClick={() => setSelected(r)}
+                    className={`border-t border-slate-100 dark:border-slate-800 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-900/60 ${
+                      active ? "bg-cyan-500/10" : ""
+                    }`}
                   >
                     <td className="px-3 py-2.5 font-semibold text-slate-900 dark:text-slate-100">{r.name}</td>
                     <td className="px-3 py-2.5 font-mono font-bold text-emerald-600 dark:text-emerald-400">{dialFull}</td>
-                    <td className="px-3 py-2.5 font-mono text-slate-700 dark:text-slate-300">{r.iso2}</td>
-                    <td className="px-3 py-2.5 font-mono text-slate-700 dark:text-slate-300">{r.iso3}</td>
-                    <td className="px-3 py-2.5">
+                    <td className="px-3 py-2.5 font-mono">{r.iso2}</td>
+                    <td className="px-3 py-2.5 font-mono">{r.iso3}</td>
+                    <td className="px-3 py-2.5" onClick={(e) => e.stopPropagation()}>
                       <div className="flex flex-wrap gap-1">
                         <button
                           type="button"
                           onClick={() => copyText(dialFull, r.iso2)}
-                          className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-bold border border-slate-200 dark:border-slate-600 hover:bg-emerald-500/10 text-slate-700 dark:text-slate-200"
+                          className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-bold border border-slate-200 dark:border-slate-600"
                         >
                           {copied === r.iso2 ? <Check className="w-3 h-3 text-emerald-500" /> : <Copy className="w-3 h-3" />}
                           Copy
                         </button>
                         <button
                           type="button"
-                          onClick={() => setToIso(r.iso2)}
-                          className="inline-flex items-center px-2 py-1 rounded-lg text-[11px] font-bold border border-emerald-500/40 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/10"
-                          title="Set as dial-to country"
+                          onClick={() => {
+                            setSelected(r);
+                            setToIso(r.iso2);
+                          }}
+                          className="inline-flex items-center px-2 py-1 rounded-lg text-[11px] font-bold border border-emerald-500/40 text-emerald-700 dark:text-emerald-300"
                         >
                           Dial to
                         </button>
@@ -265,10 +396,6 @@ export const CountryCodesPillar: React.FC = () => {
           </table>
         </div>
       </div>
-
-      <p className="text-[11px] text-slate-500 px-1">
-        Exit codes can vary by carrier. Always confirm with your provider. Phase 2b will add country detail + World Clock links.
-      </p>
     </div>
   );
 };
