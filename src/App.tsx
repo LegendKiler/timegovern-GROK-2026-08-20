@@ -7,6 +7,13 @@ import { ShortcutToast } from './components/ShortcutToast';
 import { PillarLoader } from './components/PillarLoader';
 import { useGlobalShortcuts } from './hooks/useGlobalShortcuts';
 import { City } from './types';
+import {
+  loadSavedPrimaryCity,
+  savePrimaryCity,
+  isPrimaryCityUserLocked,
+  resolveCityFromGeo,
+  melbourneFallback,
+} from './lib/resolveVisitorCity';
 import { Globe, Eye, EyeOff, Heart, Keyboard } from 'lucide-react';
 import { companyContent } from './content/companyContent';
 import { PillarErrorBoundary } from './components/PillarErrorBoundary';
@@ -150,7 +157,7 @@ export default function App() {
                 <PillarChrome pillarId={1}>
                   <WorldClockPillar
                     selectedCityFromSearch={selectedCityFromSearch}
-                    onPrimaryCityChange={setPrimaryCity}
+                    onPrimaryCityChange={(c) => { setPrimaryCity(c); if (c) savePrimaryCity(c, true); }}
                   />
                 </PillarChrome>
               )}
@@ -208,7 +215,7 @@ export default function App() {
                 <PillarChrome pillarId={12}>
                   <CountryCodesPillar
                     onNavigatePillar={setActivePillar}
-                    onSelectCity={(c) => { setSelectedCityFromSearch(c); setPrimaryCity(c); }}
+                    onSelectCity={(c) => { setSelectedCityFromSearch(c); setPrimaryCity(c); savePrimaryCity(c, true); }}
                   />
                 </PillarChrome>
               )}

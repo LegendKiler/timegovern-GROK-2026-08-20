@@ -8,6 +8,7 @@ import { ensureSchema } from './db/init';
 import { handleV1Time, handleV1Convert, isV1TimePath, isV1ConvertPath } from './api/v1Time';
 import { handleAuth } from './api/auth';
 import { handleBilling } from './api/billing';
+import { handleGeo } from './api/geo';
 
 export interface Env {
   DB?: D1Database;

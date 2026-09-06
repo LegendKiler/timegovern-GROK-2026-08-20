@@ -149,6 +149,39 @@ function apiDevServerPlugin(): Plugin {
           return res.end(body);
         }
 
+
+        if (url.pathname === '/api/geo' || url.pathname === '/api/geo/') {
+          const country = url.searchParams.get('country');
+          const city = url.searchParams.get('city');
+          const timezone = url.searchParams.get('timezone');
+          res.setHeader('Content-Type', 'application/json');
+          res.setHeader('Access-Control-Allow-Origin', '*');
+          res.statusCode = 200;
+          if (country || city || timezone) {
+            return res.end(JSON.stringify({
+              ok: true,
+              source: 'query',
+              country: country ? country.toUpperCase() : null,
+              city: city,
+              region: null,
+              timezone: timezone,
+              latitude: null,
+              longitude: null,
+            }));
+          }
+          // Local LAB: default Melbourne (no Cloudflare cf object in vite)
+          return res.end(JSON.stringify({
+            ok: true,
+            source: 'fallback',
+            country: 'AU',
+            city: 'Melbourne',
+            region: 'Victoria',
+            timezone: 'Australia/Melbourne',
+            latitude: -37.8136,
+            longitude: 144.9631,
+          }));
+        }
+
         return next();
       });
     }
