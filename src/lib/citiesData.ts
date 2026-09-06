@@ -1,4 +1,5 @@
 import { City } from '../types';
+import { getCapitalByIso2 } from '../data/countryCapitals';
 
 export const MAJOR_CITIES: City[] = [
   // North America
@@ -266,9 +267,12 @@ export function getCityById(id: string): City | undefined {
 
 /** Best city for a country code: capital preferred, else largest known city in MAJOR_CITIES. */
 export function findCityForCountry(iso2: string): City | undefined {
-  const code = (iso2 || "").toUpperCase();
+  const code = (iso2 || '').toUpperCase();
   if (!code) return undefined;
-  const inCountry = MAJOR_CITIES.filter((c) => (c.countryCode || "").toUpperCase() === code);
+  // C1: dedicated capital list first
+  const fromCapitals = getCapitalByIso2(code);
+  if (fromCapitals) return fromCapitals;
+  const inCountry = MAJOR_CITIES.filter((c) => (c.countryCode || '').toUpperCase() === code);
   if (inCountry.length === 0) return undefined;
   const capital = inCountry.find((c) => c.isCapital);
   if (capital) return capital;
