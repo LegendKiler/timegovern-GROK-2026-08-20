@@ -85,6 +85,10 @@ export default {
       });
     }
 
+    if (url.pathname === '/api/geo' || url.pathname === '/api/geo/') {
+      return handleGeo(request);
+    }
+
     if (url.pathname === '/api/health' || url.pathname === '/api/health/') {
       return new Response(JSON.stringify({ ok: true, service: 'timegovern' }), {
         headers: { ...corsHeaders, ...securityHeaders },
