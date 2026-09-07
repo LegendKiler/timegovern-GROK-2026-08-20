@@ -1,4 +1,4 @@
-﻿import React, { useMemo, useState, useEffect } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { Search, Phone, Copy, Check, Flag, ArrowRightLeft, Clock, Cloud, X, MapPin } from "lucide-react";
 import { COUNTRY_CODES, type CountryCodeRow } from "../data/countryCodes";
 import { buildDialSequence, getIdd } from "../data/iddCodes";
@@ -126,56 +126,77 @@ export const CountryCodesPillar: React.FC<Props> = ({ onNavigatePillar, onSelect
           </h2>
         </div>
         <p className="text-xs text-slate-600 dark:text-slate-400">
-          Choose where you are calling from and to. Optional: paste the local number.
+          Choose where you are calling from and to. Enter the destination local number only (no country code).
         </p>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-          <label className="block text-xs space-y-1">
-            <span className="font-bold text-slate-600 dark:text-slate-300">From country</span>
-            <select
-              value={fromIso}
-              onChange={(e) => setFromIso(e.target.value)}
-              className="w-full h-10 px-2 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-sm font-semibold"
-            >
-              {sorted.map((c) => (
-                <option key={c.iso2} value={c.iso2}>
-                  {c.name} (+{c.dial})
-                </option>
-              ))}
-            </select>
-            <span className="text-[10px] text-slate-500">Exit code (IDD): {getIdd(fromIso)}</span>
-          </label>
-          <div className="flex sm:items-end justify-center pb-1">
-            <button
-              type="button"
-              onClick={swapFromTo}
-              className="inline-flex items-center gap-1.5 h-10 px-3 rounded-xl border border-slate-200 dark:border-slate-600 text-xs font-bold hover:bg-emerald-500/10"
-            >
-              <ArrowRightLeft className="w-3.5 h-3.5" /> Swap
-            </button>
+        {/* Dial controls — aligned grid: From | Swap | To, then number full width */}
+        <div className="space-y-3">
+          <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-3 items-end">
+            <label className="block space-y-1.5 min-w-0">
+              <span className="block text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                From country
+              </span>
+              <select
+                value={fromIso}
+                onChange={(e) => setFromIso(e.target.value)}
+                className="w-full h-11 px-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-sm font-medium text-slate-900 dark:text-slate-100"
+              >
+                {sorted.map((c) => (
+                  <option key={c.iso2} value={c.iso2}>
+                    {c.name} (+{c.dial})
+                  </option>
+                ))}
+              </select>
+              <span className="block text-[11px] text-slate-500 dark:text-slate-400 font-mono">
+                Exit code (IDD): {getIdd(fromIso)}
+              </span>
+            </label>
+
+            <div className="flex justify-center md:pb-6">
+              <button
+                type="button"
+                onClick={swapFromTo}
+                title="Swap from and to"
+                className="inline-flex items-center justify-center gap-1.5 h-11 min-w-[5.5rem] px-3 rounded-xl border border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 text-xs font-bold hover:bg-emerald-500/20"
+              >
+                <ArrowRightLeft className="w-4 h-4 shrink-0" />
+                Swap
+              </button>
+            </div>
+
+            <label className="block space-y-1.5 min-w-0">
+              <span className="block text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                To country
+              </span>
+              <select
+                value={toIso}
+                onChange={(e) => setToIso(e.target.value)}
+                className="w-full h-11 px-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-sm font-medium text-slate-900 dark:text-slate-100"
+              >
+                {sorted.map((c) => (
+                  <option key={"to-" + c.iso2} value={c.iso2}>
+                    {c.name} (+{c.dial})
+                  </option>
+                ))}
+              </select>
+              <span className="block text-[11px] text-slate-500 dark:text-slate-400 font-mono">
+                Country code: +{toCountry?.dial}
+              </span>
+            </label>
           </div>
-          <label className="block text-xs space-y-1">
-            <span className="font-bold text-slate-600 dark:text-slate-300">To country</span>
-            <select
-              value={toIso}
-              onChange={(e) => setToIso(e.target.value)}
-              className="w-full h-10 px-2 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-sm font-semibold"
-            >
-              {sorted.map((c) => (
-                <option key={"to-" + c.iso2} value={c.iso2}>
-                  {c.name} (+{c.dial})
-                </option>
-              ))}
-            </select>
-            <span className="text-[10px] text-slate-500">Country code: +{toCountry?.dial}</span>
-          </label>
-          <label className="block text-xs space-y-1">
-            <span className="font-bold text-slate-600 dark:text-slate-300">Local / national number</span>
+
+          <label className="block space-y-1.5">
+            <span className="block text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+              Local / national number
+            </span>
             <input
               value={national}
               onChange={(e) => setNational(e.target.value)}
-              placeholder="e.g. 02 1234 5678"
-              className="w-full h-10 px-3 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-sm font-semibold"
+              placeholder="Digits only, e.g. 0212345678 (not the country code)"
+              className="w-full h-11 px-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-sm font-medium text-slate-900 dark:text-slate-100 placeholder:text-slate-400"
             />
+            <span className="block text-[11px] text-slate-500 dark:text-slate-400">
+              Enter the number as dialed inside the destination country. Do not include + or the country calling code.
+            </span>
           </label>
         </div>
         <div className="rounded-xl border border-slate-200 dark:border-slate-600 bg-white/80 dark:bg-slate-950/80 p-3 space-y-2">
