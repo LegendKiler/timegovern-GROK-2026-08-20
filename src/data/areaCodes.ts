@@ -1,4 +1,4 @@
-﻿/** Major area / city dial codes — Phase CC2a (AU + US). Expand later (GB, etc.). */
+/** Major area / city dial codes — Phase CC2a (AU + US). Expand later (GB, etc.). */
 export type AreaCodeRow = {
   code: string;       // digits after country calling code, e.g. "2" or "212"
   label: string;      // city / region name
@@ -60,9 +60,56 @@ export const AREA_CODES: Record<string, AreaCodeRow[]> = {
     { code: "808", label: "Hawaii" },
     { code: "907", label: "Alaska" },
   ],
-};
-
-export function getAreaCodes(iso2: string): AreaCodeRow[] {
+  GB: [
+    { code: "20", label: "London" },
+    { code: "121", label: "Birmingham" },
+    { code: "161", label: "Manchester" },
+    { code: "113", label: "Leeds" },
+    { code: "117", label: "Bristol" },
+    { code: "131", label: "Edinburgh" },
+    { code: "141", label: "Glasgow" },
+    { code: "151", label: "Liverpool" },
+    { code: "191", label: "Newcastle / Tyneside" },
+    { code: "29", label: "Cardiff" },
+    { code: "28", label: "Northern Ireland (e.g. Belfast)" },
+    { code: "1223", label: "Cambridge" },
+    { code: "1224", label: "Aberdeen" },
+    { code: "118", label: "Reading" },
+    { code: "1865", label: "Oxford" },
+    { code: "1225", label: "Bath" },
+    { code: "1392", label: "Exeter" },
+    { code: "114", label: "Sheffield" },
+    { code: "115", label: "Nottingham" },
+    { code: "116", label: "Leicester" },
+    { code: "238", label: "Southampton" },
+    { code: "23", label: "Southampton / Portsmouth area" },
+    { code: "292", label: "Cardiff (local format context)" },
+    { code: "7", label: "Mobile (07…)" },
+  ],
+  NZ: [
+    { code: "9", label: "Auckland" },
+    { code: "4", label: "Wellington" },
+    { code: "3", label: "South Island (e.g. Christchurch)" },
+    { code: "7", label: "Waikato / Bay of Plenty" },
+    { code: "6", label: "Taranaki / Hawke's Bay / Manawatu" },
+    { code: "2", label: "Mobile (02…)" },
+  ],
+  CA: [
+    { code: "416", label: "Toronto, ON" },
+    { code: "647", label: "Toronto, ON" },
+    { code: "437", label: "Toronto, ON" },
+    { code: "604", label: "Vancouver, BC" },
+    { code: "778", label: "Vancouver, BC" },
+    { code: "236", label: "Vancouver, BC" },
+    { code: "514", label: "Montreal, QC" },
+    { code: "438", label: "Montreal, QC" },
+    { code: "613", label: "Ottawa, ON" },
+    { code: "343", label: "Ottawa, ON" },
+    { code: "403", label: "Calgary, AB" },
+    { code: "587", label: "Alberta overlay" },
+    { code: "780", label: "Edmonton, AB" },
+  ]
+};`r`n`r`nexport function getAreaCodes(iso2: string): AreaCodeRow[] {
   const key = (iso2 || "").toUpperCase();
   return AREA_CODES[key] || [];
 }
