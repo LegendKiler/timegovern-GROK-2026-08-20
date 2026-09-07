@@ -2,6 +2,7 @@ import React, { useMemo, useState, useEffect } from "react";
 import { Search, Phone, Copy, Check, Flag, ArrowRightLeft, Clock, Cloud, X, MapPin } from "lucide-react";
 import { COUNTRY_CODES, type CountryCodeRow } from "../data/countryCodes";
 import { buildDialSequence, getIdd } from "../data/iddCodes";
+import { getAreaCodes } from "../data/areaCodes";
 import { findCityForCountry } from "../lib/citiesData";
 import type { City } from "../types";
 
@@ -301,6 +302,49 @@ export const CountryCodesPillar: React.FC<Props> = ({ onNavigatePillar, onSelect
                   Local time now: {liveClock}
                 </p>
               )}
+          {getAreaCodes(selected.iso2).length > 0 && (
+            <div data-tg-area-codes className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900/80 p-3 space-y-2">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                  Area / city codes
+                </p>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                  After +{selected.dial} · major list (not exhaustive)
+                </p>
+              </div>
+              <div className="max-h-48 overflow-y-auto rounded-lg border border-slate-100 dark:border-slate-800">
+                <table className="w-full text-left text-xs">
+                  <thead className="sticky top-0 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                    <tr>
+                      <th className="px-2 py-1.5 font-semibold">Code</th>
+                      <th className="px-2 py-1.5 font-semibold">City / region</th>
+                      <th className="px-2 py-1.5 font-semibold w-20"></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {getAreaCodes(selected.iso2).map((a) => (
+                      <tr key={a.code + a.label} className="border-t border-slate-100 dark:border-slate-800">
+                        <td className="px-2 py-1.5 font-mono font-bold text-emerald-600 dark:text-emerald-400">
+                          +{selected.dial}-{a.code}
+                        </td>
+                        <td className="px-2 py-1.5 text-slate-800 dark:text-slate-200">{a.label}</td>
+                        <td className="px-2 py-1.5">
+                          <button
+                            type="button"
+                            className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 hover:underline"
+                            onClick={() => copyText("+" + selected.dial + a.code, "ac-" + a.code)}
+                          >
+                            {copied === "ac-" + a.code ? "Copied" : "Copy"}
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
               <div className="flex flex-wrap gap-2">
                 <button
                   type="button"
