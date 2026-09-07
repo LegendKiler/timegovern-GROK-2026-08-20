@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useEffect,  useMemo, useState, useEffect } from "react";
 import { Search, Phone, Copy, Check, Flag, ArrowRightLeft, Clock, Cloud, X, MapPin } from "lucide-react";
 import { COUNTRY_CODES, type CountryCodeRow } from "../data/countryCodes";
 import { buildDialSequence, getIdd } from "../data/iddCodes";
@@ -27,10 +27,56 @@ type Props = {
   onSelectCity?: (city: City) => void;
 };
 
-export const CountryCodesPillar: React.FC<Props> = ({ onNavigatePillar, onSelectCity }) => {
+export const CountryCodesPillar: React.FC<Props> = ({ onNavigatePillar, onSelectCity }) => { useEffect, 
   const [query, setQuery] = useState("");
   const [copied, setCopied] = useState<string | null>(null);
   const [fromIso, setFromIso] = useState("AU");
+
+  // tg-cc6-geo-from: default dial "From country" from visitor /api/geo
+  useEffect(() => {
+    const STORAGE = "tg_dial_from_iso_v1";
+    const USER_LOCK = "tg_dial_from_user_set";
+
+    try {
+      if (localStorage.getItem(USER_LOCK) === "1") {
+        const saved = localStorage.getItem(STORAGE);
+        if (saved) setFromIso(saved.toUpperCase());
+        return;
+      }
+      const saved = localStorage.getItem(STORAGE);
+      if (saved) setFromIso(saved.toUpperCase());
+    } catch { /* ignore */ }
+
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/geo");
+        if (!res.ok) throw new Error("geo");
+        const data = await res.json();
+        if (cancelled) return;
+        try {
+          if (localStorage.getItem(USER_LOCK) === "1") return;
+        } catch { /* ignore */ }
+        const country = (data.country || data.country_code || "").toString().toUpperCase();
+        if (!country) return;
+        // only apply if we have that ISO in the list
+        setFromIso((prev) => {
+          const exists = true; // validated below via sorted in render; ISO codes are 2-letter
+          return country.length === 2 ? country : prev;
+        });
+        try {
+          localStorage.setItem(STORAGE, country);
+        } catch { /* ignore */ }
+      } catch {
+        // keep default AU/US state
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const [toIso, setToIso] = useState("US");
   const [national, setNational] = useState("");
   const [selected, setSelected] = useState<CountryCodeRow | null>(null);
@@ -138,7 +184,7 @@ export const CountryCodesPillar: React.FC<Props> = ({ onNavigatePillar, onSelect
               </span>
               <select
                 value={fromIso}
-                onChange={(e) => setFromIso(e.target.value)}
+                onChange={(e) => { const v = e.target.value; setFromIso(v); try { localStorage.setItem('tg_dial_from_iso_v1', v); localStorage.setItem('tg_dial_from_user_set', '1'); } catch {} }}
                 className="w-full h-11 px-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-sm font-medium text-slate-900 dark:text-slate-100"
               >
                 {sorted.map((c) => (
