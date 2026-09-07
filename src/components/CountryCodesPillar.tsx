@@ -1,4 +1,4 @@
-import React, { useEffect,  useMemo, useState, useEffect } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Search, Phone, Copy, Check, Flag, ArrowRightLeft, Clock, Cloud, X, MapPin } from "lucide-react";
 import { COUNTRY_CODES, type CountryCodeRow } from "../data/countryCodes";
 import { buildDialSequence, getIdd } from "../data/iddCodes";
@@ -27,7 +27,7 @@ type Props = {
   onSelectCity?: (city: City) => void;
 };
 
-export const CountryCodesPillar: React.FC<Props> = ({ onNavigatePillar, onSelectCity }) => { useEffect, 
+export const CountryCodesPillar: React.FC<Props> = ({ onNavigatePillar, onSelectCity }) => {
   const [query, setQuery] = useState("");
   const [copied, setCopied] = useState<string | null>(null);
   const [fromIso, setFromIso] = useState("AU");
