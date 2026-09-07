@@ -56,9 +56,7 @@ import {
   parseEventDateTime
 } from '../lib/eventNotifications';
 
-const COUNTRY_NAMES: Record<string, string> = Object.fromEntries(
-  HOLIDAY_COUNTRY_OPTIONS.map((c) => [c.code, c.name])
-);
+const COUNTRY_NAMES: Record<string, string> = Object.fromEntries(HOLIDAY_COUNTRY_OPTIONS.map((c) => [c.code, c.name]));
 
 export const CalendarPillar: React.FC = () => {
   const [subTab, setSubTab] = useState<'calendar' | 'between' | 'addsub' | 'countdown'>('calendar');
@@ -394,24 +392,24 @@ export const CalendarPillar: React.FC = () => {
     }
   };
 
-  const monthExportEvents = () => {
+  const buildMonthExportEvents = () => {
     const monthHolidays = holidays.filter((h) => {
       const m = parseInt(h.date.slice(5, 7), 10) - 1;
       return m === selectedMonth;
     });
     const active = monthHolidays.filter((h) => selectedHolidayDates.has(h.date));
     const customs = customEvents.filter((e) => {
-      const m = parseInt(e.date.slice(5, 7), 10) - 1;
-      return m === selectedMonth && e.date.startsWith(String(selectedYear));
+      const m = parseInt(String(e.date).slice(5, 7), 10) - 1;
+      return m === selectedMonth && String(e.date).startsWith(String(selectedYear));
     });
     return [
-      ...active.map((h) => ({ date: h.date, title: h.name, notes: 'Public holiday' })),
-      ...customs.map((e) => ({ date: e.date, title: e.title, notes: e.notes || e.category || '' })),
+      ...active.map((h) => ({ date: h.date, title: h.name, notes: "Public holiday" })),
+      ...customs.map((e) => ({ date: e.date, title: e.title, notes: e.notes || e.category || "" })),
     ];
   };
 
   const handleDownloadCsv = () => {
-    downloadCalendarCsv(monthExportEvents(), {
+    downloadCalendarCsv(buildMonthExportEvents(), {
       year: selectedYear,
       month: selectedMonth,
       countryCode: selectedCountryCode,
@@ -420,7 +418,7 @@ export const CalendarPillar: React.FC = () => {
   };
 
   const handleDownloadIcs = () => {
-    downloadCalendarIcs(monthExportEvents(), {
+    downloadCalendarIcs(buildMonthExportEvents(), {
       year: selectedYear,
       month: selectedMonth,
       countryCode: selectedCountryCode,
@@ -428,7 +426,6 @@ export const CalendarPillar: React.FC = () => {
     });
   };
 
-  };
 
   // Weekend days array based on pattern
   const weekendDays = useMemo(() => {
@@ -624,14 +621,13 @@ export const CalendarPillar: React.FC = () => {
 
         {/* ---------------- SUB TAB 1: INTERACTIVE CALENDAR WITH RANGE SELECTION ---------------- */}
         {subTab === 'calendar' && (
-      <>
-      <div data-tg-export-bar className="flex flex-wrap items-center gap-2 px-1">
-        <span className="text-xs font-bold text-slate-800 dark:text-slate-100">Export month:</span>
-        <button type="button" onClick={handleInstantDownloadPdf} className="px-3 py-2 rounded-lg text-xs font-bold bg-blue-600 text-white hover:bg-blue-500">PDF</button>
-        <button type="button" onClick={handleDownloadCsv} className="px-3 py-2 rounded-lg text-xs font-bold bg-emerald-700 text-white hover:bg-emerald-600">CSV</button>
-        <button type="button" onClick={handleDownloadIcs} className="px-3 py-2 rounded-lg text-xs font-bold bg-teal-700 text-white hover:bg-teal-600">ICS (calendar)</button>
-        <span className="text-[11px] text-slate-700 dark:text-slate-300">Holidays + custom events for selected month/country</span>
-      </div>
+          <div className="space-y-4">
+            <div data-tg-export-bar className="flex flex-wrap items-center gap-2 mb-3">
+              <span className="text-xs font-bold text-slate-800 dark:text-slate-100">Export month:</span>
+              <button type="button" onClick={handleInstantDownloadPdf} className="px-3 py-2 rounded-lg text-xs font-bold bg-blue-600 text-white hover:bg-blue-500">PDF</button>
+              <button type="button" onClick={handleDownloadCsv} className="px-3 py-2 rounded-lg text-xs font-bold bg-emerald-700 text-white hover:bg-emerald-600">CSV</button>
+              <button type="button" onClick={handleDownloadIcs} className="px-3 py-2 rounded-lg text-xs font-bold bg-teal-700 text-white hover:bg-teal-600">ICS</button>
+            </div>
           <div className="mt-5 space-y-5">
             {/* Top Interactive Measure Notice & Quick Bar */}
             <div className="bg-gradient-to-r from-blue-500/10 via-indigo-500/10 to-cyan-500/10 border border-blue-200 dark:border-blue-800/80 rounded-2xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -1141,7 +1137,7 @@ export const CalendarPillar: React.FC = () => {
                           <span className="font-semibold block text-slate-900 dark:text-slate-100 truncate max-w-36">
                             {h.name}
                           </span>
-                          <span className="text-[10px] text-slate-600 dark:text-slate-300 font-mono">{h.date}</span>
+                          <span className="text-[10px] text-slate-500 font-mono">{h.date}</span>
                         </div>
                       </div>
 
@@ -1356,7 +1352,7 @@ export const CalendarPillar: React.FC = () => {
                     <div key={i} className="bg-white dark:bg-slate-900 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 flex justify-between items-center text-xs">
                       <div>
                         <span className="font-semibold text-slate-900 dark:text-slate-100 block">{h.name}</span>
-                        <span className="text-[10px] text-slate-600 dark:text-slate-300 font-mono">{h.date}</span>
+                        <span className="text-[10px] text-slate-500 font-mono">{h.date}</span>
                       </div>
                       <span className="text-[9px] bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 font-bold px-2 py-0.5 rounded-full">
                         {h.type}
