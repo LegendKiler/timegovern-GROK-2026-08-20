@@ -66,6 +66,65 @@ export const CalendarPillar: React.FC = () => {
   const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth());
   const [selectedCountryCode, setSelectedCountryCode] = useState<string>('AU');
 
+  // tg-calendar-geo: default holiday country from visitor IP/edge geo
+  useEffect(() => {
+    const STORAGE = "tg_calendar_country_v1";
+    const USER_LOCK = "tg_calendar_country_user_set";
+
+    const allowed = new Set(
+      (typeof HOLIDAY_COUNTRY_OPTIONS !== "undefined"
+        ? HOLIDAY_COUNTRY_OPTIONS
+        : Object.keys({ AU: 1, US: 1, GB: 1, CA: 1, JP: 1, DE: 1, FR: 1, IN: 1 }).map((code) => ({ code }))
+      ).map((c: { code: string }) => c.code.toUpperCase())
+    );
+
+    const applyCountry = (code: string, userChosen: boolean) => {
+      const cc = (code || "AU").toUpperCase();
+      const finalCode = allowed.has(cc) ? cc : "AU";
+      setSelectedCountryCode(finalCode);
+      try {
+        localStorage.setItem(STORAGE, finalCode);
+        if (userChosen) localStorage.setItem(USER_LOCK, "1");
+      } catch { /* ignore */ }
+    };
+
+    try {
+      if (localStorage.getItem(USER_LOCK) === "1") {
+        const saved = localStorage.getItem(STORAGE);
+        if (saved) {
+          applyCountry(saved, true);
+          return;
+        }
+      }
+      const saved = localStorage.getItem(STORAGE);
+      if (saved && allowed.has(saved.toUpperCase())) {
+        setSelectedCountryCode(saved.toUpperCase());
+      }
+    } catch { /* ignore */ }
+
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/geo");
+        if (!res.ok) throw new Error("geo " + res.status);
+        const data = await res.json();
+        if (cancelled) return;
+        try {
+          if (localStorage.getItem(USER_LOCK) === "1") return;
+        } catch { /* ignore */ }
+        const country = (data.country || data.country_code || "").toString().toUpperCase();
+        if (country) applyCountry(country, false);
+      } catch {
+        // keep current (AU paint fallback on local vite without /api/geo)
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+
   // PDF Schedule & Custom Events State
   const [isPdfModalOpen, setIsPdfModalOpen] = useState<boolean>(false);
   const [pdfDownloaded, setPdfDownloaded] = useState<boolean>(false);
@@ -829,7 +888,7 @@ export const CalendarPillar: React.FC = () => {
                   <Filter className="w-3.5 h-3.5 text-blue-500" /> Holidays:
                   <select
                     value={selectedCountryCode}
-                    onChange={(e) => setSelectedCountryCode(e.target.value)}
+                    onChange={(e) => { const v = e.target.value; setSelectedCountryCode(v); try { localStorage.setItem('tg_calendar_country_v1', v); localStorage.setItem('tg_calendar_country_user_set', '1'); } catch {} }}
                     className="bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-xs px-2.5 py-1 text-slate-800 dark:text-slate-100 font-medium cursor-pointer"
                   >
                     <option value="US">United States (US)</option>
@@ -1235,7 +1294,7 @@ export const CalendarPillar: React.FC = () => {
                   </label>
                   <select
                     value={selectedCountryCode}
-                    onChange={(e) => setSelectedCountryCode(e.target.value)}
+                    onChange={(e) => { const v = e.target.value; setSelectedCountryCode(v); try { localStorage.setItem('tg_calendar_country_v1', v); localStorage.setItem('tg_calendar_country_user_set', '1'); } catch {} }}
                     className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-slate-100 shadow-xs cursor-pointer"
                   >
                     <option value="US">United States (US)</option>
