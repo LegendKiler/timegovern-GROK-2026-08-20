@@ -4,6 +4,7 @@ import { COUNTRY_CODES, type CountryCodeRow } from "../data/countryCodes";
 import { buildDialSequence, getIdd } from "../data/iddCodes";
 import { getAreaCodes } from "../data/areaCodes";
 import { findCityForCountry } from "../lib/citiesData";
+import { formatLocalTime, formatOffset, dstLabel } from "../lib/tzDetail";
 import type { City } from "../types";
 
 function matches(row: CountryCodeRow, q: string): boolean {
@@ -296,6 +297,28 @@ export const CountryCodesPillar: React.FC<Props> = ({ onNavigatePillar, onSelect
                 Calling code <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">+{selected.dial}</span>
                 {" · "}ISO {selected.iso2} / {selected.iso3}
               </p>
+
+          {linkedCity?.timezone && (
+            <div data-tg-cc3-time className="rounded-xl border border-cyan-500/25 bg-cyan-500/5 dark:bg-slate-900/80 p-3 space-y-2">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                Local time · {linkedCity.name}
+              </p>
+              <p className="text-2xl font-mono font-extrabold text-slate-900 dark:text-white tabular-nums">
+                {liveClock || formatLocalTime(linkedCity.timezone)}
+              </p>
+              <div className="flex flex-wrap gap-2 text-[11px]">
+                <span className="inline-flex items-center px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 font-mono font-bold text-slate-700 dark:text-slate-200">
+                  {formatOffset(linkedCity.timezone)}
+                </span>
+                <span className="inline-flex items-center px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 font-medium text-slate-600 dark:text-slate-300">
+                  {linkedCity.timezone}
+                </span>
+                <span className="inline-flex items-center px-2 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 font-medium text-emerald-800 dark:text-emerald-300">
+                  {dstLabel(linkedCity.timezone)}
+                </span>
+              </div>
+            </div>
+          )}
             </div>
             <button
               type="button"
