@@ -1,7 +1,7 @@
-/** Major area / city dial codes — Phase CC2a (AU + US). Expand later (GB, etc.). */
+﻿/** Major area / city dial codes — AU, US, GB, NZ, CA */
 export type AreaCodeRow = {
-  code: string;       // digits after country calling code, e.g. "2" or "212"
-  label: string;      // city / region name
+  code: string;
+  label: string;
   note?: string;
 };
 
@@ -81,9 +81,7 @@ export const AREA_CODES: Record<string, AreaCodeRow[]> = {
     { code: "114", label: "Sheffield" },
     { code: "115", label: "Nottingham" },
     { code: "116", label: "Leicester" },
-    { code: "238", label: "Southampton" },
     { code: "23", label: "Southampton / Portsmouth area" },
-    { code: "292", label: "Cardiff (local format context)" },
     { code: "7", label: "Mobile (07…)" },
   ],
   NZ: [
@@ -108,8 +106,10 @@ export const AREA_CODES: Record<string, AreaCodeRow[]> = {
     { code: "403", label: "Calgary, AB" },
     { code: "587", label: "Alberta overlay" },
     { code: "780", label: "Edmonton, AB" },
-  ]
-};`r`n`r`nexport function getAreaCodes(iso2: string): AreaCodeRow[] {
+  ],
+};
+
+export function getAreaCodes(iso2: string): AreaCodeRow[] {
   const key = (iso2 || "").toUpperCase();
   return AREA_CODES[key] || [];
 }
