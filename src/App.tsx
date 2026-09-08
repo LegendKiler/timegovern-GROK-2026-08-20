@@ -1,4 +1,4 @@
-import React, { useState, useEffect, Suspense, lazy } from 'react';
+﻿import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { fetchBillingStatus, getLocalEntitlements } from './lib/billing';
 import { Header } from './components/Header';
 import { AdBanner } from './components/AdBanner';
@@ -97,7 +97,7 @@ export default function App() {
   }, []);
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="tg-shell min-h-screen flex flex-col">
       <AdSenseLoader />
       <Header
         activePillar={activePillar}

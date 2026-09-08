@@ -1,3 +1,117 @@
+/* === TG GRAPHIC G1 TOKENS === */
+/* Mosaic/TailAdmin-inspired density + TimeGovern emerald (no purple) */
+:root {
+  /* Surfaces — dark-first professional */
+  --tg-bg: #0b1220;
+  --tg-bg-elevated: #111827;
+  --tg-surface: #1e293b;
+  --tg-surface-2: #334155;
+  --tg-panel: rgba(30, 41, 59, 0.92);
+
+  /* Text */
+  --tg-text: #f8fafc;
+  --tg-text-muted: #94a3b8;
+  --tg-text-dim: #64748b;
+
+  /* Accent — emerald only */
+  --tg-accent: #10b981;
+  --tg-accent-hover: #34d399;
+  --tg-accent-muted: rgba(16, 185, 129, 0.15);
+  --tg-accent-border: rgba(16, 185, 129, 0.35);
+
+  /* Borders / rings */
+  --tg-border: rgba(148, 163, 184, 0.18);
+  --tg-border-strong: rgba(148, 163, 184, 0.32);
+
+  /* Radius / shadow (graphic depth) */
+  --tg-radius: 0.75rem;
+  --tg-radius-lg: 1rem;
+  --tg-radius-xl: 1.25rem;
+  --tg-shadow: 0 10px 40px -12px rgba(0, 0, 0, 0.55);
+  --tg-shadow-accent: 0 0 0 1px var(--tg-accent-border), 0 8px 24px -8px rgba(16, 185, 129, 0.25);
+
+  /* Type scale */
+  --tg-font: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --tg-text-xs: 0.75rem;
+  --tg-text-sm: 0.875rem;
+  --tg-text-base: 1rem;
+  --tg-text-lg: 1.125rem;
+  --tg-text-xl: 1.25rem;
+  --tg-text-2xl: 1.5rem;
+  --tg-text-hero: clamp(1.75rem, 2.5vw, 2.25rem);
+
+  /* Layout */
+  --tg-header-h: 3.5rem;
+  --tg-max: 1600px;
+  --tg-gap: 0.75rem;
+}
+
+html.dark,
+html {
+  color-scheme: dark;
+}
+
+body {
+  font-family: var(--tg-font);
+  background-color: var(--tg-bg);
+  color: var(--tg-text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Utility classes for G2+ (safe to use gradually) */
+.tg-shell {
+  min-height: 100vh;
+  background:
+    radial-gradient(1200px 600px at 10% -10%, rgba(16, 185, 129, 0.08), transparent 50%),
+    radial-gradient(900px 500px at 90% 0%, rgba(56, 189, 248, 0.05), transparent 45%),
+    var(--tg-bg);
+}
+
+.tg-panel {
+  background: var(--tg-panel);
+  border: 1px solid var(--tg-border);
+  border-radius: var(--tg-radius-lg);
+  box-shadow: var(--tg-shadow);
+  backdrop-filter: blur(12px);
+}
+
+.tg-card {
+  background: var(--tg-surface);
+  border: 1px solid var(--tg-border);
+  border-radius: var(--tg-radius);
+  box-shadow: var(--tg-shadow);
+}
+
+.tg-card-accent {
+  border-color: var(--tg-accent-border);
+  box-shadow: var(--tg-shadow-accent);
+}
+
+.tg-accent {
+  color: var(--tg-accent);
+}
+
+.tg-btn-accent {
+  background: var(--tg-accent);
+  color: #042f2e;
+  font-weight: 700;
+  border-radius: var(--tg-radius);
+}
+.tg-btn-accent:hover {
+  background: var(--tg-accent-hover);
+}
+
+.tg-live-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 9999px;
+  background: var(--tg-accent);
+  box-shadow: 0 0 0 3px var(--tg-accent-muted);
+}
+
+/* Prefer existing Tailwind dark: classes; tokens support gradual migration */
+/* === END TG GRAPHIC G1 TOKENS === */
 @import "tailwindcss";
 
 @custom-variant dark (&:where(.dark, .dark *));
@@ -15,16 +129,16 @@
   --tf-border: rgba(148, 163, 184, 0.22);
   --tf-text: #e2e8f0;
   --tf-muted: #94a3b8;
-  --tf-blue: #4f46e5;
-  --tf-blue-bright: #6366f1;
-  --tf-cyan: #818cf8;
-  --tf-grad-from: #312e81;
-  --tf-grad-to: #6366f1;
+  --tf-blue: #059669; /* emerald-600 primary */
+  --tf-blue-bright: #10b981; /* emerald-500 */
+  --tf-cyan: #34d399; /* emerald-400 */
+  --tf-grad-from: #064e3b; /* emerald-900 */
+  --tf-grad-to: #10b981;
   --font-sans: "IBM Plex Sans", "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
   --font-display: "IBM Plex Sans", system-ui, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
   --tf-shadow: 0 10px 40px -12px rgba(0, 0, 0, 0.45);
-  --tf-glow: 0 0 40px rgba(99, 102, 241, 0.25);
+  --tf-glow: 0 0 40px rgba(16, 185, 129, 0.28);
 }
 
 html {
@@ -53,8 +167,8 @@ body {
 
 html.dark body {
   background:
-    radial-gradient(800px 420px at 90% 10%, rgba(99, 102, 241, 0.12), transparent 55%),
-    radial-gradient(600px 360px at 10% 80%, rgba(79, 70, 229, 0.08), transparent 50%),
+    radial-gradient(800px 420px at 90% 10%, rgba(16, 185, 129, 0.10), transparent 55%),
+    radial-gradient(600px 360px at 10% 80%, rgba(5, 150, 105, 0.08), transparent 50%),
     var(--tf-bg) !important;
   color: var(--tf-text);
 }
@@ -99,11 +213,11 @@ html.dark main .border-slate-600 {
 
 html.dark main .text-cyan-400,
 html.dark main .text-cyan-300 {
-  color: #a5b4fc !important;
+  color: #6ee7b7 !important;
 }
 html.dark main .bg-cyan-500,
 html.dark main .bg-cyan-600 {
-  background-color: #4f46e5 !important;
+  background-color: #059669 !important;
 }
 
 html.dark main .text-emerald-400 {
@@ -112,18 +226,18 @@ html.dark main .text-emerald-400 {
 
 main button.bg-blue-600,
 main .bg-blue-600 {
-  background-color: #4f46e5 !important;
+  background-color: #059669 !important;
 }
 main button.bg-blue-600:hover,
 main .bg-blue-600:hover {
-  background-color: #4338ca !important;
+  background-color: #047857 !important;
 }
 
 main input:focus,
 main select:focus,
 main textarea:focus {
   outline: none;
-  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.35);
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.40);
 }
 
 .font-display,
