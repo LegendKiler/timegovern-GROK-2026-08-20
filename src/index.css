@@ -1,7 +1,7 @@
-/* === TG GRAPHIC G1 TOKENS === */
+﻿/* === TG GRAPHIC G1 TOKENS === */
 /* Mosaic/TailAdmin-inspired density + TimeGovern emerald (no purple) */
 :root {
-  /* Surfaces — dark-first professional */
+  /* Surfaces â€” dark-first professional */
   --tg-bg: #0b1220;
   --tg-bg-elevated: #111827;
   --tg-surface: #1e293b;
@@ -13,7 +13,7 @@
   --tg-text-muted: #94a3b8;
   --tg-text-dim: #64748b;
 
-  /* Accent — emerald only */
+  /* Accent â€” emerald only */
   --tg-accent: #10b981;
   --tg-accent-hover: #34d399;
   --tg-accent-muted: rgba(16, 185, 129, 0.15);
@@ -117,7 +117,7 @@ body {
 @custom-variant dark (&:where(.dark, .dark *));
 
 /*
-  TIMEGOVERN — Mosaic skin + D typography + E motion + F light/dark
+  TIMEGOVERN â€” Mosaic skin + D typography + E motion + F light/dark
   Fonts only: IBM Plex Sans + IBM Plex Mono (no colour/layout change)
 */
 :root {
@@ -266,7 +266,7 @@ main textarea:focus {
   line-height: 1.05;
 }
 
-/* ——— E: motion ——— */
+/* â€”â€”â€” E: motion â€”â€”â€” */
 @media (prefers-reduced-motion: no-preference) {
   .tg-motion-card,
   main [data-tg-card],
@@ -321,3 +321,73 @@ main textarea:focus {
     transform: none !important;
   }
 }
+
+
+/* === TG GRAPHIC VISIBLE SHELL === */
+html, body, #root {
+  min-height: 100%;
+  background-color: #070b14 !important;
+  color: #e2e8f0;
+}
+
+body {
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(16, 185, 129, 0.18), transparent),
+    radial-gradient(ellipse 60% 40% at 100% 0%, rgba(14, 165, 233, 0.08), transparent),
+    linear-gradient(180deg, #070b14 0%, #0f172a 40%, #070b14 100%) !important;
+  background-attachment: fixed;
+}
+
+/* Main content cards feel more “product” */
+.tg-tab {
+  border-radius: 0.75rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.01em;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease !important;
+}
+.tg-tab:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px -8px rgba(16, 185, 129, 0.35);
+}
+
+/* Active-looking tabs when parent marks active via existing indigo — shift toward emerald */
+header button.tg-tab.bg-indigo-500,
+header .tg-tab.bg-indigo-500 {
+  background: linear-gradient(135deg, #059669, #10b981) !important;
+  border-color: #34d399 !important;
+  color: #042f2e !important;
+  box-shadow: 0 0 0 1px rgba(52, 211, 153, 0.4), 0 10px 25px -10px rgba(16, 185, 129, 0.5) !important;
+}
+
+/* Header glass bar */
+header.tg-graphic-header,
+header:first-of-type {
+  background: rgba(15, 23, 42, 0.85) !important;
+  backdrop-filter: blur(16px) saturate(1.4);
+  border-bottom: 1px solid rgba(16, 185, 129, 0.2) !important;
+  box-shadow: 0 10px 40px -15px rgba(0, 0, 0, 0.7);
+}
+
+/* Soften harsh pure-white panels in dark */
+.bg-white {
+  background-color: rgba(30, 41, 59, 0.9) !important;
+  color: #e2e8f0 !important;
+}
+.dark .bg-white,
+html.dark .bg-white {
+  background-color: rgba(30, 41, 59, 0.95) !important;
+}
+
+/* Border glow on main sections */
+main .rounded-2xl,
+main .rounded-xl {
+  border-color: rgba(148, 163, 184, 0.2) !important;
+  box-shadow: 0 4px 24px -8px rgba(0, 0, 0, 0.45);
+}
+
+/* LIVE emerald pulse helper */
+@keyframes tg-pulse-live {
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5); }
+  50% { opacity: 0.85; box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+}
+/* === END TG GRAPHIC VISIBLE SHELL === */

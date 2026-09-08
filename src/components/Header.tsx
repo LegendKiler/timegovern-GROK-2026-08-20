@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+﻿import React, { useState, useEffect, useRef } from 'react';
 import {
   Search, Star, Moon, Sun, Keyboard, QrCode, User, Shield, Layers,
   Clock, Calendar, CloudSun, Timer, Activity, Code2, Newspaper, Calculator, Building2, Phone,
@@ -77,7 +77,7 @@ export const Header: React.FC<HeaderProps> = ({
     'inline-flex items-center justify-center h-10 w-10 sm:h-11 sm:w-11 rounded-xl border border-slate-200/90 dark:border-slate-600/80 bg-white/90 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 shadow-sm hover:text-indigo-600 dark:hover:text-white hover:border-indigo-400 hover:bg-indigo-50 dark:hover:bg-slate-700 hover:shadow-md hover:scale-105 active:scale-95 transition-all duration-150';
 
   return (
-    <header className="sticky top-0 z-40 border-b border-slate-200 dark:border-slate-800/80 backdrop-blur-md bg-white/80 dark:bg-slate-950/80">
+    <header className="tg-graphic-header sticky top-0 z-40 border-b border-slate-200 dark:border-slate-800/80 backdrop-blur-md bg-white/80 dark:bg-slate-950/80">
       <div className="max-w-[1600px] mx-auto px-3 sm:px-4 py-2.5 flex items-center gap-3 sm:gap-4">
         <button type="button" onClick={() => setActivePillar(1)} className="shrink-0 flex items-center gap-2">
           <BrandLogo
@@ -102,7 +102,7 @@ export const Header: React.FC<HeaderProps> = ({
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onFocus={() => results.length && setOpen(true)}
-              placeholder="Search cityâ€¦"
+              placeholder="Search cityÃ¢â‚¬Â¦"
               className="flex-1 min-w-0 bg-transparent border-0 outline-none text-xs sm:text-sm font-semibold text-slate-800 dark:text-slate-100 placeholder:text-slate-400 placeholder:font-medium"
             />
           </div>
