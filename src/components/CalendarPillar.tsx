@@ -1,3 +1,4 @@
+﻿import { FlightCalendarPanel } from "./flights/FlightCalendarPanel";
 import React, { useState, useMemo, useEffect } from 'react';
 import {
   Calendar as CalendarIcon,
@@ -229,7 +230,7 @@ export const CalendarPillar: React.FC = () => {
               const bodyText = evt.time
                 ? `Upcoming at ${evt.time} (${diffMins <= 0 ? 'Starting now' : `in ${diffMins} min`})`
                 : `Calendar event scheduled for today`;
-              dispatchBrowserNotification(`­ƒôà ${evt.title}`, {
+              dispatchBrowserNotification(`Â­Æ’Ã´Ã  ${evt.title}`, {
                 body: bodyText,
                 tag: alertKey,
               });
@@ -268,7 +269,7 @@ export const CalendarPillar: React.FC = () => {
             newAlerts.push(holAlert);
 
             if (notificationSettings.browserPush) {
-              dispatchBrowserNotification(`­ƒÄë ${holidayToday.name}`, {
+              dispatchBrowserNotification(`Â­Æ’Ã„Ã« ${holidayToday.name}`, {
                 body: `Public Holiday today in ${COUNTRY_NAMES[selectedCountryCode] || selectedCountryCode}`,
                 tag: holKey,
               });
@@ -333,7 +334,7 @@ export const CalendarPillar: React.FC = () => {
     }
 
     if (notificationSettings.browserPush) {
-      dispatchBrowserNotification('­ƒöö Test Alert: Global Strategy Sync', {
+      dispatchBrowserNotification('Â­Æ’Ã¶Ã¶ Test Alert: Global Strategy Sync', {
         body: 'Your upcoming event starts in 15 minutes. Click to view on TimeGovern.',
         tag: `test-${Date.now()}`,
       });
@@ -562,7 +563,7 @@ export const CalendarPillar: React.FC = () => {
 
   // Copy Calculation Summary
   const handleCopyResult = (res: DateDiffResult, start: string, end: string) => {
-    const text = `Date Calculation (${start} to ${end}):\nÔÇó Total Days: ${res.totalDays} days\nÔÇó Weeks: ${res.weeksAndDays.weeks} weeks + ${res.weeksAndDays.days} days (${res.exactWeeks} weeks)\nÔÇó Business Days: ${res.businessDays} work days\nÔÇó Weekend Days: ${res.weekendDaysCount} days\nÔÇó Holidays: ${res.holidaysCount} days\nCalculated via TimeGovern`;
+    const text = `Date Calculation (${start} to ${end}):\nÃ”Ã‡Ã³ Total Days: ${res.totalDays} days\nÃ”Ã‡Ã³ Weeks: ${res.weeksAndDays.weeks} weeks + ${res.weeksAndDays.days} days (${res.exactWeeks} weeks)\nÃ”Ã‡Ã³ Business Days: ${res.businessDays} work days\nÃ”Ã‡Ã³ Weekend Days: ${res.weekendDaysCount} days\nÃ”Ã‡Ã³ Holidays: ${res.holidaysCount} days\nCalculated via TimeGovern`;
     navigator.clipboard.writeText(text);
     setCopiedResult(true);
     setTimeout(() => setCopiedResult(false), 2500);
@@ -601,7 +602,9 @@ export const CalendarPillar: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div
+      <div className="mb-4"><FlightCalendarPanel /></div>
+      <div className="space-y-6">
       {/* Header & Tabs */}
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 sm:p-5 shadow-xs">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-4">
@@ -1054,7 +1057,7 @@ export const CalendarPillar: React.FC = () => {
                         }`}
                         title={
                           isHoliday
-                            ? `${isHoliday.name} ÔÇó Click to select`
+                            ? `${isHoliday.name} Ã”Ã‡Ã³ Click to select`
                             : isStart
                             ? 'Range Start Date'
                             : isEnd
@@ -1079,7 +1082,7 @@ export const CalendarPillar: React.FC = () => {
                         {/* Holiday badge */}
                         {isHoliday && (
                           <span className="block text-[8px] truncate max-w-full font-semibold mt-1 px-1 rounded bg-amber-200/50 dark:bg-amber-900/60 text-amber-900 dark:text-amber-200">
-                            Ôÿà {isHoliday.name}
+                            Ã”Ã¿Ã  {isHoliday.name}
                           </span>
                         )}
 
@@ -1089,7 +1092,7 @@ export const CalendarPillar: React.FC = () => {
                             key={evt.id}
                             className="block text-[8px] truncate max-w-full font-semibold mt-0.5 px-1 rounded bg-blue-100 dark:bg-blue-900/70 text-blue-800 dark:text-blue-200 border border-blue-300 dark:border-blue-700/60 flex items-center justify-between gap-0.5"
                           >
-                            <span className="truncate">ÔÇó {evt.title}</span>
+                            <span className="truncate">Ã”Ã‡Ã³ {evt.title}</span>
                             {evt.notify !== false && notificationSettings.enabled && (
                               <Bell className="w-2 h-2 text-amber-500 shrink-0" />
                             )}
@@ -1155,6 +1158,8 @@ export const CalendarPillar: React.FC = () => {
                   const isSelectedForPdf = selectedHolidayDates.has(h.date);
                   return (
                     <div
+      <div className="mb-4"><FlightCalendarPanel /></div>
+      <div
                       key={i}
                       className={`p-2.5 rounded-xl border flex justify-between items-center transition-all ${
                         isSelectedForPdf
